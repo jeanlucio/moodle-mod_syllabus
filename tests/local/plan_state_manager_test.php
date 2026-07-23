@@ -225,4 +225,19 @@ final class plan_state_manager_test extends advanced_testcase {
 
         $this->assertSame(plan_state_manager::STATUS_DRAFT, $this->get_status($syllabusid));
     }
+
+    /**
+     * Every status constant maps to the matching status_* lang string key.
+     *
+     * @return void
+     */
+    public function test_status_string_key_maps_every_status(): void {
+        $this->assertSame('status_draft', plan_state_manager::status_string_key(plan_state_manager::STATUS_DRAFT));
+        $this->assertSame('status_submitted', plan_state_manager::status_string_key(plan_state_manager::STATUS_SUBMITTED));
+        $this->assertSame('status_approved', plan_state_manager::status_string_key(plan_state_manager::STATUS_APPROVED));
+        $this->assertSame(
+            'status_changesrequested',
+            plan_state_manager::status_string_key(plan_state_manager::STATUS_CHANGES_REQUESTED)
+        );
+    }
 }

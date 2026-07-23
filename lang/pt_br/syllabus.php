@@ -26,10 +26,21 @@ defined('MOODLE_INTERNAL') || die();
 // phpcs:disable moodle.Files.LineLength
 
 $string['activityname'] = 'Nome do plano';
+$string['aulas'] = 'Aulas';
 $string['changesrequestedreason'] = 'Motivo do ajuste solicitado';
+$string['conteudos'] = 'Conteúdos';
+$string['ementa'] = 'Ementa da Disciplina';
+$string['invalidarea'] = 'Área de campo personalizado inválida.';
+$string['managefieldsatividade'] = 'Gerenciar campos de atividade';
+$string['managefieldsaula'] = 'Gerenciar campos de aula';
+$string['managefieldsplano'] = 'Gerenciar campos do plano';
+$string['metodologia'] = 'Metodologia';
 $string['modulename'] = 'Plano de Disciplina';
 $string['modulename_help'] = 'A atividade Plano de Disciplina permite que o professor preencha um único plano de curso estruturado, submeta para aprovação da coordenação e, uma vez aprovado, publique automaticamente visões específicas por papel para tutores e estudantes.';
 $string['modulenameplural'] = 'Planos de Disciplina';
+$string['noaulasyet'] = 'Nenhuma aula foi adicionada ainda.';
+$string['objetivos'] = 'Objetivos';
+$string['plannotavailable'] = 'Este plano ainda não está disponível.';
 $string['pluginadministration'] = 'Administração do Plano de Disciplina';
 $string['pluginname'] = 'Plano de Disciplina';
 $string['requestchanges'] = 'Solicitar ajustes';

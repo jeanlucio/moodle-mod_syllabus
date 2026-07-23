@@ -26,10 +26,21 @@ defined('MOODLE_INTERNAL') || die();
 // phpcs:disable moodle.Files.LineLength
 
 $string['activityname'] = 'Syllabus name';
+$string['aulas'] = 'Weeks';
 $string['changesrequestedreason'] = 'Reason for requested changes';
+$string['conteudos'] = 'Contents';
+$string['ementa'] = 'Course syllabus (ementa)';
+$string['invalidarea'] = 'Invalid custom field area.';
+$string['managefieldsatividade'] = 'Manage atividade fields';
+$string['managefieldsaula'] = 'Manage aula fields';
+$string['managefieldsplano'] = 'Manage plano fields';
+$string['metodologia'] = 'Methodology';
 $string['modulename'] = 'Syllabus';
 $string['modulename_help'] = 'The Syllabus activity lets a teacher fill in a single structured course plan, submit it for coordination approval, and — once approved — automatically publish role-specific views to tutors and students.';
 $string['modulenameplural'] = 'Syllabus activities';
+$string['noaulasyet'] = 'No weeks have been added yet.';
+$string['objetivos'] = 'Objectives';
+$string['plannotavailable'] = 'This plan is not available yet.';
 $string['pluginadministration'] = 'Syllabus administration';
 $string['pluginname'] = 'Syllabus';
 $string['requestchanges'] = 'Request changes';

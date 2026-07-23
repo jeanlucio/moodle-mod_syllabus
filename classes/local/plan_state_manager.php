@@ -138,6 +138,16 @@ final class plan_state_manager {
     }
 
     /**
+     * Maps a status constant to its lang string key (e.g. `changes_requested` -> `status_changesrequested`).
+     *
+     * @param string $status One of the STATUS_* constants.
+     * @return string
+     */
+    public static function status_string_key(string $status): string {
+        return 'status_' . str_replace('_', '', $status);
+    }
+
+    /**
      * Guards the two invariants shared by approve() and request_changes().
      *
      * @param stdClass $plan Syllabus record being reviewed.

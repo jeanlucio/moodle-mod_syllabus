@@ -104,7 +104,7 @@ final class save_customfield_value_test extends advanced_testcase {
         $this->getDataGenerator()->enrol_user($teacherb->id, $courseb->id, 'editingteacher');
 
         $this->setUser($teacherb);
-        $weekb = save_week::execute($syllabusb->cmid, 0, 'Week B', null, null, null);
+        $weekb = save_week::execute($syllabusb->cmid, 0, 'Week B', null, null, null, null, null, null);
 
         $handler = week_handler::create();
         $fieldid = $this->field_id($handler, 'details');

@@ -52,8 +52,19 @@ final class delete_activity_test extends advanced_testcase {
         $this->getDataGenerator()->enrol_user($teacher->id, $course->id, 'editingteacher');
         $this->setUser($teacher);
 
-        $week = save_week::execute($syllabus->cmid, 0, 'Week 1', null, null, null);
-        $activity = save_activity::execute($syllabus->cmid, $week['weekid'], 0, 'Activity 1', null, null, null, null, null);
+        $week = save_week::execute($syllabus->cmid, 0, 'Week 1', null, null, null, null, null, null);
+        $activity = save_activity::execute(
+            $syllabus->cmid,
+            $week['weekid'],
+            0,
+            'Activity 1',
+            null,
+            null,
+            null,
+            null,
+            null,
+            false
+        );
 
         $result = delete_activity::execute($syllabus->cmid, $activity['activityid']);
         $result = external_api::clean_returnvalue(delete_activity::execute_returns(), $result);
@@ -79,8 +90,19 @@ final class delete_activity_test extends advanced_testcase {
         $this->getDataGenerator()->enrol_user($teacherb->id, $courseb->id, 'editingteacher');
 
         $this->setUser($teacherb);
-        $weekb = save_week::execute($syllabusb->cmid, 0, 'Week B', null, null, null);
-        $activityb = save_activity::execute($syllabusb->cmid, $weekb['weekid'], 0, 'Activity B', null, null, null, null, null);
+        $weekb = save_week::execute($syllabusb->cmid, 0, 'Week B', null, null, null, null, null, null);
+        $activityb = save_activity::execute(
+            $syllabusb->cmid,
+            $weekb['weekid'],
+            0,
+            'Activity B',
+            null,
+            null,
+            null,
+            null,
+            null,
+            false
+        );
 
         $this->setUser($teachera);
         $this->expectException(\dml_missing_record_exception::class);

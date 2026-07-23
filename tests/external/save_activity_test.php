@@ -18,6 +18,7 @@ namespace mod_syllabus\external;
 
 use advanced_testcase;
 use core_external\external_api;
+use mod_syllabus\local\plan_state_manager;
 
 /**
  * Unit tests for the mod_syllabus_save_activity external function.
@@ -50,7 +51,7 @@ final class save_activity_test extends advanced_testcase {
         $this->getDataGenerator()->enrol_user($teacher->id, $course->id, 'editingteacher');
         $this->setUser($teacher);
 
-        $week = save_week::execute($syllabus->cmid, 0, 'Week 1', null, null, null);
+        $week = save_week::execute($syllabus->cmid, 0, 'Week 1', null, null, null, null, null, null);
 
         return [$syllabus, $week, $teacher];
     }
@@ -74,7 +75,8 @@ final class save_activity_test extends advanced_testcase {
             'asynchronous',
             null,
             null,
-            10.5
+            10.5,
+            true
         );
         $result = external_api::clean_returnvalue(save_activity::execute_returns(), $result);
 
@@ -83,6 +85,7 @@ final class save_activity_test extends advanced_testcase {
         $this->assertEquals($week['weekid'], $activity->weekid);
         $this->assertSame('Forum discussion', $activity->title);
         $this->assertEquals(10.5, $activity->points);
+        $this->assertEquals(1, $activity->isfinalassessment);
     }
 
     /**
@@ -96,6 +99,51 @@ final class save_activity_test extends advanced_testcase {
 
         $this->setUser($teachera);
         $this->expectException(\dml_missing_record_exception::class);
-        save_activity::execute($syllabusa->cmid, $weekb['weekid'], 0, 'Hijacked', null, null, null, null, null);
+        save_activity::execute($syllabusa->cmid, $weekb['weekid'], 0, 'Hijacked', null, null, null, null, null, false);
+    }
+
+    /**
+     * Resubmitting isfinalassessment=false on an approved plan does not spuriously reopen
+     * it. Regression test for a real bug: structural_change_detector::changed() compares
+     * via (string) cast, and (string) false is '' while a stored DB value of 0 casts to
+     * '0' — without normalising the submitted bool to the same 0/1 shape first, every save
+     * with isfinalassessment left at its default would incorrectly look like a change.
+     *
+     * @return void
+     */
+    public function test_unchanged_isfinalassessment_does_not_reopen_approved_plan(): void {
+        global $DB;
+
+        [$syllabus, $week] = $this->create_syllabus_with_week();
+        $created = save_activity::execute(
+            $syllabus->cmid,
+            $week['weekid'],
+            0,
+            'Forum discussion',
+            null,
+            null,
+            null,
+            null,
+            null,
+            false
+        );
+
+        $DB->set_field('syllabus', 'status', plan_state_manager::STATUS_APPROVED, ['id' => $syllabus->id]);
+
+        save_activity::execute(
+            $syllabus->cmid,
+            $week['weekid'],
+            $created['activityid'],
+            'Forum discussion',
+            null,
+            null,
+            null,
+            null,
+            null,
+            false
+        );
+
+        $status = $DB->get_field('syllabus', 'status', ['id' => $syllabus->id]);
+        $this->assertSame(plan_state_manager::STATUS_APPROVED, $status);
     }
 }

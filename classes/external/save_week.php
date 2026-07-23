@@ -45,6 +45,9 @@ class save_week extends external_api {
             'duration'  => new external_value(PARAM_INT, 'Duration in minutes', VALUE_DEFAULT, null),
             'startdate' => new external_value(PARAM_INT, 'Start date (timestamp)', VALUE_DEFAULT, null),
             'enddate'   => new external_value(PARAM_INT, 'End date (timestamp)', VALUE_DEFAULT, null),
+            'syncdate'  => new external_value(PARAM_INT, 'Synchronous meeting date and time (timestamp)', VALUE_DEFAULT, null),
+            'synclink'  => new external_value(PARAM_URL, 'Synchronous meeting access link', VALUE_DEFAULT, null),
+            'synctopic' => new external_value(PARAM_TEXT, 'Synchronous meeting topic', VALUE_DEFAULT, null),
         ]);
     }
 
@@ -57,6 +60,9 @@ class save_week extends external_api {
      * @param int|null $duration Duration in minutes.
      * @param int|null $startdate Start date.
      * @param int|null $enddate End date.
+     * @param int|null $syncdate Synchronous meeting date and time.
+     * @param string|null $synclink Synchronous meeting access link.
+     * @param string|null $synctopic Synchronous meeting topic.
      * @return array Result with weekid and success status.
      */
     public static function execute(
@@ -65,7 +71,10 @@ class save_week extends external_api {
         string $title,
         ?int $duration,
         ?int $startdate,
-        ?int $enddate
+        ?int $enddate,
+        ?int $syncdate,
+        ?string $synclink,
+        ?string $synctopic
     ): array {
         global $DB;
 
@@ -76,6 +85,9 @@ class save_week extends external_api {
             'duration'  => $duration,
             'startdate' => $startdate,
             'enddate'   => $enddate,
+            'syncdate'  => $syncdate,
+            'synclink'  => $synclink,
+            'synctopic' => $synctopic,
         ]);
 
         $cm = get_coursemodule_from_id('syllabus', $params['cmid'], 0, false, MUST_EXIST);
@@ -86,7 +98,7 @@ class save_week extends external_api {
         $plan = $DB->get_record('syllabus', ['id' => $cm->instance], '*', MUST_EXIST);
         plan_state_manager::require_structural_editable($plan);
 
-        $fields = ['title', 'duration', 'startdate', 'enddate'];
+        $fields = ['title', 'duration', 'startdate', 'enddate', 'syncdate', 'synclink', 'synctopic'];
         $submitted = array_intersect_key($params, array_flip($fields));
 
         $existing = null;
@@ -107,6 +119,9 @@ class save_week extends external_api {
             $record->duration = $submitted['duration'];
             $record->startdate = $submitted['startdate'];
             $record->enddate = $submitted['enddate'];
+            $record->syncdate = $submitted['syncdate'];
+            $record->synclink = $submitted['synclink'];
+            $record->synctopic = $submitted['synctopic'];
             $record->timemodified = $now;
             $DB->update_record('syllabus_weeks', $record);
             $resultid = $record->id;
@@ -121,6 +136,9 @@ class save_week extends external_api {
                 'duration'     => $submitted['duration'],
                 'startdate'    => $submitted['startdate'],
                 'enddate'      => $submitted['enddate'],
+                'syncdate'     => $submitted['syncdate'],
+                'synclink'     => $submitted['synclink'],
+                'synctopic'    => $submitted['synctopic'],
                 'sortorder'    => $maxsort + 1,
                 'timecreated'  => $now,
                 'timemodified' => $now,

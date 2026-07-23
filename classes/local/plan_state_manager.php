@@ -22,9 +22,9 @@ use stdClass;
 /**
  * Single point of truth for the syllabus plan approval workflow.
  *
- * @package mod_syllabus
- * @copyright 2026 Jean Lúcio
- * @license https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @package    mod_syllabus
+ * @copyright  2026 Jean Lúcio
+ * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 final class plan_state_manager {
     /** @var string Only the author edits; the activity is always hidden. */

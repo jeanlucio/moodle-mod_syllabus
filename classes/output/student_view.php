@@ -27,9 +27,9 @@ use templatable;
  * answer keys or tutor accompaniment notes, which stay exclusive to tutor_view — the
  * template itself simply never receives those fields, not a value hidden after the fact.
  *
- * @package mod_syllabus
- * @copyright 2026 Jean Lúcio
- * @license https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @package    mod_syllabus
+ * @copyright  2026 Jean Lúcio
+ * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 final class student_view implements renderable, templatable {
     /** @var stdClass The syllabus record. */

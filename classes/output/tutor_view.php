@@ -28,9 +28,9 @@ use templatable;
  * approval workflow status — a tutor only ever reaches this once the plan is approved,
  * enforced independently of course module visibility in view.php.
  *
- * @package mod_syllabus
- * @copyright 2026 Jean Lúcio
- * @license https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @package    mod_syllabus
+ * @copyright  2026 Jean Lúcio
+ * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 final class tutor_view implements renderable, templatable {
     /** @var stdClass The syllabus record. */

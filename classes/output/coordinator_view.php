@@ -29,9 +29,9 @@ use templatable;
  * Phase 2 renders it read-only; the submit/review actions themselves are wired in a later
  * phase once the Web Services and workflow events exist.
  *
- * @package mod_syllabus
- * @copyright 2026 Jean Lúcio
- * @license https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @package    mod_syllabus
+ * @copyright  2026 Jean Lúcio
+ * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 final class coordinator_view implements renderable, templatable {
     /** @var stdClass The syllabus record. */

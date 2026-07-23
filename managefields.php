@@ -17,9 +17,9 @@
 /**
  * Manage the Custom Fields template for one of the three mod_syllabus areas.
  *
- * @package mod_syllabus
- * @copyright 2026 Jean Lúcio
- * @license https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @package    mod_syllabus
+ * @copyright  2026 Jean Lúcio
+ * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 require(__DIR__ . '/../../config.php');

@@ -23,9 +23,9 @@ use core_customfield\handler;
  * material, supplementary material, interaction tools, notes). Instanceid is the
  * syllabus_weeks id.
  *
- * @package mod_syllabus
- * @copyright 2026 Jean Lúcio
- * @license https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @package    mod_syllabus
+ * @copyright  2026 Jean Lúcio
+ * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 final class week_handler extends syllabus_handler_base {
     /** @var week_handler|null Singleton instance, redeclared per class to avoid sharing state. */

@@ -32,9 +32,9 @@ use moodle_url;
  * and friends, which is why each concrete handler must know how to walk from its own instanceid
  * (syllabus id, week id or activity id) back to the owning syllabus, in resolve_syllabus_id().
  *
- * @package mod_syllabus
- * @copyright 2026 Jean Lúcio
- * @license https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @package    mod_syllabus
+ * @copyright  2026 Jean Lúcio
+ * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 abstract class syllabus_handler_base extends handler {
     /**

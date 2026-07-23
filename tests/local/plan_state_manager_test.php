@@ -22,9 +22,9 @@ use coding_exception;
 /**
  * Unit tests for the plan_state_manager approval workflow state machine.
  *
- * @package mod_syllabus
- * @copyright 2026 Jean Lúcio
- * @license https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @package    mod_syllabus
+ * @copyright  2026 Jean Lúcio
+ * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  * @covers \mod_syllabus\local\plan_state_manager
  */
 final class plan_state_manager_test extends advanced_testcase {

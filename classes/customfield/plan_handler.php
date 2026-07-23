@@ -23,9 +23,9 @@ use core_customfield\handler;
  * (course description, objectives, contents, methodology). Instanceid is the syllabus id
  * directly.
  *
- * @package mod_syllabus
- * @copyright 2026 Jean Lúcio
- * @license https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @package    mod_syllabus
+ * @copyright  2026 Jean Lúcio
+ * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 final class plan_handler extends syllabus_handler_base {
     /** @var plan_handler|null Singleton instance, redeclared per class to avoid sharing state. */

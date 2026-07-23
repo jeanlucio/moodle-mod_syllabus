@@ -36,7 +36,10 @@ function xmldb_syllabus_install(): void {
     $areas = [
         'plan_handler' => [
             'category' => 'categoryplan',
-            'fields' => ['coursedescription', 'objectives', 'contents', 'methodology'],
+            'fields' => [
+                'coursedescription', 'objectives', 'contents', 'methodology',
+                'presentationscript', 'generalreferences',
+            ],
         ],
         'week_handler' => [
             'category' => 'categoryweek',

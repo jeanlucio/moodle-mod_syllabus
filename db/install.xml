@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<XMLDB PATH="mod/syllabus/db" VERSION="20260724" COMMENT="XMLDB file for mod_syllabus"
+<XMLDB PATH="mod/syllabus/db" VERSION="20260725" COMMENT="XMLDB file for mod_syllabus"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:noNamespaceSchemaLocation="../../../lib/xmldb/xmldb.xsd"
 >
@@ -19,6 +19,11 @@
         <FIELD NAME="changesrequestedreason" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="Coordinator justification when status is changes_requested"/>
         <FIELD NAME="unpublishedby" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="FK to user - who last pulled an approved plan back to draft"/>
         <FIELD NAME="timeunpublished" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="academicperiod" TYPE="char" LENGTH="20" NOTNULL="false" SEQUENCE="false" COMMENT="Characterisation: academic year/term, e.g. 2026.1"/>
+        <FIELD NAME="coursestartdate" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="Characterisation: course period start"/>
+        <FIELD NAME="courseenddate" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="Characterisation: course period end"/>
+        <FIELD NAME="totalduration" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="Characterisation: declared total workload in minutes, target for the totals bar"/>
+        <FIELD NAME="presentationvideourl" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="Teacher and course presentation video link"/>
         <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
       </FIELDS>
@@ -38,6 +43,9 @@
         <FIELD NAME="duration" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="Duration in minutes"/>
         <FIELD NAME="startdate" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false"/>
         <FIELD NAME="enddate" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="syncdate" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="Synchronous meeting date and time"/>
+        <FIELD NAME="synclink" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="Synchronous meeting access link"/>
+        <FIELD NAME="synctopic" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="Synchronous meeting topic"/>
         <FIELD NAME="sortorder" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
@@ -57,6 +65,7 @@
         <FIELD NAME="startdate" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false"/>
         <FIELD NAME="enddate" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false"/>
         <FIELD NAME="points" TYPE="number" LENGTH="10" NOTNULL="false" SEQUENCE="false" DECIMALS="2"/>
+        <FIELD NAME="isfinalassessment" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Marks this activity as the course's Avaliacao Final"/>
         <FIELD NAME="sortorder" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>

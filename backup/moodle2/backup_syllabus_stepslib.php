@@ -58,7 +58,8 @@ class backup_syllabus_activity_structure_step extends backup_activity_structure_
         $syllabus = new backup_nested_element('syllabus', ['id'], [
             'name', 'intro', 'introformat', 'status', 'submittedby', 'timesubmitted',
             'reviewedby', 'timereviewed', 'changesrequestedreason', 'unpublishedby',
-            'timeunpublished', 'timecreated', 'timemodified',
+            'timeunpublished', 'academicperiod', 'coursestartdate', 'courseenddate',
+            'totalduration', 'presentationvideourl', 'timecreated', 'timemodified',
         ]);
 
         $planfields = new backup_nested_element('planfields');
@@ -68,7 +69,8 @@ class backup_syllabus_activity_structure_step extends backup_activity_structure_
 
         $weeks = new backup_nested_element('weeks');
         $week = new backup_nested_element('week', ['id'], [
-            'title', 'duration', 'startdate', 'enddate', 'sortorder', 'timecreated', 'timemodified',
+            'title', 'duration', 'startdate', 'enddate', 'syncdate', 'synclink', 'synctopic',
+            'sortorder', 'timecreated', 'timemodified',
         ]);
 
         $weekfields = new backup_nested_element('weekfields');
@@ -81,8 +83,8 @@ class backup_syllabus_activity_structure_step extends backup_activity_structure_
         // name for this nested element throws base_element_struct_exception (confirmed live).
         $activities = new backup_nested_element('syllabusactivities');
         $activity = new backup_nested_element('syllabusactivity', ['id'], [
-            'title', 'type', 'category', 'startdate', 'enddate', 'points', 'sortorder',
-            'timecreated', 'timemodified',
+            'title', 'type', 'category', 'startdate', 'enddate', 'points', 'isfinalassessment',
+            'sortorder', 'timecreated', 'timemodified',
         ]);
 
         $activityfields = new backup_nested_element('activityfields');

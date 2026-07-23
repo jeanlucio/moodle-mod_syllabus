@@ -52,7 +52,14 @@ final class backup_restore_test extends \advanced_testcase {
     private function seed_plan(int $courseid): array {
         global $DB;
 
-        $syllabus = $this->getDataGenerator()->create_module('syllabus', ['course' => $courseid]);
+        $syllabus = $this->getDataGenerator()->create_module('syllabus', [
+            'course'               => $courseid,
+            'academicperiod'       => '2026.1',
+            'coursestartdate'      => strtotime('2026-06-04'),
+            'courseenddate'        => strtotime('2026-07-01'),
+            'totalduration'        => 1800,
+            'presentationvideourl' => 'https://youtu.be/8MZLYHxOdUo',
+        ]);
 
         $now = time();
         $weekid = $DB->insert_record('syllabus_weeks', [
@@ -61,24 +68,30 @@ final class backup_restore_test extends \advanced_testcase {
             'duration'     => 90,
             'startdate'    => $now,
             'enddate'      => $now + WEEKSECS,
+            'syncdate'     => $now + DAYSECS,
+            'synclink'     => 'https://meet.example.org/week1',
+            'synctopic'    => 'Kickoff session',
             'sortorder'    => 0,
             'timecreated'  => $now,
             'timemodified' => $now,
         ]);
         $activityid = $DB->insert_record('syllabus_activities', [
-            'weekid'       => $weekid,
-            'title'        => 'Forum kickoff',
-            'type'         => 'forum',
-            'category'     => 'asynchronous',
-            'startdate'    => $now,
-            'enddate'      => $now + WEEKSECS,
-            'points'       => 10.5,
-            'sortorder'    => 0,
-            'timecreated'  => $now,
-            'timemodified' => $now,
+            'weekid'            => $weekid,
+            'title'             => 'Forum kickoff',
+            'type'              => 'forum',
+            'category'          => 'asynchronous',
+            'startdate'         => $now,
+            'enddate'           => $now + WEEKSECS,
+            'points'            => 10.5,
+            'isfinalassessment' => 1,
+            'sortorder'         => 0,
+            'timecreated'       => $now,
+            'timemodified'      => $now,
         ]);
 
         $this->set_customfield_value(plan_handler::create(), $syllabus->id, 'coursedescription', 'Plan level content.');
+        $this->set_customfield_value(plan_handler::create(), $syllabus->id, 'presentationscript', 'Presentation script content.');
+        $this->set_customfield_value(plan_handler::create(), $syllabus->id, 'generalreferences', 'General references content.');
         $this->set_customfield_value(week_handler::create(), $weekid, 'details', 'Week level content.');
         $this->set_customfield_value(activity_handler::create(), $activityid, 'studentinstructions', 'Activity level content.');
 
@@ -257,6 +270,25 @@ final class backup_restore_test extends \advanced_testcase {
         $this->assertStringContainsString(
             'Activity level content.',
             $this->get_customfield_value(activity_handler::create(), $newactivity->id, 'studentinstructions')
+        );
+
+        // Fase 5.5.a: Caracterização/Apresentação (syllabus columns), Encontro Síncrono
+        // (syllabus_weeks columns), Avaliação Final flag (syllabus_activities column) and
+        // the two new plan-level narrative Custom Fields all survive a real backup/restore.
+        $this->assertSame('2026.1', $newsyllabus->academicperiod);
+        $this->assertEquals(1800, $newsyllabus->totalduration);
+        $this->assertSame('https://youtu.be/8MZLYHxOdUo', $newsyllabus->presentationvideourl);
+        $this->assertSame('https://meet.example.org/week1', $newweek->synclink);
+        $this->assertSame('Kickoff session', $newweek->synctopic);
+        $this->assertNotEmpty($newweek->syncdate);
+        $this->assertEquals(1, $newactivity->isfinalassessment);
+        $this->assertStringContainsString(
+            'Presentation script content.',
+            $this->get_customfield_value(plan_handler::create(), $newsyllabus->id, 'presentationscript')
+        );
+        $this->assertStringContainsString(
+            'General references content.',
+            $this->get_customfield_value(plan_handler::create(), $newsyllabus->id, 'generalreferences')
         );
     }
 

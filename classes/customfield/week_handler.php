@@ -19,9 +19,9 @@ namespace mod_syllabus\customfield;
 use core_customfield\handler;
 
 /**
- * Custom field handler for the 'week' area: narrative fields of a week (aula)
- * (details, support material, supplementary material, interaction tools, notes).
- * Instanceid is the syllabus_weeks id.
+ * Custom field handler for the 'week' area: narrative fields of a week (details, support
+ * material, supplementary material, interaction tools, notes). Instanceid is the
+ * syllabus_weeks id.
  *
  * @package mod_syllabus
  * @copyright 2026 Jean Lúcio

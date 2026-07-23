@@ -4,7 +4,7 @@
     xsi:noNamespaceSchemaLocation="../../../lib/xmldb/xmldb.xsd"
 >
   <TABLES>
-    <TABLE NAME="syllabus" COMMENT="Each record is one Syllabus (Plano de Disciplina) activity instance">
+    <TABLE NAME="syllabus" COMMENT="Each record is one Syllabus activity instance">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
         <FIELD NAME="course" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="Course this activity belongs to"/>
@@ -27,7 +27,7 @@
         <KEY NAME="fk_reviewedby" TYPE="foreign" FIELDS="reviewedby" REFTABLE="user" REFFIELDS="id"/>
       </KEYS>
     </TABLE>
-    <TABLE NAME="syllabus_weeks" COMMENT="Weeks (aulas) that compose a syllabus plan">
+    <TABLE NAME="syllabus_weeks" COMMENT="Weeks that compose a syllabus plan">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
         <FIELD NAME="syllabusid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="FK to syllabus instance"/>
@@ -44,7 +44,7 @@
         <KEY NAME="fk_syllabus" TYPE="foreign" FIELDS="syllabusid" REFTABLE="syllabus" REFFIELDS="id"/>
       </KEYS>
     </TABLE>
-    <TABLE NAME="syllabus_activities" COMMENT="Activities (atividades) that compose a week, feeding the consolidated schedule">
+    <TABLE NAME="syllabus_activities" COMMENT="Activities that compose a week, feeding the consolidated schedule">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
         <FIELD NAME="weekid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="FK to syllabus_weeks"/>

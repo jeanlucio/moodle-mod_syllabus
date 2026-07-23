@@ -32,7 +32,7 @@ use stdClass;
  */
 class renderer extends plugin_renderer_base {
     /**
-     * Renders the full plan view (professor and coordination).
+     * Renders the full plan view (teacher and coordination).
      *
      * @param stdClass $templatedata Data exported by coordinator_view::export_for_template().
      * @return string HTML rendered output.
@@ -42,7 +42,7 @@ class renderer extends plugin_renderer_base {
     }
 
     /**
-     * Renders the Plano de Tutoria view.
+     * Renders the tutor-facing plan view.
      *
      * @param stdClass $templatedata Data exported by tutor_view::export_for_template().
      * @return string HTML rendered output.
@@ -52,7 +52,7 @@ class renderer extends plugin_renderer_base {
     }
 
     /**
-     * Renders the Plano de Disciplina do Aluno view.
+     * Renders the student-facing plan view.
      *
      * @param stdClass $templatedata Data exported by student_view::export_for_template().
      * @return string HTML rendered output.

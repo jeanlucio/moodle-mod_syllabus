@@ -24,7 +24,7 @@ use stdClass;
 use templatable;
 
 /**
- * Full plan view shown to the professor (author) and to the coordination (reviewer).
+ * Full plan view shown to the teacher (author) and to the coordination (reviewer).
  *
  * Phase 2 renders it read-only; the submit/review actions themselves are wired in a later
  * phase once the Web Services and workflow events exist.
@@ -38,7 +38,7 @@ final class coordinator_view implements renderable, templatable {
     private stdClass $syllabus;
 
     /**
-     * Creates the coordinator/professor view for a given syllabus instance.
+     * Creates the coordinator/teacher view for a given syllabus instance.
      *
      * @param stdClass $syllabus The syllabus record.
      */

@@ -23,7 +23,7 @@ use stdClass;
 use templatable;
 
 /**
- * Plano de Tutoria view: everything the student sees, plus (from a later phase on)
+ * Tutor-facing plan view: everything the student sees, plus (from a later phase on)
  * activity-level grading criteria and tutor accompaniment notes. Never shows the plan's
  * approval workflow status — a tutor only ever reaches this once the plan is approved,
  * enforced independently of course module visibility in view.php.

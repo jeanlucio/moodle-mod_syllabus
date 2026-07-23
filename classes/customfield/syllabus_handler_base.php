@@ -137,4 +137,47 @@ abstract class syllabus_handler_base extends handler {
     public function can_view(field_controller $field, int $instanceid): bool {
         return has_capability('mod/syllabus:view', $this->get_instance_context($instanceid));
     }
+
+    /**
+     * Restores one backed-up Custom Field value onto the given (already-remapped) instanceid.
+     *
+     * The inherited handler::restore_instance_data_from_backup() assumes a single instanceid
+     * per restore task (it works for core_course\customfield\course_handler because a task
+     * restores exactly one course) — that does not fit here, where many weeks/activities are
+     * restored within the same activity task, each with its own instanceid only known to the
+     * caller at the point it processes that XML element. This method takes the instanceid
+     * explicitly instead, mirroring course_handler's own implementation otherwise: match the
+     * backed-up field by shortname + type (fieldids differ between the backup site and this
+     * one), and only overwrite an existing value when actually restoring into a brand new
+     * instance (TARGET_*_ADDING), never when merging into a pre-existing one.
+     *
+     * @param int $instanceid The already-remapped (new) instanceid to attach this value to.
+     * @param array $data Backed-up row: shortname, type, value, valueformat, valuetrust, id.
+     * @param \restore_task $task The running restore task.
+     * @return int|null The new customfield_data id, or null if no matching field exists here.
+     */
+    public function restore_customfield_value(int $instanceid, array $data, \restore_task $task): ?int {
+        $context = $this->get_instance_context($instanceid);
+        $editablefields = $this->get_editable_fields($instanceid);
+        $records = $this->get_instance_fields_data($editablefields, $instanceid);
+        $target = $task->get_target();
+        $override = ($target !== \backup::TARGET_CURRENT_ADDING && $target !== \backup::TARGET_EXISTING_ADDING);
+
+        foreach ($records as $record) {
+            $field = $record->get_field();
+            if ($field->get('shortname') !== $data['shortname'] || $field->get('type') !== $data['type']) {
+                continue;
+            }
+            if (!$record->get('id') || $override) {
+                $record->set($record->datafield(), $data['value']);
+                $record->set('value', $data['value']);
+                $record->set('valueformat', $data['valueformat']);
+                $record->set('valuetrust', !empty($data['valuetrust']));
+                $record->set('contextid', $context->id);
+                $record->save();
+            }
+            return (int) $record->get('id');
+        }
+        return null;
+    }
 }

@@ -51,6 +51,29 @@ class mod_syllabus_mod_form extends moodleform_mod {
         $this->standard_intro_elements();
 
         $this->standard_coursemodule_elements();
+        $this->lock_visibility_element();
         $this->add_action_buttons();
+    }
+
+    /**
+     * Freeze the "Availability" element added by standard_coursemodule_elements().
+     *
+     * The activity's course module visibility is not a teacher-facing setting: it is set
+     * entirely by the plan's own approval workflow (see plan_state_manager::approve() and
+     * syllabus_add_instance()), so leaving it editable here would let a teacher bypass that
+     * workflow and publish an unapproved plan early via the ordinary activity settings form.
+     *
+     * @return void
+     */
+    private function lock_visibility_element(): void {
+        $mform = $this->_form;
+
+        $mform->hardFreeze('visible');
+
+        $notice = html_writer::div(get_string('visibilitymanaged', 'mod_syllabus'), 'alert alert-warning');
+        $mform->insertElementBefore(
+            $mform->createElement('static', 'visibilitymanagednotice', '', $notice),
+            'cmidnumber'
+        );
     }
 }

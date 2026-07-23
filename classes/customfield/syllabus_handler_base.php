@@ -46,6 +46,22 @@ abstract class syllabus_handler_base extends handler {
     abstract protected function resolve_syllabus_id(int $instanceid): int;
 
     /**
+     * Whether a given instanceid of this area actually belongs to the given syllabus.
+     *
+     * The cross-instance guard external functions must call before writing a custom field
+     * value: an authenticated call for course module A must never be able to touch a week or
+     * activity id that actually belongs to a different syllabus instance B, even one owned by
+     * the same author.
+     *
+     * @param int $instanceid Instance id in this handler's own area (syllabus/week/activity id).
+     * @param int $syllabusid The syllabus id the caller has already validated cmid/context against.
+     * @return bool
+     */
+    public function belongs_to_syllabus(int $instanceid, int $syllabusid): bool {
+        return $this->resolve_syllabus_id($instanceid) === $syllabusid;
+    }
+
+    /**
      * Field templates are configured site-wide, so the configuration context is always the system.
      *
      * @return context

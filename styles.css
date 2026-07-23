@@ -26,6 +26,15 @@
     font-size: 0.85rem;
 }
 
+/*
+ * bg-secondary (draft) keeps Bootstrap 5's default white badge text, which fails WCAG
+ * contrast on grey. The other three status colours (info/warning/success) already carry
+ * accessible default text in Bootstrap 5 and are left untouched.
+ */
+.path-mod-syllabus .badge.bg-secondary.syllabus-status-badge {
+    color: var(--bs-dark, #000);
+}
+
 .path-mod-syllabus .visually-hidden {
     position: absolute;
     width: 1px;

@@ -1,0 +1,89 @@
+{{!
+    This file is part of Moodle - https://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+}}
+{{!
+    @template mod_syllabus/week_row
+
+    One week within the editable weeks list: structural fields form, narrative Custom Field
+    editors, and its own list of activities. Only rendered inside coordinator_view for the
+    author.
+
+    Example context (json):
+    {
+        "id": 2,
+        "title": "Week 1",
+        "duration": 90,
+        "fields": [
+            {
+                "fieldid": 7,
+                "instanceid": 2,
+                "elementid": "syllabus-field-2-7",
+                "name": "Details",
+                "text": "",
+                "itemid": 9
+            }
+        ],
+        "activities": [],
+        "hasactivities": false
+    }
+}}
+<div class="syllabus-week-row border rounded p-3 mb-3" data-weekid="{{id}}">
+    <div class="row g-2 align-items-end">
+        <div class="col-md-6">
+            <label class="visually-hidden" for="syllabus-week-title-{{id}}">
+                {{#str}} weektitle, mod_syllabus {{/str}}
+            </label>
+            <input type="text" class="form-control syllabus-week-title" id="syllabus-week-title-{{id}}"
+                value="{{title}}" placeholder="{{#str}} weektitle, mod_syllabus {{/str}}">
+        </div>
+        <div class="col-md-3">
+            <label class="visually-hidden" for="syllabus-week-duration-{{id}}">
+                {{#str}} weekduration, mod_syllabus {{/str}}
+            </label>
+            <input type="number" class="form-control syllabus-week-duration" id="syllabus-week-duration-{{id}}"
+                value="{{duration}}" placeholder="{{#str}} weekduration, mod_syllabus {{/str}}">
+        </div>
+        <div class="col-md-3 text-end">
+            <button type="button" class="btn btn-sm btn-primary syllabus-save-week">
+                {{#str}} save, core {{/str}}
+            </button>
+            <button type="button" class="btn btn-sm btn-outline-danger syllabus-delete-week"
+                data-confirm="{{#str}} confirmdeleteweek, mod_syllabus {{/str}}">
+                {{#str}} delete, core {{/str}}
+            </button>
+        </div>
+    </div>
+    {{#fields}}
+    <div class="syllabus-field mt-2">
+        <label for="{{elementid}}">{{name}}</label>
+        <textarea id="{{elementid}}" class="syllabus-customfield-editor" data-fieldid="{{fieldid}}"
+            data-instanceid="{{instanceid}}" data-area="week" data-itemid="{{itemid}}">{{text}}</textarea>
+        <span class="syllabus-save-status d-none small text-muted"
+            data-saving="{{#str}} saving, mod_syllabus {{/str}}"
+            data-saved="{{#str}} saved, mod_syllabus {{/str}}"></span>
+    </div>
+    {{/fields}}
+
+    <h5 class="mt-3">{{#str}} activities, mod_syllabus {{/str}}</h5>
+    <div class="syllabus-activities-list">
+        {{#activities}}
+            {{> mod_syllabus/activity_row }}
+        {{/activities}}
+    </div>
+    <button type="button" class="btn btn-sm btn-outline-secondary syllabus-add-activity" data-weekid="{{id}}">
+        {{#str}} addactivity, mod_syllabus {{/str}}
+    </button>
+</div>

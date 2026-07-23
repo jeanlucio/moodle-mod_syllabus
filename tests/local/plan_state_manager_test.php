@@ -252,6 +252,93 @@ final class plan_state_manager_test extends advanced_testcase {
     }
 
     /**
+     * An approved plan can be unpublished, recording who did it and when.
+     *
+     * @return void
+     */
+    public function test_unpublish_transitions_to_draft(): void {
+        global $DB;
+
+        $author = $this->getDataGenerator()->create_user();
+        $unpublisher = $this->getDataGenerator()->create_user();
+        $syllabusid = $this->create_plan(plan_state_manager::STATUS_APPROVED, (int) $author->id);
+
+        plan_state_manager::unpublish($syllabusid, (int) $unpublisher->id);
+
+        $plan = $DB->get_record('syllabus', ['id' => $syllabusid], '*', MUST_EXIST);
+        $this->assertSame(plan_state_manager::STATUS_DRAFT, $plan->status);
+        $this->assertEquals($unpublisher->id, $plan->unpublishedby);
+        $this->assertNotEmpty($plan->timeunpublished);
+    }
+
+    /**
+     * A plan that is not approved cannot be unpublished.
+     *
+     * @return void
+     */
+    public function test_unpublish_when_not_approved_throws(): void {
+        $unpublisher = $this->getDataGenerator()->create_user();
+        $syllabusid = $this->create_plan(plan_state_manager::STATUS_DRAFT);
+
+        $this->expectException(coding_exception::class);
+        plan_state_manager::unpublish($syllabusid, (int) $unpublisher->id);
+    }
+
+    /**
+     * Unpublishing an approved plan hides its course module again — the mirror image of
+     * test_approve_makes_course_module_visible().
+     *
+     * @return void
+     */
+    public function test_unpublish_hides_course_module(): void {
+        global $DB;
+
+        $course = $this->getDataGenerator()->create_course();
+        $syllabus = $this->getDataGenerator()->create_module('syllabus', ['course' => $course->id]);
+        $cm = get_coursemodule_from_instance('syllabus', $syllabus->id, $course->id, false, MUST_EXIST);
+
+        $author = $this->getDataGenerator()->create_user();
+        $reviewer = $this->getDataGenerator()->create_user();
+        plan_state_manager::submit($syllabus->id, (int) $author->id);
+        plan_state_manager::approve($syllabus->id, (int) $reviewer->id);
+
+        $cmrow = $DB->get_record('course_modules', ['id' => $cm->id], '*', MUST_EXIST);
+        $this->assertEquals(1, $cmrow->visible, 'Sanity check: the plan must be visible before unpublishing it.');
+
+        plan_state_manager::unpublish($syllabus->id, (int) $reviewer->id);
+
+        $cmrow = $DB->get_record('course_modules', ['id' => $cm->id], '*', MUST_EXIST);
+        $this->assertEquals(0, $cmrow->visible, 'Unpublishing the plan must hide its course module again.');
+    }
+
+    /**
+     * Structural fields can be edited outside the 'submitted' status.
+     *
+     * @return void
+     */
+    public function test_require_structural_editable_allows_non_submitted_statuses(): void {
+        $editable = [
+            plan_state_manager::STATUS_DRAFT,
+            plan_state_manager::STATUS_CHANGES_REQUESTED,
+            plan_state_manager::STATUS_APPROVED,
+        ];
+        foreach ($editable as $status) {
+            plan_state_manager::require_structural_editable((object) ['status' => $status]);
+        }
+        $this->addToAssertionCount(count($editable));
+    }
+
+    /**
+     * Structural fields cannot be edited while the plan is awaiting review.
+     *
+     * @return void
+     */
+    public function test_require_structural_editable_blocks_submitted(): void {
+        $this->expectException(coding_exception::class);
+        plan_state_manager::require_structural_editable((object) ['status' => plan_state_manager::STATUS_SUBMITTED]);
+    }
+
+    /**
      * Every status constant maps to the matching status_* lang string key.
      *
      * @return void

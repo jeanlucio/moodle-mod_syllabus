@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 /**
- * Version details for mod_syllabus.
+ * Event observer definitions for mod_syllabus.
  *
  * @package    mod_syllabus
  * @copyright  2026 Jean Lúcio
@@ -24,9 +24,9 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->component = 'mod_syllabus';
-$plugin->version   = 2026072402;
-$plugin->requires  = 2024100700; // Moodle 4.5+.
-$plugin->supported = [405, 502];
-$plugin->maturity  = MATURITY_ALPHA;
-$plugin->release   = 'v0.1.0';
+$observers = [
+    [
+        'eventname' => '\core\event\course_module_updated',
+        'callback'  => '\mod_syllabus\observer::course_module_updated',
+    ],
+];

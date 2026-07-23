@@ -143,6 +143,45 @@ final class plan_state_manager {
     }
 
     /**
+     * Pulls an approved plan back to draft and hides its course module again.
+     *
+     * A deliberate, auditable escape hatch distinct from the "Availability" form field, which
+     * is permanently frozen (see mod_form.php) precisely so visibility never changes as a side
+     * effect of an ordinary settings edit — this method is the only supported way to hide an
+     * approved plan again. Like submit()/approve()/request_changes(), this class enforces only
+     * the workflow's own business rules, never capability checks: the caller (the controller
+     * that will wire this to a UI action in a later phase) is responsible for verifying the
+     * user holds mod/syllabus:review, or is the author recorded in $plan->submittedby, before
+     * calling this — an unrelated teacher who merely shares mod/syllabus:submit on the course
+     * must never be able to unpublish someone else's plan.
+     *
+     * @param int $syllabusid ID of the syllabus record.
+     * @param int $userid ID of the user unpublishing the plan, recorded for audit purposes.
+     * @return void
+     * @throws coding_exception If the plan is not currently approved.
+     */
+    public static function unpublish(int $syllabusid, int $userid): void {
+        global $DB;
+
+        $plan = $DB->get_record('syllabus', ['id' => $syllabusid], '*', MUST_EXIST);
+        if ($plan->status !== self::STATUS_APPROVED) {
+            throw new coding_exception('Only an approved plan can be unpublished.');
+        }
+
+        $now = time();
+        $plan->status = self::STATUS_DRAFT;
+        $plan->unpublishedby = $userid;
+        $plan->timeunpublished = $now;
+        $plan->timemodified = $now;
+        $DB->update_record('syllabus', $plan);
+
+        $cm = get_coursemodule_from_instance('syllabus', $syllabusid, $plan->course, false, IGNORE_MISSING);
+        if ($cm) {
+            set_coursemodule_visible($cm->id, 0);
+        }
+    }
+
+    /**
      * Maps a status constant to its lang string key (e.g. `changes_requested` -> `status_changesrequested`).
      *
      * @param string $status One of the STATUS_* constants.
@@ -150,6 +189,44 @@ final class plan_state_manager {
      */
     public static function status_string_key(string $status): string {
         return 'status_' . str_replace('_', '', $status);
+    }
+
+    /**
+     * Maps a status constant to the Bootstrap contextual class for its status badge.
+     *
+     * `bg-secondary` (draft) is paired with a plugin CSS rule forcing dark text in styles.css:
+     * Bootstrap 5's default white-on-grey badge text fails WCAG contrast (CLAUDE.md § CSS).
+     * The other three colours already carry accessible default text colours in Bootstrap 5.
+     *
+     * @param string $status One of the STATUS_* constants.
+     * @return string
+     */
+    public static function status_badge_class(string $status): string {
+        return match ($status) {
+            self::STATUS_SUBMITTED => 'bg-info',
+            self::STATUS_CHANGES_REQUESTED => 'bg-warning',
+            self::STATUS_APPROVED => 'bg-success',
+            default => 'bg-secondary',
+        };
+    }
+
+    /**
+     * Guards structural writes to weeks/activities (title, duration, dates, type, category, points).
+     *
+     * Per the workflow rules (SCOPE §4): while a plan is `submitted`, the author is blocked from
+     * further structural edits (the coordinator is reviewing a fixed snapshot) — narrative Custom
+     * Field content stays editable in every status and is never gated by this method. `draft` and
+     * `changes_requested` always allow structural edits (the author has full control), and
+     * `approved` allows them too, subject to reopen_for_structural_change() on the caller's side.
+     *
+     * @param stdClass $plan Syllabus record the structural write targets.
+     * @return void
+     * @throws coding_exception If the plan is currently awaiting review.
+     */
+    public static function require_structural_editable(stdClass $plan): void {
+        if ($plan->status === self::STATUS_SUBMITTED) {
+            throw new coding_exception('Structural fields cannot be edited while the plan is awaiting review.');
+        }
     }
 
     /**

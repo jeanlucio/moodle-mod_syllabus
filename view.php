@@ -70,8 +70,12 @@ $PAGE->set_pagelayout('incourse');
 $renderer = $PAGE->get_renderer('mod_syllabus');
 
 if ($isreviewer || $isauthor) {
-    $page = new coordinator_view($syllabus);
+    $page = new coordinator_view($syllabus, $cm);
     $html = $renderer->render_coordinator_view($page->export_for_template($renderer));
+    if ($isauthor) {
+        $PAGE->requires->js_call_amd('mod_syllabus/weeks_manager', 'init', [$cm->id]);
+        $PAGE->requires->js_call_amd('mod_syllabus/autosave', 'init', [$cm->id]);
+    }
 } else if ($istutor) {
     $page = new tutor_view($syllabus);
     $html = $renderer->render_tutor_view($page->export_for_template($renderer));

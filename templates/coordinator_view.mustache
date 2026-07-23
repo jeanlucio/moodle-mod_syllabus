@@ -17,34 +17,80 @@
 {{!
     @template mod_syllabus/coordinator_view
 
-    Full plan view shown to the teacher (author) and to the coordination (reviewer).
-    Read-only in this phase — submit/review actions are wired in a later phase.
+    Full plan view shown to the teacher (author) and to the coordination (reviewer). The
+    author (caneditcontent) gets the editable weeks/activities management UI with narrative
+    Custom Field autosave; a reviewer without mod/syllabus:submit sees the same read-only
+    content as before — submit/review actions themselves are wired in a later phase.
 
     Example context (json):
     {
+        "cmid": 42,
         "statuslabel": "Draft",
+        "statusbadgeclass": "bg-secondary",
+        "caneditcontent": true,
         "coursedescription": "<p>Course description text.</p>",
         "objectives": "<p>Course objectives text.</p>",
         "contents": "<p>Course contents text.</p>",
-        "methodology": "<p>Course methodology text.</p>"
+        "methodology": "<p>Course methodology text.</p>",
+        "planfields": [
+            {
+                "fieldid": 1,
+                "instanceid": 3,
+                "elementid": "syllabus-field-3-1",
+                "name": "Course description",
+                "text": "<p>Course description text.</p>",
+                "itemid": 15
+            }
+        ],
+        "weeks": [],
+        "hasweeks": false
     }
 }}
-<div class="path-mod-syllabus">
+<div class="path-mod-syllabus" data-cmid="{{cmid}}">
     <div class="syllabus-status mb-3">
-        <span class="badge bg-secondary">{{statuslabel}}</span>
+        <span class="badge {{statusbadgeclass}} syllabus-status-badge">{{statuslabel}}</span>
     </div>
-    <h3>{{#str}} coursedescription, mod_syllabus {{/str}}</h3>
-    <div class="syllabus-coursedescription">{{{coursedescription}}}</div>
 
-    <h3>{{#str}} objectives, mod_syllabus {{/str}}</h3>
-    <div class="syllabus-objectives">{{{objectives}}}</div>
+    {{#caneditcontent}}
+        {{#planfields}}
+        <div class="syllabus-field mb-3">
+            <h3><label for="{{elementid}}">{{name}}</label></h3>
+            <textarea id="{{elementid}}" class="syllabus-customfield-editor" data-fieldid="{{fieldid}}"
+                data-instanceid="{{instanceid}}" data-area="plan" data-itemid="{{itemid}}">{{text}}</textarea>
+            <span class="syllabus-save-status d-none small text-muted"
+                data-saving="{{#str}} saving, mod_syllabus {{/str}}"
+                data-saved="{{#str}} saved, mod_syllabus {{/str}}"></span>
+        </div>
+        {{/planfields}}
 
-    <h3>{{#str}} contents, mod_syllabus {{/str}}</h3>
-    <div class="syllabus-contents">{{{contents}}}</div>
+        <h3>{{#str}} weeks, mod_syllabus {{/str}}</h3>
+        <div class="syllabus-weeks-list">
+            {{#weeks}}
+                {{> mod_syllabus/week_row }}
+            {{/weeks}}
+        </div>
+        {{^hasweeks}}
+        <p class="text-muted syllabus-noweeksyet">{{#str}} noweeksyet, mod_syllabus {{/str}}</p>
+        {{/hasweeks}}
+        <button type="button" class="btn btn-outline-secondary syllabus-add-week">
+            {{#str}} addweek, mod_syllabus {{/str}}
+        </button>
+    {{/caneditcontent}}
 
-    <h3>{{#str}} methodology, mod_syllabus {{/str}}</h3>
-    <div class="syllabus-methodology">{{{methodology}}}</div>
+    {{^caneditcontent}}
+        <h3>{{#str}} coursedescription, mod_syllabus {{/str}}</h3>
+        <div class="syllabus-coursedescription">{{{coursedescription}}}</div>
 
-    <h3>{{#str}} weeks, mod_syllabus {{/str}}</h3>
-    <p class="text-muted">{{#str}} noweeksyet, mod_syllabus {{/str}}</p>
+        <h3>{{#str}} objectives, mod_syllabus {{/str}}</h3>
+        <div class="syllabus-objectives">{{{objectives}}}</div>
+
+        <h3>{{#str}} contents, mod_syllabus {{/str}}</h3>
+        <div class="syllabus-contents">{{{contents}}}</div>
+
+        <h3>{{#str}} methodology, mod_syllabus {{/str}}</h3>
+        <div class="syllabus-methodology">{{{methodology}}}</div>
+
+        <h3>{{#str}} weeks, mod_syllabus {{/str}}</h3>
+        <p class="text-muted">{{#str}} noweeksyet, mod_syllabus {{/str}}</p>
+    {{/caneditcontent}}
 </div>

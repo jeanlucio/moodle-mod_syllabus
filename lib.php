@@ -38,6 +38,10 @@ function syllabus_supports(string $feature): mixed {
             return true;
         case FEATURE_MOD_PURPOSE:
             return MOD_PURPOSE_ADMINISTRATION;
+        case FEATURE_GROUPS:
+            return false;
+        case FEATURE_GROUPINGS:
+            return false;
         default:
             return null;
     }

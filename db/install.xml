@@ -17,6 +17,8 @@
         <FIELD NAME="reviewedby" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="FK to user - coordinator who last reviewed the plan"/>
         <FIELD NAME="timereviewed" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false"/>
         <FIELD NAME="changesrequestedreason" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="Coordinator justification when status is changes_requested"/>
+        <FIELD NAME="unpublishedby" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="FK to user - who last pulled an approved plan back to draft"/>
+        <FIELD NAME="timeunpublished" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false"/>
         <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
       </FIELDS>
@@ -25,6 +27,7 @@
         <KEY NAME="fk_course" TYPE="foreign" FIELDS="course" REFTABLE="course" REFFIELDS="id"/>
         <KEY NAME="fk_submittedby" TYPE="foreign" FIELDS="submittedby" REFTABLE="user" REFFIELDS="id"/>
         <KEY NAME="fk_reviewedby" TYPE="foreign" FIELDS="reviewedby" REFTABLE="user" REFFIELDS="id"/>
+        <KEY NAME="fk_unpublishedby" TYPE="foreign" FIELDS="unpublishedby" REFTABLE="user" REFFIELDS="id"/>
       </KEYS>
     </TABLE>
     <TABLE NAME="syllabus_weeks" COMMENT="Weeks that compose a syllabus plan">

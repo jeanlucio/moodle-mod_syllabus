@@ -1,0 +1,68 @@
+{{!
+    This file is part of Moodle - https://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+}}
+{{!
+    @template mod_syllabus/tab_tutor_plan
+
+    Tab 3 — "Plano de Tutoria". Read-only, mirroring the "Plano de Tutoria" source document:
+    a reduced Characterisation (no full plan-level narrative — the tutor has Tab 2 for that,
+    one click away), every week and activity with the tutor-exclusive fields included
+    (interaction tools, observations, grading criteria with answer keys, tutor guidance),
+    and the consolidated schedule. Never reachable by the student (view.php gates it on
+    mod/syllabus:viewtutorview).
+
+    Example context (json):
+    {
+        "statuslabel": "Approved",
+        "statusbadgeclass": "bg-success",
+        "coursename": "Educação a distância na EPT",
+        "disciplinename": "Produção de materiais didáticos digitais",
+        "teachername": "Jean Lúcio Santos Evangelista",
+        "academicperiod": "2026.1",
+        "totalduration": 1800,
+        "hasweeks": false,
+        "weeks": [],
+        "hasschedule": false,
+        "schedule": []
+    }
+}}
+<div class="path-mod-syllabus syllabus-tab-tutor">
+    <div class="syllabus-status mb-3">
+        <span class="badge {{statusbadgeclass}} syllabus-status-badge">{{statuslabel}}</span>
+    </div>
+
+    <h3>{{#str}} characterisation, mod_syllabus {{/str}}</h3>
+    <div class="row syllabus-characterisation mb-3">
+        <div class="col-md-6"><strong>{{#str}} studyprogram, mod_syllabus {{/str}}:</strong> {{coursename}}</div>
+        <div class="col-md-6"><strong>{{#str}} discipline, mod_syllabus {{/str}}:</strong> {{disciplinename}}</div>
+        <div class="col-md-6"><strong>{{#str}} teacher, mod_syllabus {{/str}}:</strong> {{teachername}}</div>
+        <div class="col-md-6"><strong>{{#str}} academicperiod, mod_syllabus {{/str}}:</strong> {{academicperiod}}</div>
+        {{#totalduration}}
+        <div class="col-md-6"><strong>{{#str}} totalworkload, mod_syllabus {{/str}}:</strong> {{totalduration}}</div>
+        {{/totalduration}}
+    </div>
+
+    {{#hasweeks}}
+        {{#weeks}}
+            {{> mod_syllabus/plan_week_read }}
+        {{/weeks}}
+    {{/hasweeks}}
+    {{^hasweeks}}
+    <p class="text-muted">{{#str}} noweeksyet, mod_syllabus {{/str}}</p>
+    {{/hasweeks}}
+
+    {{> mod_syllabus/plan_schedule }}
+</div>

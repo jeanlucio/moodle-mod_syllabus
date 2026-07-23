@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 /**
- * Displays a syllabus plan, dispatching to a role-specific view.
+ * Displays a syllabus plan, dispatching to the tab(s) available to the current user.
  *
  * @package    mod_syllabus
  * @copyright  2026 Jean Lúcio
@@ -26,12 +26,13 @@ require(__DIR__ . '/../../config.php');
 require_once($CFG->dirroot . '/mod/syllabus/lib.php');
 
 use mod_syllabus\local\plan_state_manager;
-use mod_syllabus\output\coordinator_view;
-use mod_syllabus\output\student_view;
-use mod_syllabus\output\tutor_view;
+use mod_syllabus\output\tab_full_plan;
+use mod_syllabus\output\tab_student_plan;
+use mod_syllabus\output\tab_tutor_plan;
 
 $id = optional_param('id', 0, PARAM_INT);
 $s = optional_param('s', 0, PARAM_INT);
+$requestedtab = optional_param('tab', '', PARAM_ALPHA);
 
 if ($id) {
     $cm = get_coursemodule_from_id('syllabus', $id, 0, false, MUST_EXIST);
@@ -60,7 +61,30 @@ if (!$isreviewer && !$isauthor && $syllabus->status !== plan_state_manager::STAT
     throw new moodle_exception('plannotavailable', 'mod_syllabus');
 }
 
-$PAGE->set_url('/mod/syllabus/view.php', ['id' => $cm->id]);
+// Tab 1 ("Plano completo") is professor/coordination/admin only — a tutor never sees
+// workflow, and a student never sees anything beyond their own tab. Tab 3 ("Plano de
+// Tutoria") is everyone except the student. Tab 2 ("Plano do Estudante") is the only tab a
+// pure student reaches, and reaches without a tab bar at all.
+$availabletabs = [];
+if ($isreviewer || $isauthor) {
+    $availabletabs['full'] = get_string('tabfullplan', 'mod_syllabus');
+}
+$availabletabs['student'] = get_string('tabstudentplan', 'mod_syllabus');
+if ($isreviewer || $isauthor || $istutor) {
+    $availabletabs['tutor'] = get_string('tabtutorplan', 'mod_syllabus');
+}
+
+if ($isreviewer || $isauthor) {
+    $defaulttab = 'full';
+} else if ($istutor) {
+    $defaulttab = 'tutor';
+} else {
+    $defaulttab = 'student';
+}
+
+$tab = array_key_exists($requestedtab, $availabletabs) ? $requestedtab : $defaulttab;
+
+$PAGE->set_url('/mod/syllabus/view.php', ['id' => $cm->id, 'tab' => $tab]);
 $PAGE->set_title(format_string($syllabus->name));
 $PAGE->set_heading(format_string($course->fullname));
 $PAGE->set_context($context);
@@ -69,22 +93,42 @@ $PAGE->set_pagelayout('incourse');
 /** @var mod_syllabus\output\renderer $renderer */
 $renderer = $PAGE->get_renderer('mod_syllabus');
 
-if ($isreviewer || $isauthor) {
-    $page = new coordinator_view($syllabus, $cm);
-    $html = $renderer->render_coordinator_view($page->export_for_template($renderer));
+if ($tab === 'full') {
+    $page = new tab_full_plan($syllabus, $cm, $course);
+    $html = $renderer->render_tab_full_plan($page->export_for_template($renderer));
     if ($isauthor) {
         $PAGE->requires->js_call_amd('mod_syllabus/weeks_manager', 'init', [$cm->id]);
         $PAGE->requires->js_call_amd('mod_syllabus/autosave', 'init', [$cm->id]);
+        $PAGE->requires->js_call_amd('mod_syllabus/plan_details', 'init', [$cm->id]);
     }
     $PAGE->requires->js_call_amd('mod_syllabus/review', 'init', [$cm->id]);
-} else if ($istutor) {
-    $page = new tutor_view($syllabus);
-    $html = $renderer->render_tutor_view($page->export_for_template($renderer));
+} else if ($tab === 'tutor') {
+    $page = new tab_tutor_plan($syllabus, $course);
+    $html = $renderer->render_tab_tutor_plan($page->export_for_template($renderer));
 } else {
-    $page = new student_view($syllabus);
-    $html = $renderer->render_student_view($page->export_for_template($renderer));
+    $page = new tab_student_plan($syllabus, $course);
+    $html = $renderer->render_tab_student_plan($page->export_for_template($renderer));
 }
 
 echo $OUTPUT->header();
+
+if (count($availabletabs) > 1) {
+    echo html_writer::start_tag('nav', [
+        'class' => 'syllabus-tab-nav mb-3',
+        'aria-label' => get_string('pluginname', 'mod_syllabus'),
+    ]);
+    echo html_writer::start_tag('ul', ['class' => 'nav nav-tabs']);
+    foreach ($availabletabs as $tabkey => $tablabel) {
+        $linkattrs = ['class' => 'nav-link' . ($tabkey === $tab ? ' active' : '')];
+        if ($tabkey === $tab) {
+            $linkattrs['aria-current'] = 'page';
+        }
+        $url = new moodle_url('/mod/syllabus/view.php', ['id' => $cm->id, 'tab' => $tabkey]);
+        echo html_writer::tag('li', html_writer::link($url, $tablabel, $linkattrs), ['class' => 'nav-item']);
+    }
+    echo html_writer::end_tag('ul');
+    echo html_writer::end_tag('nav');
+}
+
 echo $html;
 echo $OUTPUT->footer();

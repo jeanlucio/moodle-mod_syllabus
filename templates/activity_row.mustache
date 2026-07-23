@@ -18,7 +18,7 @@
     @template mod_syllabus/activity_row
 
     One activity within a week's editable list: structural fields form plus its narrative
-    Custom Field editors. Only rendered inside coordinator_view for the author.
+    Custom Field editors. Only rendered inside tab_full_plan for the author.
 
     Example context (json):
     {
@@ -28,6 +28,7 @@
         "type": "forum",
         "category": "asynchronous",
         "points": 10,
+        "isfinalassessment": false,
         "fields": [
             {
                 "fieldid": 3,
@@ -79,6 +80,29 @@
                 data-confirm="{{#str}} confirmdeleteactivity, mod_syllabus {{/str}}">
                 {{#str}} delete, core {{/str}}
             </button>
+        </div>
+    </div>
+    <div class="row g-2 align-items-center mt-1">
+        <div class="col-md-3">
+            <label class="visually-hidden" for="syllabus-activity-startdate-{{id}}">
+                {{#str}} activitystartdate, mod_syllabus {{/str}}
+            </label>
+            <input type="date" class="form-control form-control-sm syllabus-activity-startdate"
+                id="syllabus-activity-startdate-{{id}}" data-timestamp="{{startdate}}">
+        </div>
+        <div class="col-md-3">
+            <label class="visually-hidden" for="syllabus-activity-enddate-{{id}}">
+                {{#str}} activityenddate, mod_syllabus {{/str}}
+            </label>
+            <input type="date" class="form-control form-control-sm syllabus-activity-enddate"
+                id="syllabus-activity-enddate-{{id}}" data-timestamp="{{enddate}}">
+        </div>
+        <div class="col-md-6 form-check pt-1">
+            <input type="checkbox" class="form-check-input syllabus-activity-isfinalassessment"
+                id="syllabus-activity-isfinalassessment-{{id}}" {{#isfinalassessment}}checked{{/isfinalassessment}}>
+            <label class="form-check-label" for="syllabus-activity-isfinalassessment-{{id}}">
+                {{#str}} finalassessment, mod_syllabus {{/str}}
+            </label>
         </div>
     </div>
     {{#fields}}

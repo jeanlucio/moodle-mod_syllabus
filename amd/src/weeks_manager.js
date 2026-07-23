@@ -54,6 +54,43 @@ const showRejected = async(error) => {
 };
 
 /**
+ * Reads an `<input type="date">`/`<input type="datetime-local">` element's value as a Unix
+ * timestamp, or null when empty. `hydrateDateInputs()` is what fills these in from the
+ * server-rendered `data-timestamp` in the first place.
+ *
+ * @param {HTMLElement} input
+ * @returns {?int}
+ */
+const readTimestamp = (input) => {
+    if (!input || !input.value) {
+        return null;
+    }
+    return Math.floor(new Date(input.value).getTime() / 1000);
+};
+
+/**
+ * Converts every `[data-timestamp]` date input's server-provided Unix timestamp into the
+ * ISO-ish string the `date`/`datetime-local` input type expects as its value — mustache only
+ * has the raw timestamp to hand it, so this runs once at init time against the whole page.
+ *
+ * @param {HTMLElement} container
+ */
+const hydrateDateInputs = (container) => {
+    container.querySelectorAll('input[data-timestamp]').forEach((input) => {
+        const timestamp = parseInt(input.dataset.timestamp, 10);
+        if (!timestamp) {
+            return;
+        }
+        const date = new Date(timestamp * 1000);
+        if (input.type === 'datetime-local') {
+            input.value = date.toISOString().slice(0, 16);
+        } else {
+            input.value = date.toISOString().slice(0, 10);
+        }
+    });
+};
+
+/**
  * Saves a week (new or existing) from its row's current input values.
  *
  * @param {HTMLElement} row The .syllabus-week-row element.
@@ -63,6 +100,9 @@ const saveWeek = async(row) => {
     const title = row.querySelector('.syllabus-week-title').value.trim();
     const durationInput = row.querySelector('.syllabus-week-duration').value;
     const duration = durationInput === '' ? null : parseInt(durationInput, 10);
+    const syncdate = readTimestamp(row.querySelector('.syllabus-week-syncdate'));
+    const synclink = row.querySelector('.syllabus-week-synclink').value.trim() || null;
+    const synctopic = row.querySelector('.syllabus-week-synctopic').value.trim() || null;
 
     if (!title) {
         row.querySelector('.syllabus-week-title').focus();
@@ -72,7 +112,7 @@ const saveWeek = async(row) => {
     try {
         await Ajax.call([{
             methodname: 'mod_syllabus_save_week',
-            args: {cmid, weekid, title, duration, startdate: null, enddate: null},
+            args: {cmid, weekid, title, duration, startdate: null, enddate: null, syncdate, synclink, synctopic},
         }])[0];
         reload();
     } catch (error) {
@@ -114,6 +154,10 @@ const saveActivity = async(row) => {
     const category = row.querySelector('.syllabus-activity-category').value.trim() || null;
     const pointsInput = row.querySelector('.syllabus-activity-points').value;
     const points = pointsInput === '' ? null : parseFloat(pointsInput);
+    const startdate = readTimestamp(row.querySelector('.syllabus-activity-startdate'));
+    const enddate = readTimestamp(row.querySelector('.syllabus-activity-enddate'));
+    const isfinalassessmentInput = row.querySelector('.syllabus-activity-isfinalassessment');
+    const isfinalassessment = isfinalassessmentInput ? isfinalassessmentInput.checked : false;
 
     if (!title) {
         row.querySelector('.syllabus-activity-title').focus();
@@ -123,7 +167,7 @@ const saveActivity = async(row) => {
     try {
         await Ajax.call([{
             methodname: 'mod_syllabus_save_activity',
-            args: {cmid, weekid, activityid, title, type, category, startdate: null, enddate: null, points},
+            args: {cmid, weekid, activityid, title, type, category, startdate, enddate, points, isfinalassessment},
         }])[0];
         reload();
     } catch (error) {
@@ -173,6 +217,17 @@ const buildNewWeekRow = () => {
                 <button type="button" class="btn btn-sm btn-primary syllabus-save-week"></button>
             </div>
         </div>
+        <div class="row g-2 align-items-end mt-1">
+            <div class="col-md-4">
+                <input type="datetime-local" class="form-control form-control-sm syllabus-week-syncdate">
+            </div>
+            <div class="col-md-4">
+                <input type="url" class="form-control form-control-sm syllabus-week-synclink">
+            </div>
+            <div class="col-md-4">
+                <input type="text" class="form-control form-control-sm syllabus-week-synctopic">
+            </div>
+        </div>
     `;
     return row;
 };
@@ -206,6 +261,17 @@ const buildNewActivityRow = (weekid) => {
                 <button type="button" class="btn btn-sm btn-primary syllabus-save-activity"></button>
             </div>
         </div>
+        <div class="row g-2 align-items-center mt-1">
+            <div class="col-md-3">
+                <input type="date" class="form-control form-control-sm syllabus-activity-startdate">
+            </div>
+            <div class="col-md-3">
+                <input type="date" class="form-control form-control-sm syllabus-activity-enddate">
+            </div>
+            <div class="col-md-6 form-check pt-1">
+                <input type="checkbox" class="form-check-input syllabus-activity-isfinalassessment">
+            </div>
+        </div>
     `;
     return row;
 };
@@ -222,6 +288,8 @@ export const init = (coursemoduleid) => {
     if (!container) {
         return;
     }
+
+    hydrateDateInputs(container);
 
     const addWeekBtn = container.querySelector('.syllabus-add-week');
     if (addWeekBtn) {

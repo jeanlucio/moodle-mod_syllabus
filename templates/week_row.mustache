@@ -18,7 +18,7 @@
     @template mod_syllabus/week_row
 
     One week within the editable weeks list: structural fields form, narrative Custom Field
-    editors, and its own list of activities. Only rendered inside coordinator_view for the
+    editors, and its own list of activities. Only rendered inside tab_full_plan for the
     author.
 
     Example context (json):
@@ -26,6 +26,9 @@
         "id": 2,
         "title": "Week 1",
         "duration": 90,
+        "syncdate": 1749250000,
+        "synclink": "https://meet.example.org/week1",
+        "synctopic": "Kickoff session",
         "fields": [
             {
                 "fieldid": 7,
@@ -64,6 +67,31 @@
                 data-confirm="{{#str}} confirmdeleteweek, mod_syllabus {{/str}}">
                 {{#str}} delete, core {{/str}}
             </button>
+        </div>
+    </div>
+    <div class="row g-2 align-items-end mt-1">
+        <div class="col-md-4">
+            <label class="visually-hidden" for="syllabus-week-syncdate-{{id}}">
+                {{#str}} syncmeetingdate, mod_syllabus {{/str}}
+            </label>
+            <input type="datetime-local" class="form-control form-control-sm syllabus-week-syncdate"
+                id="syllabus-week-syncdate-{{id}}" data-timestamp="{{syncdate}}">
+        </div>
+        <div class="col-md-4">
+            <label class="visually-hidden" for="syllabus-week-synclink-{{id}}">
+                {{#str}} syncmeetinglink, mod_syllabus {{/str}}
+            </label>
+            <input type="url" class="form-control form-control-sm syllabus-week-synclink"
+                id="syllabus-week-synclink-{{id}}" value="{{synclink}}"
+                placeholder="{{#str}} syncmeetinglink, mod_syllabus {{/str}}">
+        </div>
+        <div class="col-md-4">
+            <label class="visually-hidden" for="syllabus-week-synctopic-{{id}}">
+                {{#str}} syncmeetingtopic, mod_syllabus {{/str}}
+            </label>
+            <input type="text" class="form-control form-control-sm syllabus-week-synctopic"
+                id="syllabus-week-synctopic-{{id}}" value="{{synctopic}}"
+                placeholder="{{#str}} syncmeetingtopic, mod_syllabus {{/str}}">
         </div>
     </div>
     {{#fields}}

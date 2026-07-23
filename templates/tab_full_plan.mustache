@@ -15,12 +15,16 @@
     along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 }}
 {{!
-    @template mod_syllabus/coordinator_view
+    @template mod_syllabus/tab_full_plan
 
-    Full plan view shown to the teacher (author) and to the coordination (reviewer). The
-    author (caneditcontent) gets the editable weeks/activities management UI with narrative
-    Custom Field autosave; a reviewer without mod/syllabus:submit sees the same read-only
-    content as before — submit/review actions themselves are wired in a later phase.
+    Tab 1 — "Plano completo". The author (caneditcontent) gets the editable weeks/activities
+    management UI with narrative Custom Field autosave; coordination/admin without that
+    capability gets the full read-only content (via the shared plan_week_read/
+    plan_activity_read/plan_schedule partials, same as the tutor tab's field set) plus the
+    review panel and workflow actions. The richer edit-mode UI (navigation rail, totals bar,
+    closed selects, date pickers, per-field help text) is Fase 5.5.d's job, not this
+    template's — this one just makes sure every field the documents require has a plain,
+    working way to be edited.
 
     Example context (json):
     {
@@ -28,34 +32,74 @@
         "statuslabel": "Draft",
         "statusbadgeclass": "bg-secondary",
         "caneditcontent": true,
+        "academicperiod": "2026.1",
+        "coursestartdate": 1749020400,
+        "courseenddate": 1751342400,
+        "totalduration": 1800,
+        "presentationvideourl": "https://youtu.be/8MZLYHxOdUo",
         "coursedescription": "<p>Course description text.</p>",
         "objectives": "<p>Course objectives text.</p>",
         "contents": "<p>Course contents text.</p>",
         "methodology": "<p>Course methodology text.</p>",
-        "planfields": [
-            {
-                "fieldid": 1,
-                "instanceid": 3,
-                "elementid": "syllabus-field-3-1",
-                "name": "Course description",
-                "text": "<p>Course description text.</p>",
-                "itemid": 15
-            }
-        ],
+        "presentationscript": "<p>Presentation script text.</p>",
+        "generalreferences": "<p>References text.</p>",
+        "planfields": [],
         "weeks": [],
         "hasweeks": false,
+        "readweeks": [],
+        "hasschedule": false,
+        "schedule": [],
         "cansubmit": true,
         "canreviewnow": false,
         "canunpublish": false,
         "changesrequestedreason": null
     }
 }}
-<div class="path-mod-syllabus" data-cmid="{{cmid}}">
+<div class="path-mod-syllabus syllabus-tab-full" data-cmid="{{cmid}}">
     <div class="syllabus-status mb-3">
         <span class="badge {{statusbadgeclass}} syllabus-status-badge">{{statuslabel}}</span>
     </div>
 
     {{#caneditcontent}}
+        <h3>{{#str}} characterisation, mod_syllabus {{/str}}</h3>
+        <div class="row g-2 syllabus-characterisation-edit mb-3">
+            <div class="col-md-4">
+                <label class="visually-hidden" for="syllabus-plan-academicperiod">
+                    {{#str}} academicperiod, mod_syllabus {{/str}}
+                </label>
+                <input type="text" class="form-control syllabus-plan-academicperiod" id="syllabus-plan-academicperiod"
+                    value="{{academicperiod}}" placeholder="{{#str}} academicperiod, mod_syllabus {{/str}}">
+            </div>
+            <div class="col-md-4">
+                <label class="visually-hidden" for="syllabus-plan-coursestartdate">
+                    {{#str}} courseperiod, mod_syllabus {{/str}}
+                </label>
+                <input type="date" class="form-control syllabus-plan-coursestartdate" id="syllabus-plan-coursestartdate"
+                    data-timestamp="{{coursestartdate}}">
+            </div>
+            <div class="col-md-4">
+                <label class="visually-hidden" for="syllabus-plan-courseenddate">
+                    {{#str}} courseperiod, mod_syllabus {{/str}}
+                </label>
+                <input type="date" class="form-control syllabus-plan-courseenddate" id="syllabus-plan-courseenddate"
+                    data-timestamp="{{courseenddate}}">
+            </div>
+            <div class="col-md-4">
+                <label class="visually-hidden" for="syllabus-plan-totalduration">
+                    {{#str}} totalworkload, mod_syllabus {{/str}}
+                </label>
+                <input type="number" class="form-control syllabus-plan-totalduration" id="syllabus-plan-totalduration"
+                    value="{{totalduration}}" placeholder="{{#str}} totalworkload, mod_syllabus {{/str}}">
+            </div>
+            <div class="col-md-8">
+                <label class="visually-hidden" for="syllabus-plan-presentationvideourl">
+                    {{#str}} presentationvideo, mod_syllabus {{/str}}
+                </label>
+                <input type="url" class="form-control syllabus-plan-presentationvideourl" id="syllabus-plan-presentationvideourl"
+                    value="{{presentationvideourl}}" placeholder="{{#str}} presentationvideo, mod_syllabus {{/str}}">
+            </div>
+        </div>
+
         {{#planfields}}
         <div class="syllabus-field mb-3">
             <h3><label for="{{elementid}}">{{name}}</label></h3>
@@ -83,19 +127,38 @@
 
     {{^caneditcontent}}
         <h3>{{#str}} coursedescription, mod_syllabus {{/str}}</h3>
-        <div class="syllabus-coursedescription">{{{coursedescription}}}</div>
+        <div class="syllabus-coursedescription mb-3">{{{coursedescription}}}</div>
 
         <h3>{{#str}} objectives, mod_syllabus {{/str}}</h3>
-        <div class="syllabus-objectives">{{{objectives}}}</div>
+        <div class="syllabus-objectives mb-3">{{{objectives}}}</div>
 
         <h3>{{#str}} contents, mod_syllabus {{/str}}</h3>
-        <div class="syllabus-contents">{{{contents}}}</div>
+        <div class="syllabus-contents mb-3">{{{contents}}}</div>
 
         <h3>{{#str}} methodology, mod_syllabus {{/str}}</h3>
-        <div class="syllabus-methodology">{{{methodology}}}</div>
+        <div class="syllabus-methodology mb-3">{{{methodology}}}</div>
+
+        {{#presentationscript}}
+        <h3>{{#str}} presentationscript, mod_syllabus {{/str}}</h3>
+        <div class="syllabus-presentationscript mb-3">{{{presentationscript}}}</div>
+        {{/presentationscript}}
 
         <h3>{{#str}} weeks, mod_syllabus {{/str}}</h3>
+        {{#hasweeks}}
+            {{#readweeks}}
+                {{> mod_syllabus/plan_week_read }}
+            {{/readweeks}}
+        {{/hasweeks}}
+        {{^hasweeks}}
         <p class="text-muted">{{#str}} noweeksyet, mod_syllabus {{/str}}</p>
+        {{/hasweeks}}
+
+        {{#generalreferences}}
+        <h3>{{#str}} generalreferences, mod_syllabus {{/str}}</h3>
+        <div class="syllabus-generalreferences mb-3">{{{generalreferences}}}</div>
+        {{/generalreferences}}
+
+        {{> mod_syllabus/plan_schedule }}
     {{/caneditcontent}}
 
     {{#changesrequestedreason}}

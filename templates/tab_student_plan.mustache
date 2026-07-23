@@ -1,0 +1,109 @@
+{{!
+    This file is part of Moodle - https://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+}}
+{{!
+    @template mod_syllabus/tab_student_plan
+
+    Tab 2 — "Plano do Estudante". Read-only projection of the plan mirroring the "Plano de
+    Disciplina - Aluno" source document: Characterisation, full narrative plan content,
+    every week (with synchronous meetings and bibliography) and activity (with
+    instructions), and the consolidated schedule. Never receives grading criteria, tutor
+    guidance, interaction tools or observations — see plan_read_export::weeks().
+
+    Example context (json):
+    {
+        "statuslabel": "Approved",
+        "statusbadgeclass": "bg-success",
+        "coursename": "Educação a distância na EPT",
+        "disciplinename": "Produção de materiais didáticos digitais",
+        "teachername": "Jean Lúcio Santos Evangelista",
+        "academicperiod": "2026.1",
+        "coursestartdate": 1749020400,
+        "courseenddate": 1751342400,
+        "totalduration": 1800,
+        "presentationvideourl": "https://youtu.be/8MZLYHxOdUo",
+        "coursedescription": "<p>Elaboração, curadoria e avaliação de materiais didáticos digitais...</p>",
+        "objectives": "<p>Fornecer subsídios teóricos e metodológicos...</p>",
+        "contents": "<p>Semana 1 - Sujeitos...</p>",
+        "methodology": "<p>Olá, caro(a) estudante!...</p>",
+        "presentationscript": "<p>Olá, pessoal! Sejam todos e todas bem-vindos...</p>",
+        "generalreferences": "<p>SONZA, A. et al...</p>",
+        "hasweeks": false,
+        "weeks": [],
+        "hasschedule": false,
+        "schedule": []
+    }
+}}
+<div class="path-mod-syllabus syllabus-tab-student">
+    <div class="syllabus-status mb-3">
+        <span class="badge {{statusbadgeclass}} syllabus-status-badge">{{statuslabel}}</span>
+    </div>
+
+    <h3>{{#str}} characterisation, mod_syllabus {{/str}}</h3>
+    <div class="row syllabus-characterisation mb-3">
+        <div class="col-md-6"><strong>{{#str}} studyprogram, mod_syllabus {{/str}}:</strong> {{coursename}}</div>
+        <div class="col-md-6"><strong>{{#str}} discipline, mod_syllabus {{/str}}:</strong> {{disciplinename}}</div>
+        <div class="col-md-6"><strong>{{#str}} teacher, mod_syllabus {{/str}}:</strong> {{teachername}}</div>
+        <div class="col-md-6"><strong>{{#str}} academicperiod, mod_syllabus {{/str}}:</strong> {{academicperiod}}</div>
+        {{#coursestartdate}}
+        <div class="col-md-6">
+            <strong>{{#str}} courseperiod, mod_syllabus {{/str}}:</strong>
+            {{#userdate}} {{coursestartdate}}, {{#str}} strftimedatefullshort, core_langconfig {{/str}} {{/userdate}}
+            {{#courseenddate}}– {{#userdate}} {{courseenddate}}, {{#str}} strftimedatefullshort, core_langconfig {{/str}} {{/userdate}}{{/courseenddate}}
+        </div>
+        {{/coursestartdate}}
+        {{#totalduration}}
+        <div class="col-md-6"><strong>{{#str}} totalworkload, mod_syllabus {{/str}}:</strong> {{totalduration}}</div>
+        {{/totalduration}}
+    </div>
+
+    {{#presentationscript}}
+    <h3>{{#str}} presentationscript, mod_syllabus {{/str}}</h3>
+    {{#presentationvideourl}}
+    <p><a href="{{presentationvideourl}}" target="_blank" rel="noopener">{{#str}} presentationvideo, mod_syllabus {{/str}}</a></p>
+    {{/presentationvideourl}}
+    <div class="syllabus-presentationscript mb-3">{{{presentationscript}}}</div>
+    {{/presentationscript}}
+
+    <h3>{{#str}} coursedescription, mod_syllabus {{/str}}</h3>
+    <div class="syllabus-coursedescription mb-3">{{{coursedescription}}}</div>
+
+    <h3>{{#str}} objectives, mod_syllabus {{/str}}</h3>
+    <div class="syllabus-objectives mb-3">{{{objectives}}}</div>
+
+    <h3>{{#str}} contents, mod_syllabus {{/str}}</h3>
+    <div class="syllabus-contents mb-3">{{{contents}}}</div>
+
+    <h3>{{#str}} methodology, mod_syllabus {{/str}}</h3>
+    <div class="syllabus-methodology mb-3">{{{methodology}}}</div>
+
+    <h3>{{#str}} weeks, mod_syllabus {{/str}}</h3>
+    {{#hasweeks}}
+        {{#weeks}}
+            {{> mod_syllabus/plan_week_read }}
+        {{/weeks}}
+    {{/hasweeks}}
+    {{^hasweeks}}
+    <p class="text-muted">{{#str}} noweeksyet, mod_syllabus {{/str}}</p>
+    {{/hasweeks}}
+
+    {{#generalreferences}}
+    <h3>{{#str}} generalreferences, mod_syllabus {{/str}}</h3>
+    <div class="syllabus-generalreferences mb-3">{{{generalreferences}}}</div>
+    {{/generalreferences}}
+
+    {{> mod_syllabus/plan_schedule }}
+</div>

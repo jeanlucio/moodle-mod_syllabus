@@ -28,36 +28,37 @@ use plugin_renderer_base;
 use stdClass;
 
 /**
- * Main renderer class for mod_syllabus, one method per role-specific view.
+ * Main renderer class for mod_syllabus, one method per tab.
  */
 class renderer extends plugin_renderer_base {
     /**
-     * Renders the full plan view (teacher and coordination).
+     * Renders Tab 1 — "Plano completo" (editable for the author, read + review panel for
+     * coordination/admin).
      *
-     * @param stdClass $templatedata Data exported by coordinator_view::export_for_template().
+     * @param stdClass $templatedata Data exported by tab_full_plan::export_for_template().
      * @return string HTML rendered output.
      */
-    public function render_coordinator_view(stdClass $templatedata): string {
-        return $this->render_from_template('mod_syllabus/coordinator_view', $templatedata);
+    public function render_tab_full_plan(stdClass $templatedata): string {
+        return $this->render_from_template('mod_syllabus/tab_full_plan', $templatedata);
     }
 
     /**
-     * Renders the tutor-facing plan view.
+     * Renders Tab 2 — "Plano do Estudante".
      *
-     * @param stdClass $templatedata Data exported by tutor_view::export_for_template().
+     * @param stdClass $templatedata Data exported by tab_student_plan::export_for_template().
      * @return string HTML rendered output.
      */
-    public function render_tutor_view(stdClass $templatedata): string {
-        return $this->render_from_template('mod_syllabus/tutor_view', $templatedata);
+    public function render_tab_student_plan(stdClass $templatedata): string {
+        return $this->render_from_template('mod_syllabus/tab_student_plan', $templatedata);
     }
 
     /**
-     * Renders the student-facing plan view.
+     * Renders Tab 3 — "Plano de Tutoria".
      *
-     * @param stdClass $templatedata Data exported by student_view::export_for_template().
+     * @param stdClass $templatedata Data exported by tab_tutor_plan::export_for_template().
      * @return string HTML rendered output.
      */
-    public function render_student_view(stdClass $templatedata): string {
-        return $this->render_from_template('mod_syllabus/student_view', $templatedata);
+    public function render_tab_tutor_plan(stdClass $templatedata): string {
+        return $this->render_from_template('mod_syllabus/tab_tutor_plan', $templatedata);
     }
 }

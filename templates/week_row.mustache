@@ -37,6 +37,8 @@
                 "name": "Details",
                 "text": "",
                 "itemid": 9,
+                "area": "week",
+                "isplanfield": false,
                 "description": "Describe what happens in this week's class."
             }
         ],
@@ -97,17 +99,7 @@
         </div>
     </div>
     {{#fields}}
-    <div class="syllabus-field mt-2">
-        <label for="{{elementid}}">{{name}}</label>
-        {{#description}}
-        <p class="form-text text-muted syllabus-field-help">{{{description}}}</p>
-        {{/description}}
-        <textarea id="{{elementid}}" class="syllabus-customfield-editor" data-fieldid="{{fieldid}}"
-            data-instanceid="{{instanceid}}" data-area="week" data-itemid="{{itemid}}">{{text}}</textarea>
-        <span class="syllabus-save-status d-none small text-muted"
-            data-saving="{{#str}} saving, mod_syllabus {{/str}}"
-            data-saved="{{#str}} saved, mod_syllabus {{/str}}"></span>
-    </div>
+        {{> mod_syllabus/narrative_field }}
     {{/fields}}
 
     <h5 class="mt-3">{{#str}} activities, mod_syllabus {{/str}}</h5>

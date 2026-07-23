@@ -104,6 +104,7 @@ if ($tab === 'full') {
         $PAGE->requires->js_call_amd('mod_syllabus/plan_navigator', 'init');
         $monthnames = array_values(type_factory::get_calendar_instance()->get_months());
         $PAGE->requires->js_call_amd('mod_syllabus/plan_dateselect', 'init', [$monthnames]);
+        $PAGE->requires->js_call_amd('mod_syllabus/narrative_editor', 'init');
     }
     $PAGE->requires->js_call_amd('mod_syllabus/review', 'init', [$cm->id]);
 } else if ($tab === 'tutor') {

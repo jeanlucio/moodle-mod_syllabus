@@ -57,6 +57,8 @@
                 "name": "Student instructions",
                 "text": "",
                 "itemid": 12,
+                "area": "activity",
+                "isplanfield": false,
                 "description": "Explain to the student what to do and how to complete this activity."
             }
         ]
@@ -127,16 +129,6 @@
         </div>
     </div>
     {{#fields}}
-    <div class="syllabus-field mt-2">
-        <label for="{{elementid}}">{{name}}</label>
-        {{#description}}
-        <p class="form-text text-muted syllabus-field-help">{{{description}}}</p>
-        {{/description}}
-        <textarea id="{{elementid}}" class="syllabus-customfield-editor" data-fieldid="{{fieldid}}"
-            data-instanceid="{{instanceid}}" data-area="activity" data-itemid="{{itemid}}">{{text}}</textarea>
-        <span class="syllabus-save-status d-none small text-muted"
-            data-saving="{{#str}} saving, mod_syllabus {{/str}}"
-            data-saved="{{#str}} saved, mod_syllabus {{/str}}"></span>
-    </div>
+        {{> mod_syllabus/narrative_field }}
     {{/fields}}
 </div>

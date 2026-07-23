@@ -54,6 +54,8 @@
         "methodology": "<p>Course methodology text.</p>",
         "presentationscript": "<p>Presentation script text.</p>",
         "generalreferences": "<p>References text.</p>",
+        "tinyavailable": false,
+        "tinyconfig": "",
         "planfields": [],
         "weeks": [],
         "hasweeks": false,
@@ -98,6 +100,9 @@
         </nav>
 
         <div class="syllabus-edit-content">
+            {{#tinyavailable}}
+            <script type="application/json" id="syllabus-tiny-config">{{{tinyconfig}}}</script>
+            {{/tinyavailable}}
             <div class="syllabus-totals-bar">
                 <span class="syllabus-totals-duration">
                     {{#str}} totalworkload, mod_syllabus {{/str}}:
@@ -147,17 +152,7 @@
             </div>
 
             {{#planfields}}
-            <div class="syllabus-field mb-3" id="syllabus-section-field-{{fieldid}}" data-syllabus-section>
-                <h3><label for="{{elementid}}">{{name}}</label></h3>
-                {{#description}}
-                <p class="form-text text-muted syllabus-field-help">{{{description}}}</p>
-                {{/description}}
-                <textarea id="{{elementid}}" class="syllabus-customfield-editor syllabus-required-input" data-fieldid="{{fieldid}}"
-                    data-instanceid="{{instanceid}}" data-area="plan" data-itemid="{{itemid}}">{{text}}</textarea>
-                <span class="syllabus-save-status d-none small text-muted"
-                    data-saving="{{#str}} saving, mod_syllabus {{/str}}"
-                    data-saved="{{#str}} saved, mod_syllabus {{/str}}"></span>
-            </div>
+                {{> mod_syllabus/narrative_field }}
             {{/planfields}}
 
             <h3>{{#str}} weeks, mod_syllabus {{/str}}</h3>

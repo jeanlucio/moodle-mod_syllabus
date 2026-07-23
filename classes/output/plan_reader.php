@@ -137,9 +137,11 @@ final class plan_reader {
      * save_customfield_value::execute() saves it back.
      *
      * @param \core_customfield\data_controller[] $datacontrollers Field id => data_controller.
+     * @param string $area Which area these fields belong to (plan/week/activity) — carried
+     *     through as data-area so the autosave WS knows which handler to save back through.
      * @return array
      */
-    public function export_editable_fields(array $datacontrollers): array {
+    public function export_editable_fields(array $datacontrollers, string $area): array {
         $result = [];
         foreach ($datacontrollers as $fieldid => $datacontroller) {
             if ($datacontroller->get_field()->get('type') !== 'textarea') {
@@ -158,6 +160,13 @@ final class plan_reader {
                 'name'        => $field->get_formatted_name(),
                 'text'        => $editorvalue['text'],
                 'itemid'      => $editorvalue['itemid'],
+                'area'        => $area,
+                // Only plan-level fields count toward the Caracterização rail section's fill
+                // heuristic — a week/activity narrative field lives inside the WEEK's own
+                // data-syllabus-section wrapper, so marking it required-input too would dilute
+                // that section's state with fields the rail was never meant to track (see
+                // SCOPE §17 on the 5.5.d.2 rail design).
+                'isplanfield' => $area === 'plan',
                 'description' => $description === '' ? '' : format_text($description, (int) $field->get('descriptionformat'), [
                     'context' => $field->get_handler()->get_configuration_context(),
                 ]),

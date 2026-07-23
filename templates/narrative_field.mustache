@@ -1,0 +1,71 @@
+{{!
+    This file is part of Moodle - https://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+}}
+{{!
+    @template mod_syllabus/narrative_field
+
+    One editable narrative Custom Field box, shared by the plan/week/activity editable
+    loops. When the author's preferred editor is Tiny (tinyavailable — resolved once at the
+    top of tab_full_plan's render and read here via Mustache's normal context-stack
+    fallback), the field starts as a light read-only preview plus an "Edit" button; focusing
+    either lazily attaches a full Tiny instance to the underlying textarea
+    (amd/src/narrative_editor.js) and removes it again on blur, so a page with many
+    narrative fields never has more than a couple of live editor instances at once. A user
+    whose own editor preference is the plain textarea (tinyavailable false) gets exactly
+    that, unchanged, with no lazy-load machinery attached.
+
+    The id/data-syllabus-section pair on the wrapper is harmless even for week/activity
+    fields that have no matching rail entry — plan_navigator.js simply finds no link for
+    that section id and does nothing.
+
+    Example context (json):
+    {
+        "fieldid": 7,
+        "instanceid": 2,
+        "elementid": "syllabus-field-2-7",
+        "name": "Details",
+        "text": "<p>Some text.</p>",
+        "itemid": 9,
+        "area": "week",
+        "isplanfield": false,
+        "description": "Describe what happens in this week's class.",
+        "tinyavailable": true
+    }
+}}
+<div class="syllabus-field mb-3" id="syllabus-section-field-{{fieldid}}" data-syllabus-section>
+    <h3><label for="{{elementid}}">{{name}}</label></h3>
+    {{#description}}
+    <p class="form-text text-muted syllabus-field-help">{{{description}}}</p>
+    {{/description}}
+    {{#tinyavailable}}
+    <div class="syllabus-narrative-field">
+        <div class="syllabus-narrative-preview">{{{text}}}</div>
+        <button type="button" class="btn btn-sm btn-outline-secondary syllabus-narrative-edit-btn">
+            {{#str}} editfield, mod_syllabus, {{name}} {{/str}}
+        </button>
+        <textarea id="{{elementid}}" class="syllabus-customfield-editor d-none{{#isplanfield}} syllabus-required-input{{/isplanfield}}"
+            data-fieldid="{{fieldid}}" data-instanceid="{{instanceid}}" data-area="{{area}}"
+            data-itemid="{{itemid}}">{{text}}</textarea>
+    </div>
+    {{/tinyavailable}}
+    {{^tinyavailable}}
+    <textarea id="{{elementid}}" class="syllabus-customfield-editor{{#isplanfield}} syllabus-required-input{{/isplanfield}}"
+        data-fieldid="{{fieldid}}" data-instanceid="{{instanceid}}" data-area="{{area}}" data-itemid="{{itemid}}">{{text}}</textarea>
+    {{/tinyavailable}}
+    <span class="syllabus-save-status d-none small text-muted"
+        data-saving="{{#str}} saving, mod_syllabus {{/str}}"
+        data-saved="{{#str}} saved, mod_syllabus {{/str}}"></span>
+</div>

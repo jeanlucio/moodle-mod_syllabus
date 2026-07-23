@@ -154,9 +154,13 @@ final class tab_full_plan implements renderable, templatable {
 
         if ($caneditcontent) {
             $planfielddata = plan_handler::create()->get_instance_data($this->syllabus->id, true);
-            $data->planfields = $reader->export_editable_fields($planfielddata);
+            $data->planfields = $reader->export_editable_fields($planfielddata, 'plan');
             $data->weeks = $this->export_editable_weeks($reader, $weeks);
             $data->hasweeks = !empty($data->weeks);
+            $data->tinyavailable = narrative_editor::is_tiny_available();
+            if ($data->tinyavailable) {
+                $data->tinyconfig = json_encode(narrative_editor::base_config($context));
+            }
         } else {
             $data->readweeks = plan_read_export::weeks($reader, $weeks, true);
             $data->hasweeks = !empty($data->readweeks);
@@ -208,7 +212,7 @@ final class tab_full_plan implements renderable, templatable {
                     'isfinalassessment' => (bool) $activity->isfinalassessment,
                     'typeoptions'       => $this->build_select_options(self::TYPE_OPTIONS, $activity->type),
                     'categoryoptions'   => $this->build_select_options(self::CATEGORY_OPTIONS, $activity->category),
-                    'fields'            => $reader->export_editable_fields($activity->fields),
+                    'fields'            => $reader->export_editable_fields($activity->fields, 'activity'),
                 ];
             }
             $result[] = (object) [
@@ -220,7 +224,7 @@ final class tab_full_plan implements renderable, templatable {
                 'syncdate'      => $week->syncdate,
                 'synclink'      => $week->synclink,
                 'synctopic'     => $week->synctopic,
-                'fields'        => $reader->export_editable_fields($week->fields),
+                'fields'        => $reader->export_editable_fields($week->fields, 'week'),
                 'activities'    => $weekactivities,
                 'hasactivities' => !empty($weekactivities),
             ];

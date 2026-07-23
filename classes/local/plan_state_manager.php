@@ -87,6 +87,11 @@ final class plan_state_manager {
         $plan->changesrequestedreason = null;
         $plan->timemodified = $now;
         $DB->update_record('syllabus', $plan);
+
+        $cm = get_coursemodule_from_instance('syllabus', $syllabusid, $plan->course, false, IGNORE_MISSING);
+        if ($cm) {
+            set_coursemodule_visible($cm->id, 1);
+        }
     }
 
     /**

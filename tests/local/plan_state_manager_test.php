@@ -142,6 +142,31 @@ final class plan_state_manager_test extends advanced_testcase {
     }
 
     /**
+     * Approving a plan makes its course module visible — the "automatic publication"
+     * the whole workflow exists for. Needs a real course module (unlike the other tests
+     * here, which only touch the bare syllabus row), so it uses the module generator
+     * instead of create_plan().
+     *
+     * @return void
+     */
+    public function test_approve_makes_course_module_visible(): void {
+        global $DB;
+
+        $course = $this->getDataGenerator()->create_course();
+        $syllabus = $this->getDataGenerator()->create_module('syllabus', ['course' => $course->id]);
+        $cm = get_coursemodule_from_instance('syllabus', $syllabus->id, $course->id, false, MUST_EXIST);
+        $this->assertEquals(0, $cm->visible, 'A newly created plan must start hidden.');
+
+        $author = $this->getDataGenerator()->create_user();
+        $reviewer = $this->getDataGenerator()->create_user();
+        plan_state_manager::submit($syllabus->id, (int) $author->id);
+        plan_state_manager::approve($syllabus->id, (int) $reviewer->id);
+
+        $cm = $DB->get_record('course_modules', ['id' => $cm->id], '*', MUST_EXIST);
+        $this->assertEquals(1, $cm->visible, 'Approving the plan must make its course module visible.');
+    }
+
+    /**
      * The author of a plan cannot approve their own submission, even as a reviewer.
      *
      * @return void

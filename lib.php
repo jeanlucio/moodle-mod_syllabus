@@ -59,7 +59,19 @@ function syllabus_add_instance(stdClass $data): int {
     $data->timecreated = $now;
     $data->timemodified = $now;
 
-    return $DB->insert_record('syllabus', $data);
+    $id = $DB->insert_record('syllabus', $data);
+
+    // Core's add_moduleinfo() creates the course_modules row (and assigns
+    // $data->coursemodule) before calling this function, but only wires
+    // course_modules.instance to it afterwards — set_coursemodule_visible() joins against
+    // {syllabus} through that column, so calling it here would find no match. A direct
+    // field write sidesteps that ordering problem; add_moduleinfo() purges the course
+    // cache itself right after this function returns, so no manual purge is needed here.
+    if (!empty($data->coursemodule)) {
+        $DB->set_field('course_modules', 'visible', 0, ['id' => $data->coursemodule]);
+    }
+
+    return $id;
 }
 
 /**

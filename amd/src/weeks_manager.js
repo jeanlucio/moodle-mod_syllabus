@@ -23,6 +23,7 @@
 
 import Ajax from 'core/ajax';
 import Notification from 'core/notification';
+import {getString} from 'core/str';
 
 /** @type {int} Course module ID. */
 let cmid = 0;
@@ -35,6 +36,21 @@ let cmid = 0;
  */
 const reload = () => {
     window.location.reload();
+};
+
+/**
+ * Shows a rejected structural write as a plain alert instead of Moodle's generic AJAX error
+ * dialog. Every rejection reaching this point is either plan_state_manager's own
+ * moodle_exception (e.g. "structuraleditblocked" while the plan awaits review) or a
+ * capability error — both already carry a clear, translated message; Notification.exception()
+ * would instead show a raw error code as the dialog title plus a stack trace, which is meant
+ * for genuinely unexpected failures, not an outcome the workflow itself anticipates.
+ *
+ * @param {Error} error
+ */
+const showRejected = async(error) => {
+    const title = await getString('actionnotallowed', 'mod_syllabus');
+    Notification.alert(title, error.message);
 };
 
 /**
@@ -60,7 +76,7 @@ const saveWeek = async(row) => {
         }])[0];
         reload();
     } catch (error) {
-        Notification.exception(error);
+        showRejected(error);
     }
 };
 
@@ -81,7 +97,7 @@ const deleteWeek = async(row) => {
         await Ajax.call([{methodname: 'mod_syllabus_delete_week', args: {cmid, weekid}}])[0];
         reload();
     } catch (error) {
-        Notification.exception(error);
+        showRejected(error);
     }
 };
 
@@ -111,7 +127,7 @@ const saveActivity = async(row) => {
         }])[0];
         reload();
     } catch (error) {
-        Notification.exception(error);
+        showRejected(error);
     }
 };
 
@@ -132,7 +148,7 @@ const deleteActivity = async(row) => {
         await Ajax.call([{methodname: 'mod_syllabus_delete_activity', args: {cmid, activityid}}])[0];
         reload();
     } catch (error) {
-        Notification.exception(error);
+        showRejected(error);
     }
 };
 

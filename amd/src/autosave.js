@@ -23,6 +23,7 @@
 
 import Ajax from 'core/ajax';
 import Notification from 'core/notification';
+import {getString} from 'core/str';
 
 /** @type {int} Course module ID. */
 let cmid = 0;
@@ -57,6 +58,20 @@ const showSaved = (field) => {
 };
 
 /**
+ * Shows a rejected save as a plain alert instead of Moodle's generic AJAX error dialog. Every
+ * rejection reaching this point is one of save_customfield_value's own moodle_exception
+ * messages (invalid area/field) or a capability error — both already carry a clear, translated
+ * message; Notification.exception() would instead show a raw error code as the dialog title
+ * plus a stack trace, meant for genuinely unexpected failures, not an anticipated rejection.
+ *
+ * @param {Error} error
+ */
+const showRejected = async(error) => {
+    const title = await getString('actionnotallowed', 'mod_syllabus');
+    Notification.alert(title, error.message);
+};
+
+/**
  * Saves the current value of one field via the web service.
  *
  * @param {HTMLTextAreaElement} textarea
@@ -79,7 +94,7 @@ const doSave = async(textarea) => {
         }])[0];
         showSaved(field);
     } catch (error) {
-        Notification.exception(error);
+        showRejected(error);
     }
 };
 

@@ -25,6 +25,7 @@
 defined('MOODLE_INTERNAL') || die();
 // phpcs:disable moodle.Files.LineLength
 
+$string['actionnotallowed'] = 'Ação não permitida';
 $string['activities'] = 'Atividades';
 $string['activitycategory'] = 'Categoria';
 $string['activityenddate'] = 'Data de término';

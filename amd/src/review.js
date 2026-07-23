@@ -23,12 +23,20 @@
 
 import Ajax from 'core/ajax';
 import Notification from 'core/notification';
+import {getString} from 'core/str';
 
 /** @type {int} Course module ID. */
 let cmid = 0;
 
 /**
  * Calls a workflow web service and reloads the page on success.
+ *
+ * Every rejection reaching this point is one of plan_state_manager's own moodle_exception
+ * business-rule messages (wrong status, self-approval, etc.) or a capability error — both
+ * already carry a clear, translated explanation. Shown via Notification.alert() (title +
+ * message only) instead of Notification.exception() (which renders Moodle's generic AJAX
+ * error dialog, complete with a raw error code as its title and a stack trace) — that dialog
+ * is meant for genuinely unexpected failures, not an outcome the workflow itself anticipates.
  *
  * @param {string} methodname
  * @param {object} args
@@ -38,7 +46,8 @@ const callAndReload = async(methodname, args) => {
         await Ajax.call([{methodname, args}])[0];
         window.location.reload();
     } catch (error) {
-        Notification.exception(error);
+        const title = await getString('actionnotallowed', 'mod_syllabus');
+        Notification.alert(title, error.message);
     }
 };
 

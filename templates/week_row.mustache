@@ -36,7 +36,8 @@
                 "elementid": "syllabus-field-2-7",
                 "name": "Details",
                 "text": "",
-                "itemid": 9
+                "itemid": 9,
+                "description": "Describe what happens in this week's class."
             }
         ],
         "activities": [],
@@ -46,14 +47,14 @@
 <div class="syllabus-week-row border rounded p-3 mb-3" data-weekid="{{id}}">
     <div class="row g-2 align-items-end">
         <div class="col-md-6">
-            <label class="visually-hidden" for="syllabus-week-title-{{id}}">
+            <label class="form-label small mb-1" for="syllabus-week-title-{{id}}">
                 {{#str}} weektitle, mod_syllabus {{/str}}
             </label>
             <input type="text" class="form-control syllabus-week-title" id="syllabus-week-title-{{id}}"
                 value="{{title}}" placeholder="{{#str}} weektitle, mod_syllabus {{/str}}">
         </div>
         <div class="col-md-3">
-            <label class="visually-hidden" for="syllabus-week-duration-{{id}}">
+            <label class="form-label small mb-1" for="syllabus-week-duration-{{id}}">
                 {{#str}} weekduration, mod_syllabus {{/str}}
             </label>
             <input type="number" class="form-control syllabus-week-duration" id="syllabus-week-duration-{{id}}"
@@ -71,14 +72,14 @@
     </div>
     <div class="row g-2 align-items-end mt-1">
         <div class="col-md-4">
-            <label class="visually-hidden" for="syllabus-week-syncdate-{{id}}">
+            <label class="form-label small mb-1" for="syllabus-week-syncdate-{{id}}">
                 {{#str}} syncmeetingdate, mod_syllabus {{/str}}
             </label>
             <input type="datetime-local" class="form-control form-control-sm syllabus-week-syncdate"
                 id="syllabus-week-syncdate-{{id}}" data-timestamp="{{syncdate}}">
         </div>
         <div class="col-md-4">
-            <label class="visually-hidden" for="syllabus-week-synclink-{{id}}">
+            <label class="form-label small mb-1" for="syllabus-week-synclink-{{id}}">
                 {{#str}} syncmeetinglink, mod_syllabus {{/str}}
             </label>
             <input type="url" class="form-control form-control-sm syllabus-week-synclink"
@@ -86,7 +87,7 @@
                 placeholder="{{#str}} syncmeetinglink, mod_syllabus {{/str}}">
         </div>
         <div class="col-md-4">
-            <label class="visually-hidden" for="syllabus-week-synctopic-{{id}}">
+            <label class="form-label small mb-1" for="syllabus-week-synctopic-{{id}}">
                 {{#str}} syncmeetingtopic, mod_syllabus {{/str}}
             </label>
             <input type="text" class="form-control form-control-sm syllabus-week-synctopic"
@@ -97,6 +98,9 @@
     {{#fields}}
     <div class="syllabus-field mt-2">
         <label for="{{elementid}}">{{name}}</label>
+        {{#description}}
+        <p class="form-text text-muted syllabus-field-help">{{{description}}}</p>
+        {{/description}}
         <textarea id="{{elementid}}" class="syllabus-customfield-editor" data-fieldid="{{fieldid}}"
             data-instanceid="{{instanceid}}" data-area="week" data-itemid="{{itemid}}">{{text}}</textarea>
         <span class="syllabus-save-status d-none small text-muted"

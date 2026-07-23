@@ -32,17 +32,45 @@ use templatable;
  * more/less than "everything the plan has" (see the matrix in SCOPE §8); the split is
  * edit-vs-read, not field visibility.
  *
- * The visual editing form built here (plain inputs/textareas) is intentionally the same
- * simple pattern the plugin already used before Fase 5.5 — the richer UI (navigation rail,
- * totals bar, closed selects, date pickers, per-field help text) is Fase 5.5.d's job, not
- * this one's. This class' job is making sure every field the documents require has *some*
- * way to be edited and read correctly, with the right people seeing the right things.
+ * The visual editing form built here is the same simple pattern the plugin already used
+ * before Fase 5.5 — this class' job is making sure every field the documents require has
+ * *some* way to be edited and read correctly, with the right people seeing the right things.
+ * Fase 5.5.d.1 added the closed-select option lists (build_select_options()) and per-field
+ * help text (via plan_reader::export_editable_fields()); the navigation rail, totals bar and
+ * real date pickers remain 5.5.d.2/5.5.d.3's job.
  *
  * @package    mod_syllabus
  * @copyright  2026 Jean Lúcio
  * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 final class tab_full_plan implements renderable, templatable {
+    /**
+     * Fixed set of activity types the source documents define, token => lang string key.
+     * The `type` column stays free VARCHAR — this only drives the closed `<select>` in the
+     * edit-mode UI (Fase 5.5.d.1); save_activity still accepts any string, so a legacy value
+     * outside this list is never lost (see build_select_options()).
+     */
+    private const TYPE_OPTIONS = [
+        'forum'         => 'typeforum',
+        'questionnaire' => 'typequestionnaire',
+        'task'          => 'typetask',
+        'quiz'          => 'typequiz',
+        'game'          => 'typegame',
+        'chat'          => 'typechat',
+        'syncmeeting'   => 'syncmeeting',
+        'other'         => 'typeother',
+    ];
+
+    /**
+     * Fixed set of activity categories the source documents define, token => lang string key.
+     * Same free-VARCHAR/closed-select relationship as TYPE_OPTIONS above.
+     */
+    private const CATEGORY_OPTIONS = [
+        'synchronous'  => 'categorysynchronous',
+        'asynchronous' => 'categoryasynchronous',
+        'online'       => 'categoryonline',
+    ];
+
     /** @var stdClass The syllabus record. */
     private stdClass $syllabus;
 
@@ -151,6 +179,8 @@ final class tab_full_plan implements renderable, templatable {
                     'enddate'           => $activity->enddate,
                     'points'            => $activity->points,
                     'isfinalassessment' => (bool) $activity->isfinalassessment,
+                    'typeoptions'       => $this->build_select_options(self::TYPE_OPTIONS, $activity->type),
+                    'categoryoptions'   => $this->build_select_options(self::CATEGORY_OPTIONS, $activity->category),
                     'fields'            => $reader->export_editable_fields($activity->fields),
                 ];
             }
@@ -169,5 +199,38 @@ final class tab_full_plan implements renderable, templatable {
             ];
         }
         return $result;
+    }
+
+    /**
+     * Builds the option list for a closed `<select>` (activity type/category), marking the
+     * currently stored value as selected. If that value doesn't match any of the fixed
+     * tokens (legacy data, or an institution that typed something else before this UI
+     * existed), it is appended as an extra selected option instead of being silently
+     * dropped — the column is still free VARCHAR, so no data is lost either way.
+     *
+     * @param array $tokenstolangkeys Fixed value => lang string key map (TYPE_OPTIONS/CATEGORY_OPTIONS).
+     * @param string|null $current The value currently stored on the activity.
+     * @return stdClass[]
+     */
+    private function build_select_options(array $tokenstolangkeys, ?string $current): array {
+        $options = [];
+        $matched = false;
+        foreach ($tokenstolangkeys as $value => $langkey) {
+            $selected = $current !== null && $current === $value;
+            $matched = $matched || $selected;
+            $options[] = (object) [
+                'value'    => $value,
+                'label'    => get_string($langkey, 'mod_syllabus'),
+                'selected' => $selected,
+            ];
+        }
+        if (!$matched && $current !== null && $current !== '') {
+            $options[] = (object) [
+                'value'    => $current,
+                'label'    => $current,
+                'selected' => true,
+            ];
+        }
+        return $options;
     }
 }

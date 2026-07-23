@@ -64,35 +64,35 @@
         <h3>{{#str}} characterisation, mod_syllabus {{/str}}</h3>
         <div class="row g-2 syllabus-characterisation-edit mb-3">
             <div class="col-md-4">
-                <label class="visually-hidden" for="syllabus-plan-academicperiod">
+                <label class="form-label small mb-1" for="syllabus-plan-academicperiod">
                     {{#str}} academicperiod, mod_syllabus {{/str}}
                 </label>
                 <input type="text" class="form-control syllabus-plan-academicperiod" id="syllabus-plan-academicperiod"
                     value="{{academicperiod}}" placeholder="{{#str}} academicperiod, mod_syllabus {{/str}}">
             </div>
             <div class="col-md-4">
-                <label class="visually-hidden" for="syllabus-plan-coursestartdate">
+                <label class="form-label small mb-1" for="syllabus-plan-coursestartdate">
                     {{#str}} courseperiod, mod_syllabus {{/str}}
                 </label>
                 <input type="date" class="form-control syllabus-plan-coursestartdate" id="syllabus-plan-coursestartdate"
                     data-timestamp="{{coursestartdate}}">
             </div>
             <div class="col-md-4">
-                <label class="visually-hidden" for="syllabus-plan-courseenddate">
+                <label class="form-label small mb-1" for="syllabus-plan-courseenddate">
                     {{#str}} courseperiod, mod_syllabus {{/str}}
                 </label>
                 <input type="date" class="form-control syllabus-plan-courseenddate" id="syllabus-plan-courseenddate"
                     data-timestamp="{{courseenddate}}">
             </div>
             <div class="col-md-4">
-                <label class="visually-hidden" for="syllabus-plan-totalduration">
+                <label class="form-label small mb-1" for="syllabus-plan-totalduration">
                     {{#str}} totalworkload, mod_syllabus {{/str}}
                 </label>
                 <input type="number" class="form-control syllabus-plan-totalduration" id="syllabus-plan-totalduration"
                     value="{{totalduration}}" placeholder="{{#str}} totalworkload, mod_syllabus {{/str}}">
             </div>
             <div class="col-md-8">
-                <label class="visually-hidden" for="syllabus-plan-presentationvideourl">
+                <label class="form-label small mb-1" for="syllabus-plan-presentationvideourl">
                     {{#str}} presentationvideo, mod_syllabus {{/str}}
                 </label>
                 <input type="url" class="form-control syllabus-plan-presentationvideourl" id="syllabus-plan-presentationvideourl"
@@ -103,6 +103,9 @@
         {{#planfields}}
         <div class="syllabus-field mb-3">
             <h3><label for="{{elementid}}">{{name}}</label></h3>
+            {{#description}}
+            <p class="form-text text-muted syllabus-field-help">{{{description}}}</p>
+            {{/description}}
             <textarea id="{{elementid}}" class="syllabus-customfield-editor" data-fieldid="{{fieldid}}"
                 data-instanceid="{{instanceid}}" data-area="plan" data-itemid="{{itemid}}">{{text}}</textarea>
             <span class="syllabus-save-status d-none small text-muted"

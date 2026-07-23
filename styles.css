@@ -35,6 +35,11 @@
     color: var(--bs-dark, #000);
 }
 
+.path-mod-syllabus .syllabus-field-help {
+    margin-top: 0;
+    margin-bottom: 0.35rem;
+}
+
 .path-mod-syllabus .visually-hidden {
     position: absolute;
     width: 1px;

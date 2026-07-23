@@ -29,6 +29,14 @@
         "category": "asynchronous",
         "points": 10,
         "isfinalassessment": false,
+        "typeoptions": [
+            {"value": "forum", "label": "Forum", "selected": true},
+            {"value": "quiz", "label": "Quiz", "selected": false}
+        ],
+        "categoryoptions": [
+            {"value": "asynchronous", "label": "Asynchronous", "selected": true},
+            {"value": "online", "label": "Online", "selected": false}
+        ],
         "fields": [
             {
                 "fieldid": 3,
@@ -36,7 +44,8 @@
                 "elementid": "syllabus-field-5-3",
                 "name": "Student instructions",
                 "text": "",
-                "itemid": 12
+                "itemid": 12,
+                "description": "Explain to the student what to do and how to complete this activity."
             }
         ]
     }
@@ -44,28 +53,36 @@
 <div class="syllabus-activity-row border rounded p-2 mb-2" data-activityid="{{id}}" data-weekid="{{weekid}}">
     <div class="row g-2 align-items-end">
         <div class="col-md-4">
-            <label class="visually-hidden" for="syllabus-activity-title-{{id}}">
+            <label class="form-label small mb-1" for="syllabus-activity-title-{{id}}">
                 {{#str}} activitytitle, mod_syllabus {{/str}}
             </label>
             <input type="text" class="form-control syllabus-activity-title" id="syllabus-activity-title-{{id}}"
                 value="{{title}}" placeholder="{{#str}} activitytitle, mod_syllabus {{/str}}">
         </div>
         <div class="col-md-2">
-            <label class="visually-hidden" for="syllabus-activity-type-{{id}}">
+            <label class="form-label small mb-1" for="syllabus-activity-type-{{id}}">
                 {{#str}} activitytype, mod_syllabus {{/str}}
             </label>
-            <input type="text" class="form-control syllabus-activity-type" id="syllabus-activity-type-{{id}}"
-                value="{{type}}" placeholder="{{#str}} activitytype, mod_syllabus {{/str}}">
+            <select class="form-select syllabus-activity-type" id="syllabus-activity-type-{{id}}">
+                <option value="">{{#str}} choosedots, core {{/str}}</option>
+                {{#typeoptions}}
+                <option value="{{value}}" {{#selected}}selected{{/selected}}>{{label}}</option>
+                {{/typeoptions}}
+            </select>
         </div>
         <div class="col-md-2">
-            <label class="visually-hidden" for="syllabus-activity-category-{{id}}">
+            <label class="form-label small mb-1" for="syllabus-activity-category-{{id}}">
                 {{#str}} activitycategory, mod_syllabus {{/str}}
             </label>
-            <input type="text" class="form-control syllabus-activity-category" id="syllabus-activity-category-{{id}}"
-                value="{{category}}" placeholder="{{#str}} activitycategory, mod_syllabus {{/str}}">
+            <select class="form-select syllabus-activity-category" id="syllabus-activity-category-{{id}}">
+                <option value="">{{#str}} choosedots, core {{/str}}</option>
+                {{#categoryoptions}}
+                <option value="{{value}}" {{#selected}}selected{{/selected}}>{{label}}</option>
+                {{/categoryoptions}}
+            </select>
         </div>
         <div class="col-md-2">
-            <label class="visually-hidden" for="syllabus-activity-points-{{id}}">
+            <label class="form-label small mb-1" for="syllabus-activity-points-{{id}}">
                 {{#str}} activitypoints, mod_syllabus {{/str}}
             </label>
             <input type="number" step="0.01" class="form-control syllabus-activity-points"
@@ -84,14 +101,14 @@
     </div>
     <div class="row g-2 align-items-center mt-1">
         <div class="col-md-3">
-            <label class="visually-hidden" for="syllabus-activity-startdate-{{id}}">
+            <label class="form-label small mb-1" for="syllabus-activity-startdate-{{id}}">
                 {{#str}} activitystartdate, mod_syllabus {{/str}}
             </label>
             <input type="date" class="form-control form-control-sm syllabus-activity-startdate"
                 id="syllabus-activity-startdate-{{id}}" data-timestamp="{{startdate}}">
         </div>
         <div class="col-md-3">
-            <label class="visually-hidden" for="syllabus-activity-enddate-{{id}}">
+            <label class="form-label small mb-1" for="syllabus-activity-enddate-{{id}}">
                 {{#str}} activityenddate, mod_syllabus {{/str}}
             </label>
             <input type="date" class="form-control form-control-sm syllabus-activity-enddate"
@@ -108,6 +125,9 @@
     {{#fields}}
     <div class="syllabus-field mt-2">
         <label for="{{elementid}}">{{name}}</label>
+        {{#description}}
+        <p class="form-text text-muted syllabus-field-help">{{{description}}}</p>
+        {{/description}}
         <textarea id="{{elementid}}" class="syllabus-customfield-editor" data-fieldid="{{fieldid}}"
             data-instanceid="{{instanceid}}" data-area="activity" data-itemid="{{itemid}}">{{text}}</textarea>
         <span class="syllabus-save-status d-none small text-muted"

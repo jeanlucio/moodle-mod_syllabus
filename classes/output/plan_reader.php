@@ -149,13 +149,18 @@ final class plan_reader {
             $holder = new stdClass();
             $datacontroller->instance_form_before_set_data($holder);
             $editorvalue = $holder->{$datacontroller->get_form_element_name()};
+            $field = $datacontroller->get_field();
+            $description = (string) $field->get('description');
             $result[] = (object) [
-                'fieldid'    => $fieldid,
-                'instanceid' => $datacontroller->get('instanceid'),
-                'elementid'  => 'syllabus-field-' . $datacontroller->get('instanceid') . '-' . $fieldid,
-                'name'       => $datacontroller->get_field()->get_formatted_name(),
-                'text'       => $editorvalue['text'],
-                'itemid'     => $editorvalue['itemid'],
+                'fieldid'     => $fieldid,
+                'instanceid'  => $datacontroller->get('instanceid'),
+                'elementid'   => 'syllabus-field-' . $datacontroller->get('instanceid') . '-' . $fieldid,
+                'name'        => $field->get_formatted_name(),
+                'text'        => $editorvalue['text'],
+                'itemid'      => $editorvalue['itemid'],
+                'description' => $description === '' ? '' : format_text($description, (int) $field->get('descriptionformat'), [
+                    'context' => $field->get_handler()->get_configuration_context(),
+                ]),
             ];
         }
         return $result;

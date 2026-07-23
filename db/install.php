@@ -64,6 +64,8 @@ function xmldb_syllabus_install(): void {
                 'type' => 'textarea',
                 'categoryid' => $categoryid,
                 'configdata' => [],
+                'description' => get_string($shortname . 'help', 'mod_syllabus'),
+                'descriptionformat' => FORMAT_HTML,
             ];
             $field = core_customfield\field_controller::create(0, $record, $category);
             core_customfield\api::save_field_configuration($field, $record);

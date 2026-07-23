@@ -17,9 +17,9 @@
 namespace mod_syllabus\external;
 
 use advanced_testcase;
-use coding_exception;
 use core_external\external_api;
 use mod_syllabus\local\plan_state_manager;
+use moodle_exception;
 
 /**
  * Unit tests for the mod_syllabus_unpublish_plan external function.
@@ -129,7 +129,7 @@ final class unpublish_plan_test extends advanced_testcase {
         $this->getDataGenerator()->enrol_user($manager->id, $course->id, 'manager');
         $this->setUser($manager);
 
-        $this->expectException(coding_exception::class);
+        $this->expectException(moodle_exception::class);
         unpublish_plan::execute($syllabus->cmid);
     }
 }

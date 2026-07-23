@@ -16,7 +16,7 @@
 
 namespace mod_syllabus\local;
 
-use coding_exception;
+use moodle_exception;
 use stdClass;
 
 /**
@@ -47,7 +47,7 @@ final class plan_state_manager {
      * @param int $syllabusid ID of the syllabus record.
      * @param int $userid ID of the author submitting the plan.
      * @return void
-     * @throws coding_exception If the plan is not in a submittable status.
+     * @throws moodle_exception If the plan is not in a submittable status.
      */
     public static function submit(int $syllabusid, int $userid): void {
         global $DB;
@@ -55,7 +55,7 @@ final class plan_state_manager {
         $plan = $DB->get_record('syllabus', ['id' => $syllabusid], '*', MUST_EXIST);
         $submittablefrom = [self::STATUS_DRAFT, self::STATUS_CHANGES_REQUESTED];
         if (!in_array($plan->status, $submittablefrom, true)) {
-            throw new coding_exception('Plan cannot be submitted from its current status.');
+            throw new moodle_exception('cannotsubmitstatus', 'mod_syllabus');
         }
 
         $now = time();
@@ -72,7 +72,7 @@ final class plan_state_manager {
      * @param int $syllabusid ID of the syllabus record.
      * @param int $reviewerid ID of the coordinator approving the plan.
      * @return void
-     * @throws coding_exception If the plan is not awaiting review, or the reviewer is its own author.
+     * @throws moodle_exception If the plan is not awaiting review, or the reviewer is its own author.
      */
     public static function approve(int $syllabusid, int $reviewerid): void {
         global $DB;
@@ -101,7 +101,7 @@ final class plan_state_manager {
      * @param int $reviewerid ID of the coordinator requesting changes.
      * @param string $reason Justification shown to the author.
      * @return void
-     * @throws coding_exception If the plan is not awaiting review, or the reviewer is its own author.
+     * @throws moodle_exception If the plan is not awaiting review, or the reviewer is its own author.
      */
     public static function request_changes(int $syllabusid, int $reviewerid, string $reason): void {
         global $DB;
@@ -158,14 +158,14 @@ final class plan_state_manager {
      * @param int $syllabusid ID of the syllabus record.
      * @param int $userid ID of the user unpublishing the plan, recorded for audit purposes.
      * @return void
-     * @throws coding_exception If the plan is not currently approved.
+     * @throws moodle_exception If the plan is not currently approved.
      */
     public static function unpublish(int $syllabusid, int $userid): void {
         global $DB;
 
         $plan = $DB->get_record('syllabus', ['id' => $syllabusid], '*', MUST_EXIST);
         if ($plan->status !== self::STATUS_APPROVED) {
-            throw new coding_exception('Only an approved plan can be unpublished.');
+            throw new moodle_exception('onlyapprovedcanunpublish', 'mod_syllabus');
         }
 
         $now = time();
@@ -221,11 +221,11 @@ final class plan_state_manager {
      *
      * @param stdClass $plan Syllabus record the structural write targets.
      * @return void
-     * @throws coding_exception If the plan is currently awaiting review.
+     * @throws moodle_exception If the plan is currently awaiting review.
      */
     public static function require_structural_editable(stdClass $plan): void {
         if ($plan->status === self::STATUS_SUBMITTED) {
-            throw new coding_exception('Structural fields cannot be edited while the plan is awaiting review.');
+            throw new moodle_exception('structuraleditblocked', 'mod_syllabus');
         }
     }
 
@@ -235,14 +235,14 @@ final class plan_state_manager {
      * @param stdClass $plan Syllabus record being reviewed.
      * @param int $reviewerid ID of the user attempting to review it.
      * @return void
-     * @throws coding_exception If the plan is not awaiting review, or the reviewer is its own author.
+     * @throws moodle_exception If the plan is not awaiting review, or the reviewer is its own author.
      */
     private static function require_reviewable(stdClass $plan, int $reviewerid): void {
         if ($plan->status !== self::STATUS_SUBMITTED) {
-            throw new coding_exception('Plan is not awaiting review.');
+            throw new moodle_exception('notawaitingreview', 'mod_syllabus');
         }
         if ((int) $plan->submittedby === $reviewerid) {
-            throw new coding_exception('A reviewer cannot approve or request changes on their own submission.');
+            throw new moodle_exception('cannotapproveown', 'mod_syllabus');
         }
     }
 }

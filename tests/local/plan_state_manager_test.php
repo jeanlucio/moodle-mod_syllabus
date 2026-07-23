@@ -17,7 +17,7 @@
 namespace mod_syllabus\local;
 
 use advanced_testcase;
-use coding_exception;
+use moodle_exception;
 
 /**
  * Unit tests for the plan_state_manager approval workflow state machine.
@@ -117,7 +117,7 @@ final class plan_state_manager_test extends advanced_testcase {
         $author = $this->getDataGenerator()->create_user();
         $syllabusid = $this->create_plan(plan_state_manager::STATUS_APPROVED, (int) $author->id);
 
-        $this->expectException(coding_exception::class);
+        $this->expectException(moodle_exception::class);
         plan_state_manager::submit($syllabusid, (int) $author->id);
     }
 
@@ -175,7 +175,7 @@ final class plan_state_manager_test extends advanced_testcase {
         $author = $this->getDataGenerator()->create_user();
         $syllabusid = $this->create_plan(plan_state_manager::STATUS_SUBMITTED, (int) $author->id);
 
-        $this->expectException(coding_exception::class);
+        $this->expectException(moodle_exception::class);
         plan_state_manager::approve($syllabusid, (int) $author->id);
     }
 
@@ -188,7 +188,7 @@ final class plan_state_manager_test extends advanced_testcase {
         $reviewer = $this->getDataGenerator()->create_user();
         $syllabusid = $this->create_plan(plan_state_manager::STATUS_DRAFT);
 
-        $this->expectException(coding_exception::class);
+        $this->expectException(moodle_exception::class);
         plan_state_manager::approve($syllabusid, (int) $reviewer->id);
     }
 
@@ -220,7 +220,7 @@ final class plan_state_manager_test extends advanced_testcase {
         $author = $this->getDataGenerator()->create_user();
         $syllabusid = $this->create_plan(plan_state_manager::STATUS_SUBMITTED, (int) $author->id);
 
-        $this->expectException(coding_exception::class);
+        $this->expectException(moodle_exception::class);
         plan_state_manager::request_changes($syllabusid, (int) $author->id, 'Fix it.');
     }
 
@@ -280,7 +280,7 @@ final class plan_state_manager_test extends advanced_testcase {
         $unpublisher = $this->getDataGenerator()->create_user();
         $syllabusid = $this->create_plan(plan_state_manager::STATUS_DRAFT);
 
-        $this->expectException(coding_exception::class);
+        $this->expectException(moodle_exception::class);
         plan_state_manager::unpublish($syllabusid, (int) $unpublisher->id);
     }
 
@@ -334,7 +334,7 @@ final class plan_state_manager_test extends advanced_testcase {
      * @return void
      */
     public function test_require_structural_editable_blocks_submitted(): void {
-        $this->expectException(coding_exception::class);
+        $this->expectException(moodle_exception::class);
         plan_state_manager::require_structural_editable((object) ['status' => plan_state_manager::STATUS_SUBMITTED]);
     }
 

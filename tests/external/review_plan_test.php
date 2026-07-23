@@ -17,10 +17,10 @@
 namespace mod_syllabus\external;
 
 use advanced_testcase;
-use coding_exception;
 use core_external\external_api;
 use invalid_parameter_exception;
 use mod_syllabus\local\plan_state_manager;
+use moodle_exception;
 
 /**
  * Unit tests for the mod_syllabus_review_plan external function.
@@ -158,7 +158,7 @@ final class review_plan_test extends advanced_testcase {
         $this->setUser($teachermanager);
         submit_plan::execute($syllabus->cmid);
 
-        $this->expectException(coding_exception::class);
+        $this->expectException(moodle_exception::class);
         review_plan::execute($syllabus->cmid, 'approved');
     }
 

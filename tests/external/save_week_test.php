@@ -17,9 +17,9 @@
 namespace mod_syllabus\external;
 
 use advanced_testcase;
-use coding_exception;
 use core_external\external_api;
 use mod_syllabus\local\plan_state_manager;
+use moodle_exception;
 
 /**
  * Unit tests for the mod_syllabus_save_week external function.
@@ -127,7 +127,7 @@ final class save_week_test extends advanced_testcase {
         [$syllabus, $teacher] = $this->create_syllabus_with_teacher(plan_state_manager::STATUS_SUBMITTED);
         $this->setUser($teacher);
 
-        $this->expectException(coding_exception::class);
+        $this->expectException(moodle_exception::class);
         save_week::execute($syllabus->cmid, 0, 'New week', null, null, null);
     }
 

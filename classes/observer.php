@@ -16,8 +16,16 @@
 
 namespace mod_syllabus;
 
+use context_module;
 use core\event\course_module_updated;
+use core\message\message;
+use core_user;
+use mod_syllabus\event\plan_approved;
+use mod_syllabus\event\plan_changes_requested;
+use mod_syllabus\event\plan_submitted;
 use mod_syllabus\local\plan_state_manager;
+use moodle_url;
+use stdClass;
 
 /**
  * Event observers for mod_syllabus.
@@ -69,5 +77,124 @@ final class observer {
         }
 
         set_coursemodule_visible((int) $cm->id, $expectedvisible, $expectedvisible);
+    }
+
+    /**
+     * Notifies every user with mod/syllabus:review in the context that a plan awaits review.
+     *
+     * @param plan_submitted $event The triggered event.
+     * @return void
+     */
+    public static function plan_submitted(plan_submitted $event): void {
+        global $DB;
+
+        $plan = $DB->get_record('syllabus', ['id' => $event->objectid], '*', IGNORE_MISSING);
+        $cm = $plan ? get_coursemodule_from_instance('syllabus', $plan->id, $plan->course, false, IGNORE_MISSING) : null;
+        if (!$plan || !$cm) {
+            return;
+        }
+
+        $context = context_module::instance($cm->id);
+        foreach (get_users_by_capability($context, 'mod/syllabus:review') as $recipient) {
+            if ((int) $recipient->id === (int) $event->userid) {
+                continue;
+            }
+            self::send_message(
+                $plan,
+                $cm,
+                $recipient,
+                'plan_submitted',
+                get_string('messagesubjectsubmitted', 'mod_syllabus', format_string($plan->name)),
+                get_string('messagebodysubmitted', 'mod_syllabus', format_string($plan->name))
+            );
+        }
+    }
+
+    /**
+     * Notifies the plan's author that their submission was approved.
+     *
+     * @param plan_approved $event The triggered event.
+     * @return void
+     */
+    public static function plan_approved(plan_approved $event): void {
+        global $DB;
+
+        $plan = $DB->get_record('syllabus', ['id' => $event->objectid], '*', IGNORE_MISSING);
+        $cm = $plan ? get_coursemodule_from_instance('syllabus', $plan->id, $plan->course, false, IGNORE_MISSING) : null;
+        $author = $plan && $plan->submittedby ? core_user::get_user($plan->submittedby) : null;
+        if (!$plan || !$cm || !$author) {
+            return;
+        }
+
+        self::send_message(
+            $plan,
+            $cm,
+            $author,
+            'plan_approved',
+            get_string('messagesubjectapproved', 'mod_syllabus', format_string($plan->name)),
+            get_string('messagebodyapproved', 'mod_syllabus', format_string($plan->name))
+        );
+    }
+
+    /**
+     * Notifies the plan's author that the coordinator requested changes.
+     *
+     * @param plan_changes_requested $event The triggered event.
+     * @return void
+     */
+    public static function plan_changes_requested(plan_changes_requested $event): void {
+        global $DB;
+
+        $plan = $DB->get_record('syllabus', ['id' => $event->objectid], '*', IGNORE_MISSING);
+        $cm = $plan ? get_coursemodule_from_instance('syllabus', $plan->id, $plan->course, false, IGNORE_MISSING) : null;
+        $author = $plan && $plan->submittedby ? core_user::get_user($plan->submittedby) : null;
+        if (!$plan || !$cm || !$author) {
+            return;
+        }
+
+        $a = (object) ['name' => format_string($plan->name), 'reason' => $event->other['reason']];
+        self::send_message(
+            $plan,
+            $cm,
+            $author,
+            'plan_changes_requested',
+            get_string('messagesubjectchangesrequested', 'mod_syllabus', format_string($plan->name)),
+            get_string('messagebodychangesrequested', 'mod_syllabus', $a)
+        );
+    }
+
+    /**
+     * Builds and sends one workflow notification.
+     *
+     * @param stdClass $plan Syllabus record the message is about.
+     * @param stdClass $cm Course module record.
+     * @param stdClass $recipient User to notify.
+     * @param string $name Message provider name, as declared in db/messages.php.
+     * @param string $subject Message subject.
+     * @param string $body Message body (plain text).
+     * @return void
+     */
+    private static function send_message(
+        stdClass $plan,
+        stdClass $cm,
+        stdClass $recipient,
+        string $name,
+        string $subject,
+        string $body
+    ): void {
+        $message = new message();
+        $message->component = 'mod_syllabus';
+        $message->name = $name;
+        $message->userfrom = core_user::get_noreply_user();
+        $message->userto = $recipient;
+        $message->subject = $subject;
+        $message->fullmessage = $body;
+        $message->fullmessageformat = FORMAT_PLAIN;
+        $message->fullmessagehtml = '';
+        $message->smallmessage = $subject;
+        $message->notification = 1;
+        $message->contexturl = new moodle_url('/mod/syllabus/view.php', ['id' => $cm->id]);
+        $message->contexturlname = format_string($plan->name);
+        message_send($message);
     }
 }

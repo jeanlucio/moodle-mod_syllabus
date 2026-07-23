@@ -43,7 +43,11 @@
             }
         ],
         "weeks": [],
-        "hasweeks": false
+        "hasweeks": false,
+        "cansubmit": true,
+        "canreviewnow": false,
+        "canunpublish": false,
+        "changesrequestedreason": null
     }
 }}
 <div class="path-mod-syllabus" data-cmid="{{cmid}}">
@@ -93,4 +97,40 @@
         <h3>{{#str}} weeks, mod_syllabus {{/str}}</h3>
         <p class="text-muted">{{#str}} noweeksyet, mod_syllabus {{/str}}</p>
     {{/caneditcontent}}
+
+    {{#changesrequestedreason}}
+    <div class="alert alert-warning syllabus-changes-requested-reason">
+        <strong>{{#str}} changesrequestedreason, mod_syllabus {{/str}}:</strong> {{changesrequestedreason}}
+    </div>
+    {{/changesrequestedreason}}
+
+    <div class="syllabus-workflow-actions mt-4">
+        {{#cansubmit}}
+        <button type="button" class="btn btn-primary syllabus-submit-plan">
+            {{#str}} submitforreview, mod_syllabus {{/str}}
+        </button>
+        {{/cansubmit}}
+
+        {{#canreviewnow}}
+        <div class="syllabus-review-panel border rounded p-3">
+            <button type="button" class="btn btn-success syllabus-approve-plan">
+                {{#str}} approve, core {{/str}}
+            </button>
+            <div class="syllabus-request-changes-form mt-2">
+                <label for="syllabus-changes-reason">{{#str}} reasonforchanges, mod_syllabus {{/str}}</label>
+                <textarea id="syllabus-changes-reason" class="form-control syllabus-changes-reason" rows="3"></textarea>
+                <button type="button" class="btn btn-warning mt-2 syllabus-request-changes">
+                    {{#str}} requestchanges, mod_syllabus {{/str}}
+                </button>
+            </div>
+        </div>
+        {{/canreviewnow}}
+
+        {{#canunpublish}}
+        <button type="button" class="btn btn-outline-danger syllabus-unpublish"
+            data-confirm="{{#str}} confirmunpublish, mod_syllabus {{/str}}">
+            {{#str}} unpublish, mod_syllabus {{/str}}
+        </button>
+        {{/canunpublish}}
+    </div>
 </div>

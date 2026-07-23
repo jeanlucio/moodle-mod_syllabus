@@ -65,4 +65,28 @@ $functions = [
         'ajax'         => true,
         'capabilities' => 'mod/syllabus:submit',
     ],
+    'mod_syllabus_submit_plan' => [
+        'classname'    => 'mod_syllabus\external\submit_plan',
+        'methodname'   => 'execute',
+        'description'  => 'Submit a syllabus plan for coordination review.',
+        'type'         => 'write',
+        'ajax'         => true,
+        'capabilities' => 'mod/syllabus:submit',
+    ],
+    'mod_syllabus_review_plan' => [
+        'classname'    => 'mod_syllabus\external\review_plan',
+        'methodname'   => 'execute',
+        'description'  => 'Approve a plan or send it back with requested changes.',
+        'type'         => 'write',
+        'ajax'         => true,
+        'capabilities' => 'mod/syllabus:review',
+    ],
+    'mod_syllabus_unpublish_plan' => [
+        'classname'    => 'mod_syllabus\external\unpublish_plan',
+        'methodname'   => 'execute',
+        'description'  => 'Pull an approved plan back to draft.',
+        'type'         => 'write',
+        'ajax'         => true,
+        'capabilities' => 'mod/syllabus:submit,mod/syllabus:review',
+    ],
 ];

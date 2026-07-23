@@ -76,6 +76,7 @@ if ($isreviewer || $isauthor) {
         $PAGE->requires->js_call_amd('mod_syllabus/weeks_manager', 'init', [$cm->id]);
         $PAGE->requires->js_call_amd('mod_syllabus/autosave', 'init', [$cm->id]);
     }
+    $PAGE->requires->js_call_amd('mod_syllabus/review', 'init', [$cm->id]);
 } else if ($istutor) {
     $page = new tutor_view($syllabus);
     $html = $renderer->render_tutor_view($page->export_for_template($renderer));

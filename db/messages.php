@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 /**
- * Event observer definitions for mod_syllabus.
+ * Message provider definitions for mod_syllabus.
  *
  * @package    mod_syllabus
  * @copyright  2026 Jean Lúcio
@@ -24,21 +24,26 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$observers = [
-    [
-        'eventname' => '\core\event\course_module_updated',
-        'callback'  => '\mod_syllabus\observer::course_module_updated',
+$messageproviders = [
+    // Sent to everyone with mod/syllabus:review in the context when a plan is submitted.
+    'plan_submitted' => [
+        'defaults' => [
+            'popup' => MESSAGE_PERMITTED + MESSAGE_DEFAULT_ENABLED,
+            'email' => MESSAGE_PERMITTED + MESSAGE_DEFAULT_ENABLED,
+        ],
     ],
-    [
-        'eventname' => '\mod_syllabus\event\plan_submitted',
-        'callback'  => '\mod_syllabus\observer::plan_submitted',
+    // Sent to the plan's author when the coordinator approves it.
+    'plan_approved' => [
+        'defaults' => [
+            'popup' => MESSAGE_PERMITTED + MESSAGE_DEFAULT_ENABLED,
+            'email' => MESSAGE_PERMITTED + MESSAGE_DEFAULT_ENABLED,
+        ],
     ],
-    [
-        'eventname' => '\mod_syllabus\event\plan_approved',
-        'callback'  => '\mod_syllabus\observer::plan_approved',
-    ],
-    [
-        'eventname' => '\mod_syllabus\event\plan_changes_requested',
-        'callback'  => '\mod_syllabus\observer::plan_changes_requested',
+    // Sent to the plan's author when the coordinator requests changes.
+    'plan_changes_requested' => [
+        'defaults' => [
+            'popup' => MESSAGE_PERMITTED + MESSAGE_DEFAULT_ENABLED,
+            'email' => MESSAGE_PERMITTED + MESSAGE_DEFAULT_ENABLED,
+        ],
     ],
 ];

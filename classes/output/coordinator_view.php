@@ -64,21 +64,35 @@ final class coordinator_view implements renderable, templatable {
      * @return stdClass
      */
     public function export_for_template(renderer_base $output): stdClass {
+        global $USER;
+
         $context = context_module::instance($this->cm->id);
         $caneditcontent = has_capability('mod/syllabus:submit', $context);
+        $canreview = has_capability('mod/syllabus:review', $context);
+        $status = $this->syllabus->status;
+        $isauthor = (int) $this->syllabus->submittedby === (int) $USER->id;
 
         $planhandler = plan_handler::create();
         $content = $planhandler->export_instance_data_object($this->syllabus->id);
 
         $data = (object) [
             'cmid'              => $this->cm->id,
-            'statuslabel'       => get_string(plan_state_manager::status_string_key($this->syllabus->status), 'mod_syllabus'),
-            'statusbadgeclass'  => plan_state_manager::status_badge_class($this->syllabus->status),
+            'statuslabel'       => get_string(plan_state_manager::status_string_key($status), 'mod_syllabus'),
+            'statusbadgeclass'  => plan_state_manager::status_badge_class($status),
             'caneditcontent'    => $caneditcontent,
             'coursedescription' => $content->coursedescription ?? '',
             'objectives'        => $content->objectives ?? '',
             'contents'          => $content->contents ?? '',
             'methodology'       => $content->methodology ?? '',
+            'cansubmit'         => $caneditcontent && in_array($status, [
+                plan_state_manager::STATUS_DRAFT,
+                plan_state_manager::STATUS_CHANGES_REQUESTED,
+            ], true),
+            'canreviewnow'      => $canreview && $status === plan_state_manager::STATUS_SUBMITTED,
+            'canunpublish'      => $status === plan_state_manager::STATUS_APPROVED && ($canreview || $isauthor),
+            'changesrequestedreason' => $status === plan_state_manager::STATUS_CHANGES_REQUESTED
+                ? $this->syllabus->changesrequestedreason
+                : null,
         ];
 
         if ($caneditcontent) {

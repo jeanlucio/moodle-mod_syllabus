@@ -124,13 +124,13 @@ final class tab_full_plan implements renderable, templatable {
             'coursestartdatefield' => $this->date_select_field(
                 'syllabus-plan-coursestartdate',
                 'syllabus-plan-coursestartdate',
-                'courseperiod',
+                'coursestartdate',
                 $this->syllabus->coursestartdate
             ),
             'courseenddatefield' => $this->date_select_field(
                 'syllabus-plan-courseenddate',
                 'syllabus-plan-courseenddate',
-                'courseperiod',
+                'courseenddate',
                 $this->syllabus->courseenddate
             ),
             'totalduration'     => $this->syllabus->totalduration,

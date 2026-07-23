@@ -59,18 +59,22 @@ const updateSectionStates = (container) => {
 
         let symbol = '○';
         let label = stateLabels.empty;
+        let state = 'empty';
         if (filled === required.length) {
             symbol = '✓';
             label = stateLabels.complete;
+            state = 'complete';
         } else if (filled > 0) {
             symbol = '!';
             label = stateLabels.partial;
+            state = 'partial';
         }
 
         const icon = link.querySelector('.syllabus-rail-icon');
         const text = link.querySelector('.syllabus-rail-icon-text');
         if (icon) {
             icon.textContent = symbol;
+            icon.dataset.state = state;
         }
         if (text) {
             text.textContent = label;
@@ -162,6 +166,42 @@ const wireRailLinks = (container) => {
 };
 
 /**
+ * Highlights whichever rail link points at the section currently nearest the top of the
+ * viewport — a purely visual "you are here" cue, same non-blocking spirit as the ✓/!/○ icons.
+ * Falls back to doing nothing where IntersectionObserver isn't available (old browser); the
+ * rail still works for reading state and clicking to scroll either way.
+ *
+ * @param {HTMLElement} container
+ */
+const wireScrollSpy = (container) => {
+    if (typeof IntersectionObserver === 'undefined') {
+        return;
+    }
+    const sections = container.querySelectorAll('[data-syllabus-section]');
+    if (!sections.length) {
+        return;
+    }
+    const setActive = (id) => {
+        container.querySelectorAll('.syllabus-rail-link').forEach((link) => {
+            link.classList.toggle('syllabus-rail-link-active', link.getAttribute('href') === `#${id}`);
+        });
+    };
+    const observer = new IntersectionObserver((entries) => {
+        const visible = entries.filter((entry) => entry.isIntersecting);
+        if (!visible.length) {
+            return;
+        }
+        visible.sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
+        setActive(visible[0].target.id);
+    }, {rootMargin: '-10% 0px -70% 0px'});
+    sections.forEach((section) => {
+        if (section.id) {
+            observer.observe(section);
+        }
+    });
+};
+
+/**
  * Initialises the navigation rail and totals bar for the edit-mode form.
  */
 export const init = async() => {
@@ -181,6 +221,7 @@ export const init = async() => {
     totalsLabels = {match, mismatch};
 
     wireRailLinks(container);
+    wireScrollSpy(container);
 
     const recompute = () => {
         updateSectionStates(container);

@@ -18,13 +18,12 @@
     @template mod_syllabus/tab_full_plan
 
     Tab 1 — "Plano completo". The author (caneditcontent) gets the editable weeks/activities
-    management UI with narrative Custom Field autosave; coordination/admin without that
-    capability gets the full read-only content (via the shared plan_week_read/
+    management UI — with narrative Custom Field autosave, a section-navigation rail and a
+    totals bar (mod_syllabus/plan_navigator) — while coordination/admin without that
+    capability get the full read-only content (via the shared plan_week_read/
     plan_activity_read/plan_schedule partials, same as the tutor tab's field set) plus the
-    review panel and workflow actions. The richer edit-mode UI (navigation rail, totals bar,
-    closed selects, date pickers, per-field help text) is Fase 5.5.d's job, not this
-    template's — this one just makes sure every field the documents require has a plain,
-    working way to be edited.
+    review panel and workflow actions. Real date pickers are still Fase 5.5.d.3's job, not
+    this template's.
 
     Example context (json):
     {
@@ -61,71 +60,114 @@
     </div>
 
     {{#caneditcontent}}
-        <h3>{{#str}} characterisation, mod_syllabus {{/str}}</h3>
-        <div class="row g-2 syllabus-characterisation-edit mb-3">
-            <div class="col-md-4">
-                <label class="form-label small mb-1" for="syllabus-plan-academicperiod">
-                    {{#str}} academicperiod, mod_syllabus {{/str}}
-                </label>
-                <input type="text" class="form-control syllabus-plan-academicperiod" id="syllabus-plan-academicperiod"
-                    value="{{academicperiod}}" placeholder="{{#str}} academicperiod, mod_syllabus {{/str}}">
-            </div>
-            <div class="col-md-4">
-                <label class="form-label small mb-1" for="syllabus-plan-coursestartdate">
-                    {{#str}} courseperiod, mod_syllabus {{/str}}
-                </label>
-                <input type="date" class="form-control syllabus-plan-coursestartdate" id="syllabus-plan-coursestartdate"
-                    data-timestamp="{{coursestartdate}}">
-            </div>
-            <div class="col-md-4">
-                <label class="form-label small mb-1" for="syllabus-plan-courseenddate">
-                    {{#str}} courseperiod, mod_syllabus {{/str}}
-                </label>
-                <input type="date" class="form-control syllabus-plan-courseenddate" id="syllabus-plan-courseenddate"
-                    data-timestamp="{{courseenddate}}">
-            </div>
-            <div class="col-md-4">
-                <label class="form-label small mb-1" for="syllabus-plan-totalduration">
-                    {{#str}} totalworkload, mod_syllabus {{/str}}
-                </label>
-                <input type="number" class="form-control syllabus-plan-totalduration" id="syllabus-plan-totalduration"
-                    value="{{totalduration}}" placeholder="{{#str}} totalworkload, mod_syllabus {{/str}}">
-            </div>
-            <div class="col-md-8">
-                <label class="form-label small mb-1" for="syllabus-plan-presentationvideourl">
-                    {{#str}} presentationvideo, mod_syllabus {{/str}}
-                </label>
-                <input type="url" class="form-control syllabus-plan-presentationvideourl" id="syllabus-plan-presentationvideourl"
-                    value="{{presentationvideourl}}" placeholder="{{#str}} presentationvideo, mod_syllabus {{/str}}">
-            </div>
-        </div>
-
-        {{#planfields}}
-        <div class="syllabus-field mb-3">
-            <h3><label for="{{elementid}}">{{name}}</label></h3>
-            {{#description}}
-            <p class="form-text text-muted syllabus-field-help">{{{description}}}</p>
-            {{/description}}
-            <textarea id="{{elementid}}" class="syllabus-customfield-editor" data-fieldid="{{fieldid}}"
-                data-instanceid="{{instanceid}}" data-area="plan" data-itemid="{{itemid}}">{{text}}</textarea>
-            <span class="syllabus-save-status d-none small text-muted"
-                data-saving="{{#str}} saving, mod_syllabus {{/str}}"
-                data-saved="{{#str}} saved, mod_syllabus {{/str}}"></span>
-        </div>
-        {{/planfields}}
-
-        <h3>{{#str}} weeks, mod_syllabus {{/str}}</h3>
-        <div class="syllabus-weeks-list">
+    <div class="syllabus-edit-layout">
+        <nav class="syllabus-nav-rail" aria-label="{{#str}} sectionnavigation, mod_syllabus {{/str}}">
+            <a href="#syllabus-section-characterisation" class="syllabus-rail-link">
+                <span class="syllabus-rail-icon" aria-hidden="true">○</span>
+                <span class="visually-hidden syllabus-rail-icon-text"></span>
+                {{#str}} characterisation, mod_syllabus {{/str}}
+            </a>
+            {{#planfields}}
+            <a href="#syllabus-section-field-{{fieldid}}" class="syllabus-rail-link">
+                <span class="syllabus-rail-icon" aria-hidden="true">○</span>
+                <span class="visually-hidden syllabus-rail-icon-text"></span>
+                {{name}}
+            </a>
+            {{/planfields}}
             {{#weeks}}
-                {{> mod_syllabus/week_row }}
+            <a href="#syllabus-section-week-{{id}}" class="syllabus-rail-link">
+                <span class="syllabus-rail-icon" aria-hidden="true">○</span>
+                <span class="visually-hidden syllabus-rail-icon-text"></span>
+                {{title}}
+            </a>
             {{/weeks}}
+        </nav>
+
+        <div class="syllabus-edit-content">
+            <div class="syllabus-totals-bar">
+                <span class="syllabus-totals-duration">
+                    {{#str}} totalworkload, mod_syllabus {{/str}}:
+                    <strong class="syllabus-totals-duration-value">0</strong> /
+                    <strong class="syllabus-totals-duration-target">{{totalduration}}</strong>
+                </span>
+                <span class="syllabus-totals-points">
+                    {{#str}} activitypoints, mod_syllabus {{/str}}:
+                    <strong class="syllabus-totals-points-value">0</strong> / 100
+                </span>
+            </div>
+
+            <h3 id="syllabus-section-characterisation" data-syllabus-section>
+                {{#str}} characterisation, mod_syllabus {{/str}}
+            </h3>
+            <div class="row g-2 syllabus-characterisation-edit mb-3">
+                <div class="col-md-4">
+                    <label class="form-label small mb-1" for="syllabus-plan-academicperiod">
+                        {{#str}} academicperiod, mod_syllabus {{/str}}
+                    </label>
+                    <input type="text" class="form-control syllabus-plan-academicperiod syllabus-required-input"
+                        id="syllabus-plan-academicperiod" value="{{academicperiod}}"
+                        placeholder="{{#str}} academicperiod, mod_syllabus {{/str}}">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label small mb-1" for="syllabus-plan-coursestartdate">
+                        {{#str}} courseperiod, mod_syllabus {{/str}}
+                    </label>
+                    <input type="date" class="form-control syllabus-plan-coursestartdate syllabus-required-input"
+                        id="syllabus-plan-coursestartdate" data-timestamp="{{coursestartdate}}">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label small mb-1" for="syllabus-plan-courseenddate">
+                        {{#str}} courseperiod, mod_syllabus {{/str}}
+                    </label>
+                    <input type="date" class="form-control syllabus-plan-courseenddate syllabus-required-input"
+                        id="syllabus-plan-courseenddate" data-timestamp="{{courseenddate}}">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label small mb-1" for="syllabus-plan-totalduration">
+                        {{#str}} totalworkload, mod_syllabus {{/str}}
+                    </label>
+                    <input type="number" class="form-control syllabus-plan-totalduration syllabus-required-input"
+                        id="syllabus-plan-totalduration" value="{{totalduration}}"
+                        placeholder="{{#str}} totalworkload, mod_syllabus {{/str}}">
+                </div>
+                <div class="col-md-8">
+                    <label class="form-label small mb-1" for="syllabus-plan-presentationvideourl">
+                        {{#str}} presentationvideo, mod_syllabus {{/str}}
+                    </label>
+                    <input type="url" class="form-control syllabus-plan-presentationvideourl"
+                        id="syllabus-plan-presentationvideourl" value="{{presentationvideourl}}"
+                        placeholder="{{#str}} presentationvideo, mod_syllabus {{/str}}">
+                </div>
+            </div>
+
+            {{#planfields}}
+            <div class="syllabus-field mb-3" id="syllabus-section-field-{{fieldid}}" data-syllabus-section>
+                <h3><label for="{{elementid}}">{{name}}</label></h3>
+                {{#description}}
+                <p class="form-text text-muted syllabus-field-help">{{{description}}}</p>
+                {{/description}}
+                <textarea id="{{elementid}}" class="syllabus-customfield-editor syllabus-required-input" data-fieldid="{{fieldid}}"
+                    data-instanceid="{{instanceid}}" data-area="plan" data-itemid="{{itemid}}">{{text}}</textarea>
+                <span class="syllabus-save-status d-none small text-muted"
+                    data-saving="{{#str}} saving, mod_syllabus {{/str}}"
+                    data-saved="{{#str}} saved, mod_syllabus {{/str}}"></span>
+            </div>
+            {{/planfields}}
+
+            <h3>{{#str}} weeks, mod_syllabus {{/str}}</h3>
+            <div class="syllabus-weeks-list">
+                {{#weeks}}
+                    {{> mod_syllabus/week_row }}
+                {{/weeks}}
+            </div>
+            {{^hasweeks}}
+            <p class="text-muted syllabus-noweeksyet">{{#str}} noweeksyet, mod_syllabus {{/str}}</p>
+            {{/hasweeks}}
+            <button type="button" class="btn btn-outline-secondary syllabus-add-week">
+                {{#str}} addweek, mod_syllabus {{/str}}
+            </button>
         </div>
-        {{^hasweeks}}
-        <p class="text-muted syllabus-noweeksyet">{{#str}} noweeksyet, mod_syllabus {{/str}}</p>
-        {{/hasweeks}}
-        <button type="button" class="btn btn-outline-secondary syllabus-add-week">
-            {{#str}} addweek, mod_syllabus {{/str}}
-        </button>
+    </div>
     {{/caneditcontent}}
 
     {{^caneditcontent}}

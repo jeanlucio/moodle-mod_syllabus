@@ -100,6 +100,7 @@ if ($tab === 'full') {
         $PAGE->requires->js_call_amd('mod_syllabus/weeks_manager', 'init', [$cm->id]);
         $PAGE->requires->js_call_amd('mod_syllabus/autosave', 'init', [$cm->id]);
         $PAGE->requires->js_call_amd('mod_syllabus/plan_details', 'init', [$cm->id]);
+        $PAGE->requires->js_call_amd('mod_syllabus/plan_navigator', 'init');
     }
     $PAGE->requires->js_call_amd('mod_syllabus/review', 'init', [$cm->id]);
 } else if ($tab === 'tutor') {

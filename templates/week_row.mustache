@@ -44,13 +44,14 @@
         "hasactivities": false
     }
 }}
-<div class="syllabus-week-row border rounded p-3 mb-3" data-weekid="{{id}}">
+<div class="syllabus-week-row border rounded p-3 mb-3" data-weekid="{{id}}"
+    id="syllabus-section-week-{{id}}" data-syllabus-section>
     <div class="row g-2 align-items-end">
         <div class="col-md-6">
             <label class="form-label small mb-1" for="syllabus-week-title-{{id}}">
                 {{#str}} weektitle, mod_syllabus {{/str}}
             </label>
-            <input type="text" class="form-control syllabus-week-title" id="syllabus-week-title-{{id}}"
+            <input type="text" class="form-control syllabus-week-title syllabus-required-input" id="syllabus-week-title-{{id}}"
                 value="{{title}}" placeholder="{{#str}} weektitle, mod_syllabus {{/str}}">
         </div>
         <div class="col-md-3">

@@ -16,7 +16,6 @@
 
 namespace mod_syllabus\output;
 
-use core_course_category;
 use mod_syllabus\local\plan_state_manager;
 use renderable;
 use renderer_base;
@@ -72,7 +71,7 @@ final class tab_student_plan implements renderable, templatable {
         return (object) [
             'statuslabel'      => get_string(plan_state_manager::status_string_key($this->syllabus->status), 'mod_syllabus'),
             'statusbadgeclass' => plan_state_manager::status_badge_class($this->syllabus->status),
-            'coursename'       => format_string(core_course_category::get($this->course->category)->get_formatted_name()),
+            'coursename'       => plan_programme_name::resolve((int) $this->course->category),
             'disciplinename'   => format_string($this->course->fullname),
             'teachername'      => plan_teacher_name::resolve($this->syllabus),
             'academicperiod'   => $this->syllabus->academicperiod,

@@ -16,7 +16,7 @@
 
 namespace mod_syllabus\output;
 
-use mod_syllabus\customfield\plano_handler;
+use mod_syllabus\customfield\plan_handler;
 use mod_syllabus\local\plan_state_manager;
 use renderable;
 use renderer_base;
@@ -47,21 +47,21 @@ final class coordinator_view implements renderable, templatable {
     }
 
     /**
-     * Exports the plan's plano-level content and current status for the template.
+     * Exports the plan's plan-level content and current status for the template.
      *
      * @param renderer_base $output
      * @return stdClass
      */
     public function export_for_template(renderer_base $output): stdClass {
-        $handler = plano_handler::create();
+        $handler = plan_handler::create();
         $content = $handler->export_instance_data_object($this->syllabus->id);
 
         return (object) [
             'statuslabel' => get_string(plan_state_manager::status_string_key($this->syllabus->status), 'mod_syllabus'),
-            'ementa' => $content->ementa ?? '',
-            'objetivos' => $content->objetivos ?? '',
-            'conteudos' => $content->conteudos ?? '',
-            'metodologia' => $content->metodologia ?? '',
+            'coursedescription' => $content->coursedescription ?? '',
+            'objectives' => $content->objectives ?? '',
+            'contents' => $content->contents ?? '',
+            'methodology' => $content->methodology ?? '',
         ];
     }
 }

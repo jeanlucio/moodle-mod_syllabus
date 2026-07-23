@@ -16,7 +16,7 @@
 
 namespace mod_syllabus\output;
 
-use mod_syllabus\customfield\plano_handler;
+use mod_syllabus\customfield\plan_handler;
 use renderable;
 use renderer_base;
 use stdClass;
@@ -24,7 +24,7 @@ use templatable;
 
 /**
  * Plano de Tutoria view: everything the student sees, plus (from a later phase on)
- * atividade-level grading criteria and tutor accompaniment notes. Never shows the plan's
+ * activity-level grading criteria and tutor accompaniment notes. Never shows the plan's
  * approval workflow status — a tutor only ever reaches this once the plan is approved,
  * enforced independently of course module visibility in view.php.
  *
@@ -46,21 +46,20 @@ final class tutor_view implements renderable, templatable {
     }
 
     /**
-     * Exports the plan's plano-level content for the template.
+     * Exports the plan's plan-level content for the template.
      *
      * @param renderer_base $output
      * @return stdClass
      */
     public function export_for_template(renderer_base $output): stdClass {
-        $handler = plano_handler::create();
+        $handler = plan_handler::create();
         $content = $handler->export_instance_data_object($this->syllabus->id);
 
         return (object) [
-            'name' => format_string($this->syllabus->name),
-            'ementa' => $content->ementa ?? '',
-            'objetivos' => $content->objetivos ?? '',
-            'conteudos' => $content->conteudos ?? '',
-            'metodologia' => $content->metodologia ?? '',
+            'coursedescription' => $content->coursedescription ?? '',
+            'objectives' => $content->objectives ?? '',
+            'contents' => $content->contents ?? '',
+            'methodology' => $content->methodology ?? '',
         ];
     }
 }

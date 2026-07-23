@@ -24,13 +24,13 @@ use core_customfield\handler;
 use moodle_url;
 
 /**
- * Shared behaviour for the three mod_syllabus custom field areas (plano, aula, atividade).
+ * Shared behaviour for the three mod_syllabus custom field areas (plan, week, activity).
  *
  * Field definitions are configured once, site-wide (handler itemid is always 0, mirroring
  * core_course\customfield\course_handler) — every syllabus instance shares the same template.
  * Only the data values are per-instance, addressed by the instanceid passed to get_instance_data()
  * and friends, which is why each concrete handler must know how to walk from its own instanceid
- * (syllabus id, aula id or atividade id) back to the owning syllabus, in resolve_syllabus_id().
+ * (syllabus id, week id or activity id) back to the owning syllabus, in resolve_syllabus_id().
  *
  * @package mod_syllabus
  * @copyright 2026 Jean Lúcio
@@ -40,7 +40,7 @@ abstract class syllabus_handler_base extends handler {
     /**
      * Resolves the owning syllabus instance id for a given data instanceid of this area.
      *
-     * @param int $instanceid Instance id in this handler's own area (syllabus/aula/atividade id).
+     * @param int $instanceid Instance id in this handler's own area (syllabus/week/activity id).
      * @return int The syllabus id, or 0 if it cannot be resolved (e.g. orphaned/unknown id).
      */
     abstract protected function resolve_syllabus_id(int $instanceid): int;

@@ -17,30 +17,30 @@
 {{!
     @template mod_syllabus/tutor_view
 
-    Plano de Tutoria view. From a later phase on, also includes atividade-level grading
+    Plano de Tutoria view. From a later phase on, also includes activity-level grading
     criteria and tutor accompaniment notes, which never reach the student view.
 
     Example context (json):
     {
-        "ementa": "<p>Course description text.</p>",
-        "objetivos": "<p>Course objectives text.</p>",
-        "conteudos": "<p>Course contents text.</p>",
-        "metodologia": "<p>Course methodology text.</p>"
+        "coursedescription": "<p>Course description text.</p>",
+        "objectives": "<p>Course objectives text.</p>",
+        "contents": "<p>Course contents text.</p>",
+        "methodology": "<p>Course methodology text.</p>"
     }
 }}
 <div class="path-mod-syllabus">
-    <h3>{{#str}} ementa, mod_syllabus {{/str}}</h3>
-    <div class="syllabus-ementa">{{{ementa}}}</div>
+    <h3>{{#str}} coursedescription, mod_syllabus {{/str}}</h3>
+    <div class="syllabus-coursedescription">{{{coursedescription}}}</div>
 
-    <h3>{{#str}} objetivos, mod_syllabus {{/str}}</h3>
-    <div class="syllabus-objetivos">{{{objetivos}}}</div>
+    <h3>{{#str}} objectives, mod_syllabus {{/str}}</h3>
+    <div class="syllabus-objectives">{{{objectives}}}</div>
 
-    <h3>{{#str}} conteudos, mod_syllabus {{/str}}</h3>
-    <div class="syllabus-conteudos">{{{conteudos}}}</div>
+    <h3>{{#str}} contents, mod_syllabus {{/str}}</h3>
+    <div class="syllabus-contents">{{{contents}}}</div>
 
-    <h3>{{#str}} metodologia, mod_syllabus {{/str}}</h3>
-    <div class="syllabus-metodologia">{{{metodologia}}}</div>
+    <h3>{{#str}} methodology, mod_syllabus {{/str}}</h3>
+    <div class="syllabus-methodology">{{{methodology}}}</div>
 
-    <h3>{{#str}} aulas, mod_syllabus {{/str}}</h3>
-    <p class="text-muted">{{#str}} noaulasyet, mod_syllabus {{/str}}</p>
+    <h3>{{#str}} weeks, mod_syllabus {{/str}}</h3>
+    <p class="text-muted">{{#str}} noweeksyet, mod_syllabus {{/str}}</p>
 </div>

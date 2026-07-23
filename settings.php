@@ -36,21 +36,21 @@ if ($hassiteconfig) {
     $ADMIN->add('modsettings', $modsyllabusfolder);
 
     $ADMIN->add('modsyllabusfolder', new admin_externalpage(
-        'syllabus_managefields_plano',
-        get_string('managefieldsplano', 'mod_syllabus'),
-        new moodle_url('/mod/syllabus/managefields.php', ['area' => 'plano']),
+        'syllabus_managefields_plan',
+        get_string('managefieldsplan', 'mod_syllabus'),
+        new moodle_url('/mod/syllabus/managefields.php', ['area' => 'plan']),
         'mod/syllabus:review'
     ));
     $ADMIN->add('modsyllabusfolder', new admin_externalpage(
-        'syllabus_managefields_aula',
-        get_string('managefieldsaula', 'mod_syllabus'),
-        new moodle_url('/mod/syllabus/managefields.php', ['area' => 'aula']),
+        'syllabus_managefields_week',
+        get_string('managefieldsweek', 'mod_syllabus'),
+        new moodle_url('/mod/syllabus/managefields.php', ['area' => 'week']),
         'mod/syllabus:review'
     ));
     $ADMIN->add('modsyllabusfolder', new admin_externalpage(
-        'syllabus_managefields_atividade',
-        get_string('managefieldsatividade', 'mod_syllabus'),
-        new moodle_url('/mod/syllabus/managefields.php', ['area' => 'atividade']),
+        'syllabus_managefields_activity',
+        get_string('managefieldsactivity', 'mod_syllabus'),
+        new moodle_url('/mod/syllabus/managefields.php', ['area' => 'activity']),
         'mod/syllabus:review'
     ));
 

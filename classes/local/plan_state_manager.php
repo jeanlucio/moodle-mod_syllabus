@@ -117,7 +117,7 @@ final class plan_state_manager {
      * Reopens an already approved plan for review after a structural field changed.
      *
      * Content fields (Custom Fields API) never call this — only structural columns on
-     * `syllabus_aulas`/`syllabus_atividades` do, per the hybrid re-edition rule (SCOPE §3.1).
+     * `syllabus_weeks`/`syllabus_activities` do, per the hybrid re-edition rule (SCOPE §3.1).
      * A no-op outside `approved` keeps callers simple: they can call this unconditionally
      * after saving a structural field, without checking the current status themselves.
      *

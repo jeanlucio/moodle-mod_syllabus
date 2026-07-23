@@ -23,54 +23,41 @@
  */
 
 /**
- * Seeds the three Custom Fields areas (plano, aula, atividade) with the narrative fields
+ * Seeds the three Custom Fields areas (plan, week, activity) with the narrative fields
  * of the original three plan documents, so a fresh install already looks like today's
- * template. The institution can later add, remove or relabel fields via
- * Site administration > Plugins > Activity modules > Syllabus, without a plugin release.
+ * template. Every field name comes from get_string(), so it is seeded in whatever
+ * language is active for the installing session — never hardcoded to one language. The
+ * institution can later add, remove or relabel fields via Site administration > Plugins >
+ * Activity modules > Syllabus, without a plugin release.
  *
  * @return void
  */
 function xmldb_syllabus_install(): void {
     $areas = [
-        'plano_handler' => [
-            'category' => 'Conteúdo do Plano',
-            'fields' => [
-                'ementa' => 'Ementa da Disciplina',
-                'objetivos' => 'Objetivos (competências mínimas e habilidades pretendidas)',
-                'conteudos' => 'Conteúdos',
-                'metodologia' => 'Metodologia',
-            ],
+        'plan_handler' => [
+            'category' => 'categoryplan',
+            'fields' => ['coursedescription', 'objectives', 'contents', 'methodology'],
         ],
-        'aula_handler' => [
-            'category' => 'Conteúdo da Aula',
-            'fields' => [
-                'detalhamento' => 'Detalhamento da aula',
-                'bibliografiaapoio' => 'Bibliografia — Material de apoio',
-                'bibliografiacomplementar' => 'Bibliografia — Material complementar',
-                'ferramentasinteracao' => 'Ferramentas de Interação',
-                'observacoes' => 'Observações/Providências/Encaminhamentos',
-            ],
+        'week_handler' => [
+            'category' => 'categoryweek',
+            'fields' => ['details', 'supportmaterial', 'supplementarymaterial', 'interactiontools', 'notes'],
         ],
-        'atividade_handler' => [
-            'category' => 'Avaliação e Acompanhamento',
-            'fields' => [
-                'orientacoesestudantes' => 'Orientações aos estudantes',
-                'criteriosavaliacao' => 'Critérios de correção/avaliação',
-                'acompanhamentotutoria' => 'Acompanhamento de Tutoria',
-            ],
+        'activity_handler' => [
+            'category' => 'categoryactivity',
+            'fields' => ['studentinstructions', 'gradingcriteria', 'tutorguidance'],
         ],
     ];
 
     foreach ($areas as $handlerclass => $definition) {
         $classname = "mod_syllabus\\customfield\\{$handlerclass}";
         $handler = $classname::create();
-        $categoryid = $handler->create_category($definition['category']);
+        $categoryid = $handler->create_category(get_string($definition['category'], 'mod_syllabus'));
         $category = core_customfield\category_controller::create($categoryid);
 
-        foreach ($definition['fields'] as $shortname => $name) {
+        foreach ($definition['fields'] as $shortname) {
             $record = (object) [
                 'shortname' => $shortname,
-                'name' => $name,
+                'name' => get_string($shortname, 'mod_syllabus'),
                 'type' => 'textarea',
                 'categoryid' => $categoryid,
                 'configdata' => [],

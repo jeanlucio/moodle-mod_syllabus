@@ -16,14 +16,14 @@
 
 namespace mod_syllabus\output;
 
-use mod_syllabus\customfield\plano_handler;
+use mod_syllabus\customfield\plan_handler;
 use renderable;
 use renderer_base;
 use stdClass;
 use templatable;
 
 /**
- * Plano de Disciplina do Aluno view: plano-level content only. Never includes grading
+ * Plano de Disciplina do Aluno view: plan-level content only. Never includes grading
  * criteria/gabarito or tutor accompaniment notes, which stay exclusive to tutor_view — the
  * template itself simply never receives those fields, not a value hidden after the fact.
  *
@@ -45,21 +45,20 @@ final class student_view implements renderable, templatable {
     }
 
     /**
-     * Exports the plan's plano-level content for the template.
+     * Exports the plan's plan-level content for the template.
      *
      * @param renderer_base $output
      * @return stdClass
      */
     public function export_for_template(renderer_base $output): stdClass {
-        $handler = plano_handler::create();
+        $handler = plan_handler::create();
         $content = $handler->export_instance_data_object($this->syllabus->id);
 
         return (object) [
-            'name' => format_string($this->syllabus->name),
-            'ementa' => $content->ementa ?? '',
-            'objetivos' => $content->objetivos ?? '',
-            'conteudos' => $content->conteudos ?? '',
-            'metodologia' => $content->metodologia ?? '',
+            'coursedescription' => $content->coursedescription ?? '',
+            'objectives' => $content->objectives ?? '',
+            'contents' => $content->contents ?? '',
+            'methodology' => $content->methodology ?? '',
         ];
     }
 }

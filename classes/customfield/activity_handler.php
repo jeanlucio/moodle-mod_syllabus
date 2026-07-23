@@ -19,15 +19,16 @@ namespace mod_syllabus\customfield;
 use core_customfield\handler;
 
 /**
- * Custom field handler for the 'plano' area: narrative fields of the syllabus itself
- * (ementa, objetivos, conteudos, metodologia). Instanceid is the syllabus id directly.
+ * Custom field handler for the 'activity' area: narrative fields of an activity
+ * (student instructions, grading criteria, tutor guidance). Instanceid is the
+ * syllabus_activities id.
  *
  * @package mod_syllabus
  * @copyright 2026 Jean Lúcio
  * @license https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-final class plano_handler extends syllabus_handler_base {
-    /** @var plano_handler|null Singleton instance, redeclared per class to avoid sharing state. */
+final class activity_handler extends syllabus_handler_base {
+    /** @var activity_handler|null Singleton instance, redeclared per class to avoid sharing state. */
     protected static ?handler $singleton = null;
 
     /**
@@ -44,12 +45,18 @@ final class plano_handler extends syllabus_handler_base {
     }
 
     /**
-     * The 'plano' area's instanceid already is the syllabus id.
+     * Walks from an activity id, via its week, to the owning syllabus id.
      *
-     * @param int $instanceid
+     * @param int $instanceid Id of the syllabus_activities record.
      * @return int
      */
     protected function resolve_syllabus_id(int $instanceid): int {
-        return $instanceid;
+        global $DB;
+
+        $weekid = (int) $DB->get_field('syllabus_activities', 'weekid', ['id' => $instanceid]);
+        if (!$weekid) {
+            return 0;
+        }
+        return (int) $DB->get_field('syllabus_weeks', 'syllabusid', ['id' => $weekid]);
     }
 }

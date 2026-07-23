@@ -80,7 +80,7 @@ function syllabus_update_instance(stdClass $data): bool {
 }
 
 /**
- * Delete a syllabus instance and all associated aulas, atividades and custom field data.
+ * Delete a syllabus instance and all associated weeks, activities and custom field data.
  *
  * @param int $id Instance id.
  * @return bool True on success.
@@ -92,26 +92,26 @@ function syllabus_delete_instance(int $id): bool {
         return false;
     }
 
-    $aulaids = $DB->get_fieldset_select('syllabus_aulas', 'id', 'syllabusid = ?', [$id]);
-    if ($aulaids) {
-        [$aulainsql, $aulainparams] = $DB->get_in_or_equal($aulaids);
+    $weekids = $DB->get_fieldset_select('syllabus_weeks', 'id', 'syllabusid = ?', [$id]);
+    if ($weekids) {
+        [$weekinsql, $weekinparams] = $DB->get_in_or_equal($weekids);
 
-        $atividadeids = $DB->get_fieldset_select('syllabus_atividades', 'id', "aulaid $aulainsql", $aulainparams);
-        $atividadehandler = \mod_syllabus\customfield\atividade_handler::create();
-        foreach ($atividadeids as $atividadeid) {
-            $atividadehandler->delete_instance($atividadeid);
+        $activityids = $DB->get_fieldset_select('syllabus_activities', 'id', "weekid $weekinsql", $weekinparams);
+        $activityhandler = \mod_syllabus\customfield\activity_handler::create();
+        foreach ($activityids as $activityid) {
+            $activityhandler->delete_instance($activityid);
         }
-        $DB->delete_records_select('syllabus_atividades', "aulaid $aulainsql", $aulainparams);
+        $DB->delete_records_select('syllabus_activities', "weekid $weekinsql", $weekinparams);
 
-        $aulahandler = \mod_syllabus\customfield\aula_handler::create();
-        foreach ($aulaids as $aulaid) {
-            $aulahandler->delete_instance($aulaid);
+        $weekhandler = \mod_syllabus\customfield\week_handler::create();
+        foreach ($weekids as $weekid) {
+            $weekhandler->delete_instance($weekid);
         }
-        $DB->delete_records('syllabus_aulas', ['syllabusid' => $id]);
+        $DB->delete_records('syllabus_weeks', ['syllabusid' => $id]);
     }
 
-    $planohandler = \mod_syllabus\customfield\plano_handler::create();
-    $planohandler->delete_instance($id);
+    $planhandler = \mod_syllabus\customfield\plan_handler::create();
+    $planhandler->delete_instance($id);
 
     $DB->delete_records('syllabus', ['id' => $id]);
 

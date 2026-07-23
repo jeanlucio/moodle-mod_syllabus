@@ -19,16 +19,16 @@ namespace mod_syllabus\customfield;
 use core_customfield\handler;
 
 /**
- * Custom field handler for the 'atividade' area: narrative fields of an atividade
- * (orientações ao estudante, critérios de avaliação/gabarito, acompanhamento de tutoria).
- * Instanceid is the syllabus_atividades id.
+ * Custom field handler for the 'week' area: narrative fields of a week (aula)
+ * (details, support material, supplementary material, interaction tools, notes).
+ * Instanceid is the syllabus_weeks id.
  *
  * @package mod_syllabus
  * @copyright 2026 Jean Lúcio
  * @license https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-final class atividade_handler extends syllabus_handler_base {
-    /** @var atividade_handler|null Singleton instance, redeclared per class to avoid sharing state. */
+final class week_handler extends syllabus_handler_base {
+    /** @var week_handler|null Singleton instance, redeclared per class to avoid sharing state. */
     protected static ?handler $singleton = null;
 
     /**
@@ -45,18 +45,14 @@ final class atividade_handler extends syllabus_handler_base {
     }
 
     /**
-     * Walks from an atividade id, via its aula, to the owning syllabus id.
+     * Walks from a week id to its owning syllabus id.
      *
-     * @param int $instanceid Id of the syllabus_atividades record.
+     * @param int $instanceid Id of the syllabus_weeks record.
      * @return int
      */
     protected function resolve_syllabus_id(int $instanceid): int {
         global $DB;
 
-        $aulaid = (int) $DB->get_field('syllabus_atividades', 'aulaid', ['id' => $instanceid]);
-        if (!$aulaid) {
-            return 0;
-        }
-        return (int) $DB->get_field('syllabus_aulas', 'syllabusid', ['id' => $aulaid]);
+        return (int) $DB->get_field('syllabus_weeks', 'syllabusid', ['id' => $instanceid]);
     }
 }

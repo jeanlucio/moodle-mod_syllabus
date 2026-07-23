@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<XMLDB PATH="mod/syllabus/db" VERSION="20260723" COMMENT="XMLDB file for mod_syllabus"
+<XMLDB PATH="mod/syllabus/db" VERSION="20260724" COMMENT="XMLDB file for mod_syllabus"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:noNamespaceSchemaLocation="../../../lib/xmldb/xmldb.xsd"
 >
@@ -27,14 +27,14 @@
         <KEY NAME="fk_reviewedby" TYPE="foreign" FIELDS="reviewedby" REFTABLE="user" REFFIELDS="id"/>
       </KEYS>
     </TABLE>
-    <TABLE NAME="syllabus_aulas" COMMENT="Aulas (weeks) that compose a syllabus plan">
+    <TABLE NAME="syllabus_weeks" COMMENT="Weeks (aulas) that compose a syllabus plan">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
         <FIELD NAME="syllabusid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="FK to syllabus instance"/>
-        <FIELD NAME="titulo" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false"/>
-        <FIELD NAME="cargahoraria" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="Duration in minutes"/>
-        <FIELD NAME="periodoinicio" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false"/>
-        <FIELD NAME="periodofim" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="title" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="duration" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="Duration in minutes"/>
+        <FIELD NAME="startdate" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="enddate" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false"/>
         <FIELD NAME="sortorder" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
@@ -44,23 +44,23 @@
         <KEY NAME="fk_syllabus" TYPE="foreign" FIELDS="syllabusid" REFTABLE="syllabus" REFFIELDS="id"/>
       </KEYS>
     </TABLE>
-    <TABLE NAME="syllabus_atividades" COMMENT="Atividades that compose an aula, feeding the consolidated Cronograma">
+    <TABLE NAME="syllabus_activities" COMMENT="Activities (atividades) that compose a week, feeding the consolidated schedule">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
-        <FIELD NAME="aulaid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="FK to syllabus_aulas"/>
-        <FIELD NAME="titulo" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false"/>
-        <FIELD NAME="tipo" TYPE="char" LENGTH="100" NOTNULL="false" SEQUENCE="false" COMMENT="Forum, quiz, assignment, etc."/>
-        <FIELD NAME="categoria" TYPE="char" LENGTH="50" NOTNULL="false" SEQUENCE="false" COMMENT="Sincrona, assincrona, online"/>
-        <FIELD NAME="datainicio" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false"/>
-        <FIELD NAME="datafim" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false"/>
-        <FIELD NAME="pontuacao" TYPE="number" LENGTH="10" NOTNULL="false" SEQUENCE="false" DECIMALS="2"/>
+        <FIELD NAME="weekid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="FK to syllabus_weeks"/>
+        <FIELD NAME="title" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="type" TYPE="char" LENGTH="100" NOTNULL="false" SEQUENCE="false" COMMENT="Forum, quiz, assignment, etc."/>
+        <FIELD NAME="category" TYPE="char" LENGTH="50" NOTNULL="false" SEQUENCE="false" COMMENT="Synchronous, asynchronous, online"/>
+        <FIELD NAME="startdate" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="enddate" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="points" TYPE="number" LENGTH="10" NOTNULL="false" SEQUENCE="false" DECIMALS="2"/>
         <FIELD NAME="sortorder" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
-        <KEY NAME="fk_aula" TYPE="foreign" FIELDS="aulaid" REFTABLE="syllabus_aulas" REFFIELDS="id"/>
+        <KEY NAME="fk_week" TYPE="foreign" FIELDS="weekid" REFTABLE="syllabus_weeks" REFFIELDS="id"/>
       </KEYS>
     </TABLE>
   </TABLES>

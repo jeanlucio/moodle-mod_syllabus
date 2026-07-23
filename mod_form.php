@@ -30,8 +30,8 @@ require_once($CFG->dirroot . '/course/moodleform_mod.php');
  * Form for creating or editing a syllabus activity instance.
  *
  * Deliberately minimal: only the base mod_* metadata (name, description). The plan's own
- * content (ementa, aulas, atividades) is authored afterwards on the activity's own page,
- * with autosave — never through this one-shot form.
+ * content (course description, weeks, activities) is authored afterwards on the activity's
+ * own page, with autosave — never through this one-shot form.
  */
 class mod_syllabus_mod_form extends moodleform_mod {
     /**

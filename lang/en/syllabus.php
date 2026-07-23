@@ -39,6 +39,7 @@ $string['modulename'] = 'Syllabus';
 $string['modulename_help'] = 'The Syllabus activity lets a teacher fill in a single structured course plan, submit it for coordination approval, and — once approved — automatically publish role-specific views to tutors and students.';
 $string['modulenameplural'] = 'Syllabus activities';
 $string['noaulasyet'] = 'No weeks have been added yet.';
+$string['nosyllabusincourse'] = 'There are no syllabus plans in this course yet.';
 $string['objetivos'] = 'Objectives';
 $string['plannotavailable'] = 'This plan is not available yet.';
 $string['pluginadministration'] = 'Syllabus administration';

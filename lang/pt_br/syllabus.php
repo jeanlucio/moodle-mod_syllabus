@@ -39,6 +39,7 @@ $string['modulename'] = 'Plano de Disciplina';
 $string['modulename_help'] = 'A atividade Plano de Disciplina permite que o professor preencha um único plano de curso estruturado, submeta para aprovação da coordenação e, uma vez aprovado, publique automaticamente visões específicas por papel para tutores e estudantes.';
 $string['modulenameplural'] = 'Planos de Disciplina';
 $string['noaulasyet'] = 'Nenhuma aula foi adicionada ainda.';
+$string['nosyllabusincourse'] = 'Ainda não há nenhum plano de disciplina neste curso.';
 $string['objetivos'] = 'Objetivos';
 $string['plannotavailable'] = 'Este plano ainda não está disponível.';
 $string['pluginadministration'] = 'Administração do Plano de Disciplina';

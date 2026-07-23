@@ -67,6 +67,8 @@ final class tab_tutor_plan implements renderable, templatable {
         $reader = new plan_reader($this->syllabus);
         $weeks = $reader->weeks();
         $schedule = $reader->schedule($weeks);
+        $weeksexport = plan_read_export::weeks($reader, $weeks, true);
+        $finalassessments = plan_read_export::final_assessment_activities($weeksexport);
 
         return (object) [
             'statuslabel'      => get_string(plan_state_manager::status_string_key($this->syllabus->status), 'mod_syllabus'),
@@ -76,8 +78,10 @@ final class tab_tutor_plan implements renderable, templatable {
             'teachername'      => plan_teacher_name::resolve($this->syllabus),
             'academicperiod'   => $this->syllabus->academicperiod,
             'totalduration'    => $this->syllabus->totalduration,
-            'weeks'    => plan_read_export::weeks($reader, $weeks, true),
+            'weeks'    => $weeksexport,
             'hasweeks' => !empty($weeks),
+            'finalassessments'    => $finalassessments,
+            'hasfinalassessments' => !empty($finalassessments),
             'schedule'    => $schedule,
             'hasschedule' => !empty($schedule),
         ];

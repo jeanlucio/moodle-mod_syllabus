@@ -35,6 +35,8 @@
         "totalduration": 1800,
         "hasweeks": false,
         "weeks": [],
+        "hasfinalassessments": false,
+        "finalassessments": [],
         "hasschedule": false,
         "schedule": []
     }
@@ -54,6 +56,8 @@
         <div class="col-md-6"><strong>{{#str}} totalworkload, mod_syllabus {{/str}}:</strong> {{totalduration}}</div>
         {{/totalduration}}
     </div>
+
+    {{> mod_syllabus/plan_final_assessment }}
 
     {{#hasweeks}}
         {{#weeks}}

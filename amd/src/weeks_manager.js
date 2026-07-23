@@ -24,6 +24,7 @@
 import Ajax from 'core/ajax';
 import Notification from 'core/notification';
 import {getString, getStrings} from 'core/str';
+import {populate as populateDateSelect, readTimestamp as readDateSelectTimestamp} from './plan_dateselect';
 
 /** @type {int} Course module ID. */
 let cmid = 0;
@@ -198,8 +199,8 @@ const saveActivity = async(row) => {
     const category = row.querySelector('.syllabus-activity-category').value.trim() || null;
     const pointsInput = row.querySelector('.syllabus-activity-points').value;
     const points = pointsInput === '' ? null : parseFloat(pointsInput);
-    const startdate = readTimestamp(row.querySelector('.syllabus-activity-startdate'));
-    const enddate = readTimestamp(row.querySelector('.syllabus-activity-enddate'));
+    const startdate = readDateSelectTimestamp(row.querySelector('.syllabus-activity-startdate'));
+    const enddate = readDateSelectTimestamp(row.querySelector('.syllabus-activity-enddate'));
     const isfinalassessmentInput = row.querySelector('.syllabus-activity-isfinalassessment');
     const isfinalassessment = isfinalassessmentInput ? isfinalassessmentInput.checked : false;
 
@@ -346,14 +347,34 @@ const buildNewActivityRow = async(weekid) => {
         </div>
         <div class="row g-2 align-items-center mt-1">
             <div class="col-md-3">
-                <label class="form-label small mb-1" for="syllabus-activity-startdate-${suffix}">${startdateLabel}</label>
-                <input type="date" class="form-control form-control-sm syllabus-activity-startdate"
-                    id="syllabus-activity-startdate-${suffix}">
+                <div class="syllabus-date-select syllabus-activity-startdate">
+                    <span class="form-label small mb-1 d-block" id="syllabus-activity-startdate-${suffix}-label">
+                        ${startdateLabel}
+                    </span>
+                    <div class="d-flex gap-1">
+                        <select class="form-select form-select-sm syllabus-date-day"
+                            aria-labelledby="syllabus-activity-startdate-${suffix}-label"></select>
+                        <select class="form-select form-select-sm syllabus-date-month"
+                            aria-labelledby="syllabus-activity-startdate-${suffix}-label"></select>
+                        <select class="form-select form-select-sm syllabus-date-year"
+                            aria-labelledby="syllabus-activity-startdate-${suffix}-label"></select>
+                    </div>
+                </div>
             </div>
             <div class="col-md-3">
-                <label class="form-label small mb-1" for="syllabus-activity-enddate-${suffix}">${enddateLabel}</label>
-                <input type="date" class="form-control form-control-sm syllabus-activity-enddate"
-                    id="syllabus-activity-enddate-${suffix}">
+                <div class="syllabus-date-select syllabus-activity-enddate">
+                    <span class="form-label small mb-1 d-block" id="syllabus-activity-enddate-${suffix}-label">
+                        ${enddateLabel}
+                    </span>
+                    <div class="d-flex gap-1">
+                        <select class="form-select form-select-sm syllabus-date-day"
+                            aria-labelledby="syllabus-activity-enddate-${suffix}-label"></select>
+                        <select class="form-select form-select-sm syllabus-date-month"
+                            aria-labelledby="syllabus-activity-enddate-${suffix}-label"></select>
+                        <select class="form-select form-select-sm syllabus-date-year"
+                            aria-labelledby="syllabus-activity-enddate-${suffix}-label"></select>
+                    </div>
+                </div>
             </div>
             <div class="col-md-6 form-check pt-1">
                 <input type="checkbox" class="form-check-input syllabus-activity-isfinalassessment"
@@ -364,6 +385,7 @@ const buildNewActivityRow = async(weekid) => {
             </div>
         </div>
     `;
+    row.querySelectorAll('.syllabus-date-select').forEach((el) => populateDateSelect(el));
     return row;
 };
 

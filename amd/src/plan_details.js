@@ -24,6 +24,7 @@
 import Ajax from 'core/ajax';
 import Notification from 'core/notification';
 import {getString} from 'core/str';
+import {readTimestamp} from './plan_dateselect';
 
 /** @type {int} Course module ID. */
 let cmid = 0;
@@ -37,35 +38,6 @@ let cmid = 0;
 const showRejected = async(error) => {
     const title = await getString('actionnotallowed', 'mod_syllabus');
     Notification.alert(title, error.message);
-};
-
-/**
- * Reads an `<input type="date">` element's value as a Unix timestamp, or null when empty.
- *
- * @param {HTMLElement} input
- * @returns {?int}
- */
-const readTimestamp = (input) => {
-    if (!input || !input.value) {
-        return null;
-    }
-    return Math.floor(new Date(input.value).getTime() / 1000);
-};
-
-/**
- * Converts each `[data-timestamp]` date input's server-provided Unix timestamp into the
- * `YYYY-MM-DD` string the `date` input type expects as its value.
- *
- * @param {HTMLElement} container
- */
-const hydrateDateInputs = (container) => {
-    container.querySelectorAll('input[data-timestamp]').forEach((input) => {
-        const timestamp = parseInt(input.dataset.timestamp, 10);
-        if (!timestamp) {
-            return;
-        }
-        input.value = new Date(timestamp * 1000).toISOString().slice(0, 10);
-    });
 };
 
 /**
@@ -104,8 +76,7 @@ export const init = (coursemoduleid) => {
         return;
     }
 
-    hydrateDateInputs(container);
-    container.querySelectorAll('input').forEach((input) => {
-        input.addEventListener('change', () => save(container));
+    container.querySelectorAll('input, select').forEach((field) => {
+        field.addEventListener('change', () => save(container));
     });
 };

@@ -67,6 +67,8 @@ final class tab_student_plan implements renderable, templatable {
         $narrative = $reader->plan_narrative();
         $weeks = $reader->weeks();
         $schedule = $reader->schedule($weeks);
+        $weeksexport = plan_read_export::weeks($reader, $weeks, false);
+        $finalassessments = plan_read_export::final_assessment_activities($weeksexport);
 
         return (object) [
             'statuslabel'      => get_string(plan_state_manager::status_string_key($this->syllabus->status), 'mod_syllabus'),
@@ -85,8 +87,10 @@ final class tab_student_plan implements renderable, templatable {
             'methodology'       => $narrative->methodology ?? '',
             'presentationscript' => $narrative->presentationscript ?? '',
             'generalreferences'  => $narrative->generalreferences ?? '',
-            'weeks'    => plan_read_export::weeks($reader, $weeks, false),
+            'weeks'    => $weeksexport,
             'hasweeks' => !empty($weeks),
+            'finalassessments'    => $finalassessments,
+            'hasfinalassessments' => !empty($finalassessments),
             'schedule'    => $schedule,
             'hasschedule' => !empty($schedule),
         ];

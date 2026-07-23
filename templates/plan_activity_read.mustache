@@ -31,6 +31,7 @@
         "enddate": 1749600000,
         "points": 15,
         "isfinalassessment": false,
+        "weektitle": null,
         "studentinstructions": "<p>Leia o capítulo e responda no fórum.</p>",
         "showtutorfields": true,
         "gradingcriteria": "<p>4 pts clareza, 4 pts argumentação...</p>",
@@ -45,6 +46,7 @@
         {{/isfinalassessment}}
     </h5>
     <p class="small text-muted mb-2">
+        {{#weektitle}}{{weektitle}} · {{/weektitle}}
         {{#type}}{{type}}{{/type}}{{#category}} · {{category}}{{/category}}
         {{#startdate}}
             · {{#userdate}} {{startdate}}, {{#str}} strftimedatefullshort, core_langconfig {{/str}} {{/userdate}}

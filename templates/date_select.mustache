@@ -1,0 +1,46 @@
+{{!
+    This file is part of Moodle - https://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+}}
+{{!
+    @template mod_syllabus/date_select
+
+    A real day/month/year date picker for use outside a mform (SCOPE §8 — "date-pickers
+    reais em vez de <input type="date"> cru"), mirroring the day/month/year selects of
+    core's own element-date_selector.mustache. Rendered as 3 empty <select> shells;
+    amd/src/plan_dateselect.js fills their options and initial selection from
+    data-timestamp — see that module for why the option lists are populated client-side
+    instead of server-rendered (no simple translatable string exists for month names).
+
+    Always invoke this scoped to its own sub-object via a Mustache section (see
+    activity_row.mustache's startdatefield/enddatefield usage), so multiple instances on the
+    same page never collide on variable names.
+
+    Example context (json):
+    {
+        "fieldid": "syllabus-activity-startdate-5",
+        "fieldclass": "syllabus-activity-startdate",
+        "labeltext": "Data de início",
+        "timestamp": 1749000000
+    }
+}}
+<div class="syllabus-date-select {{fieldclass}}" data-timestamp="{{timestamp}}">
+    <span class="form-label small mb-1 d-block" id="{{fieldid}}-label">{{labeltext}}</span>
+    <div class="d-flex gap-1">
+        <select class="form-select form-select-sm syllabus-date-day" aria-labelledby="{{fieldid}}-label"></select>
+        <select class="form-select form-select-sm syllabus-date-month" aria-labelledby="{{fieldid}}-label"></select>
+        <select class="form-select form-select-sm syllabus-date-year" aria-labelledby="{{fieldid}}-label"></select>
+    </div>
+</div>

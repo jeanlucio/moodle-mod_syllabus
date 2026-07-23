@@ -121,6 +121,18 @@ final class tab_full_plan implements renderable, templatable {
             'academicperiod'    => $this->syllabus->academicperiod,
             'coursestartdate'   => $this->syllabus->coursestartdate,
             'courseenddate'     => $this->syllabus->courseenddate,
+            'coursestartdatefield' => $this->date_select_field(
+                'syllabus-plan-coursestartdate',
+                'syllabus-plan-coursestartdate',
+                'courseperiod',
+                $this->syllabus->coursestartdate
+            ),
+            'courseenddatefield' => $this->date_select_field(
+                'syllabus-plan-courseenddate',
+                'syllabus-plan-courseenddate',
+                'courseperiod',
+                $this->syllabus->courseenddate
+            ),
             'totalduration'     => $this->syllabus->totalduration,
             'presentationvideourl' => $this->syllabus->presentationvideourl,
             'coursedescription' => $narrative->coursedescription ?? '',
@@ -148,6 +160,9 @@ final class tab_full_plan implements renderable, templatable {
         } else {
             $data->readweeks = plan_read_export::weeks($reader, $weeks, true);
             $data->hasweeks = !empty($data->readweeks);
+            $finalassessments = plan_read_export::final_assessment_activities($data->readweeks);
+            $data->finalassessments = $finalassessments;
+            $data->hasfinalassessments = !empty($finalassessments);
             $schedule = $reader->schedule($weeks);
             $data->schedule = $schedule;
             $data->hasschedule = !empty($schedule);
@@ -177,6 +192,18 @@ final class tab_full_plan implements renderable, templatable {
                     'category'          => $activity->category,
                     'startdate'         => $activity->startdate,
                     'enddate'           => $activity->enddate,
+                    'startdatefield'    => $this->date_select_field(
+                        'syllabus-activity-startdate-' . $activity->id,
+                        'syllabus-activity-startdate',
+                        'activitystartdate',
+                        $activity->startdate
+                    ),
+                    'enddatefield'      => $this->date_select_field(
+                        'syllabus-activity-enddate-' . $activity->id,
+                        'syllabus-activity-enddate',
+                        'activityenddate',
+                        $activity->enddate
+                    ),
                     'points'            => $activity->points,
                     'isfinalassessment' => (bool) $activity->isfinalassessment,
                     'typeoptions'       => $this->build_select_options(self::TYPE_OPTIONS, $activity->type),
@@ -232,5 +259,25 @@ final class tab_full_plan implements renderable, templatable {
             ];
         }
         return $options;
+    }
+
+    /**
+     * Builds the context object date_select.mustache expects — always used scoped to its own
+     * Mustache section (e.g. `{{#startdatefield}}{{> mod_syllabus/date_select}}{{/startdatefield}}`)
+     * so several date fields on the same page never collide on variable names.
+     *
+     * @param string $fieldid Element id for this specific field instance, unique on the page.
+     * @param string $fieldclass Base CSS class identifying this field's 3 selects.
+     * @param string $labelkey Lang string key (component mod_syllabus) for the field's label.
+     * @param int|null $timestamp Currently stored value, or null/0 if unset.
+     * @return stdClass
+     */
+    private function date_select_field(string $fieldid, string $fieldclass, string $labelkey, ?int $timestamp): stdClass {
+        return (object) [
+            'fieldid'    => $fieldid,
+            'fieldclass' => $fieldclass,
+            'labeltext'  => get_string($labelkey, 'mod_syllabus'),
+            'timestamp'  => $timestamp,
+        ];
     }
 }

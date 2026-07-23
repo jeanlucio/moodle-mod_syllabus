@@ -43,6 +43,8 @@
         "generalreferences": "<p>SONZA, A. et al...</p>",
         "hasweeks": false,
         "weeks": [],
+        "hasfinalassessments": false,
+        "finalassessments": [],
         "hasschedule": false,
         "schedule": []
     }
@@ -89,6 +91,8 @@
 
     <h3>{{#str}} methodology, mod_syllabus {{/str}}</h3>
     <div class="syllabus-methodology mb-3">{{{methodology}}}</div>
+
+    {{> mod_syllabus/plan_final_assessment }}
 
     <h3>{{#str}} weeks, mod_syllabus {{/str}}</h3>
     {{#hasweeks}}

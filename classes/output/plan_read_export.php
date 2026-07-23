@@ -73,6 +73,29 @@ final class plan_read_export {
     }
 
     /**
+     * Pulls out every activity flagged isfinalassessment across every week, in the shape
+     * plan_activity_read.mustache expects, each carrying the title of the week it belongs to
+     * for context. Operates on the already-exported/filtered result of weeks() rather than
+     * re-reading plan_reader — the tutor-field visibility filter was already applied there,
+     * so there is nothing left to re-check here.
+     *
+     * @param stdClass[] $exportedweeks Result of weeks().
+     * @return stdClass[]
+     */
+    public static function final_assessment_activities(array $exportedweeks): array {
+        $result = [];
+        foreach ($exportedweeks as $week) {
+            foreach ($week->activities as $activity) {
+                if ($activity->isfinalassessment) {
+                    $activity->weektitle = $week->title;
+                    $result[] = $activity;
+                }
+            }
+        }
+        return $result;
+    }
+
+    /**
      * Exports a read-only view of one week's activities.
      *
      * @param plan_reader $reader Used to flatten each activity's raw Custom Field data.

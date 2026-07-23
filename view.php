@@ -25,6 +25,7 @@
 require(__DIR__ . '/../../config.php');
 require_once($CFG->dirroot . '/mod/syllabus/lib.php');
 
+use core_calendar\type_factory;
 use mod_syllabus\local\plan_state_manager;
 use mod_syllabus\output\tab_full_plan;
 use mod_syllabus\output\tab_student_plan;
@@ -101,6 +102,8 @@ if ($tab === 'full') {
         $PAGE->requires->js_call_amd('mod_syllabus/autosave', 'init', [$cm->id]);
         $PAGE->requires->js_call_amd('mod_syllabus/plan_details', 'init', [$cm->id]);
         $PAGE->requires->js_call_amd('mod_syllabus/plan_navigator', 'init');
+        $monthnames = array_values(type_factory::get_calendar_instance()->get_months());
+        $PAGE->requires->js_call_amd('mod_syllabus/plan_dateselect', 'init', [$monthnames]);
     }
     $PAGE->requires->js_call_amd('mod_syllabus/review', 'init', [$cm->id]);
 } else if ($tab === 'tutor') {

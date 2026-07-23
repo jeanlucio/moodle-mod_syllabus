@@ -29,6 +29,18 @@
         "category": "asynchronous",
         "points": 10,
         "isfinalassessment": false,
+        "startdatefield": {
+            "fieldid": "syllabus-activity-startdate-5",
+            "fieldclass": "syllabus-activity-startdate",
+            "labeltext": "Start date",
+            "timestamp": 1749000000
+        },
+        "enddatefield": {
+            "fieldid": "syllabus-activity-enddate-5",
+            "fieldclass": "syllabus-activity-enddate",
+            "labeltext": "End date",
+            "timestamp": 1749600000
+        },
         "typeoptions": [
             {"value": "forum", "label": "Forum", "selected": true},
             {"value": "quiz", "label": "Quiz", "selected": false}
@@ -101,18 +113,10 @@
     </div>
     <div class="row g-2 align-items-center mt-1">
         <div class="col-md-3">
-            <label class="form-label small mb-1" for="syllabus-activity-startdate-{{id}}">
-                {{#str}} activitystartdate, mod_syllabus {{/str}}
-            </label>
-            <input type="date" class="form-control form-control-sm syllabus-activity-startdate"
-                id="syllabus-activity-startdate-{{id}}" data-timestamp="{{startdate}}">
+            {{#startdatefield}}{{> mod_syllabus/date_select }}{{/startdatefield}}
         </div>
         <div class="col-md-3">
-            <label class="form-label small mb-1" for="syllabus-activity-enddate-{{id}}">
-                {{#str}} activityenddate, mod_syllabus {{/str}}
-            </label>
-            <input type="date" class="form-control form-control-sm syllabus-activity-enddate"
-                id="syllabus-activity-enddate-{{id}}" data-timestamp="{{enddate}}">
+            {{#enddatefield}}{{> mod_syllabus/date_select }}{{/enddatefield}}
         </div>
         <div class="col-md-6 form-check pt-1">
             <input type="checkbox" class="form-check-input syllabus-activity-isfinalassessment"

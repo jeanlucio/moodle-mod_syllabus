@@ -25,6 +25,7 @@
 
 namespace mod_syllabus;
 
+use core_courseformat\local\cmactions;
 use mod_syllabus\customfield\activity_handler;
 use mod_syllabus\customfield\plan_handler;
 use mod_syllabus\customfield\week_handler;
@@ -206,7 +207,14 @@ final class backup_restore_test extends \advanced_testcase {
         [$syllabus, $weekid, $activityid] = $this->seed_plan($course->id);
 
         $cm = get_coursemodule_from_instance('syllabus', $syllabus->id, $course->id, false, MUST_EXIST);
-        $newcm = duplicate_module($course, $cm);
+        // Core's duplicate_module() is deprecated since Moodle 5.2 (MDL-86858), replaced by
+        // cmactions::duplicate() — but that method doesn't exist before 5.2, so this must
+        // stay guarded rather than switched outright while the plugin supports 4.5+5.x.
+        if (method_exists(cmactions::class, 'duplicate')) {
+            $newcm = (new cmactions($course))->duplicate($cm->id);
+        } else {
+            $newcm = duplicate_module($course, $cm);
+        }
 
         $this->assertNotNull($newcm);
         $this->assertNotSame($cm->id, $newcm->id);

@@ -151,6 +151,12 @@ abstract class syllabus_handler_base extends handler {
      * one), and only overwrite an existing value when actually restoring into a brand new
      * instance (TARGET_*_ADDING), never when merging into a pre-existing one.
      *
+     * Uses get_instance_data(..., true) rather than get_editable_fields()/
+     * get_instance_fields_data() — the latter is both unavailable before Moodle 5.1 (this
+     * plugin supports 4.5+) and the wrong tool here anyway: restore is a data operation, not
+     * a user action, so it should see every field regardless of the running user's edit
+     * capability on it.
+     *
      * @param int $instanceid The already-remapped (new) instanceid to attach this value to.
      * @param array $data Backed-up row: shortname, type, value, valueformat, valuetrust, id.
      * @param \restore_task $task The running restore task.
@@ -158,8 +164,7 @@ abstract class syllabus_handler_base extends handler {
      */
     public function restore_customfield_value(int $instanceid, array $data, \restore_task $task): ?int {
         $context = $this->get_instance_context($instanceid);
-        $editablefields = $this->get_editable_fields($instanceid);
-        $records = $this->get_instance_fields_data($editablefields, $instanceid);
+        $records = $this->get_instance_data($instanceid, true);
         $target = $task->get_target();
         $override = ($target !== \backup::TARGET_CURRENT_ADDING && $target !== \backup::TARGET_EXISTING_ADDING);
 

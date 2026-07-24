@@ -19,13 +19,28 @@
 
     One week within the editable weeks list: structural fields form, narrative Custom Field
     editors, and its own list of activities. Only rendered inside tab_full_plan for the
-    author.
+    author. Structural fields autosave on change (amd/src/weeks_manager.js, Fase 5.6.a) —
+    there is no per-row "Save" button; only "Delete" remains. New rows are created by the
+    "Add week"/"Add activity" buttons calling the web service directly with a default title,
+    then reloading — this row is always a real, already-saved record.
 
     Example context (json):
     {
         "id": 2,
         "title": "Week 1",
         "duration": 90,
+        "startdatefield": {
+            "fieldid": "syllabus-week-startdate-2",
+            "fieldclass": "syllabus-week-startdate",
+            "labeltext": "Start date",
+            "timestamp": 1749000000
+        },
+        "enddatefield": {
+            "fieldid": "syllabus-week-enddate-2",
+            "fieldclass": "syllabus-week-enddate",
+            "labeltext": "End date",
+            "timestamp": 1749600000
+        },
         "syncdate": 1749250000,
         "synclink": "https://meet.example.org/week1",
         "synctopic": "Kickoff session",
@@ -64,13 +79,21 @@
                 value="{{duration}}" placeholder="{{#str}} weekduration, mod_syllabus {{/str}}">
         </div>
         <div class="col-md-3 text-end">
-            <button type="button" class="btn btn-sm btn-primary syllabus-save-week">
-                {{#str}} save, core {{/str}}
-            </button>
+            <span class="syllabus-save-status syllabus-week-save-status d-none small text-muted me-2"
+                data-saving="{{#str}} saving, mod_syllabus {{/str}}"
+                data-saved="{{#str}} saved, mod_syllabus {{/str}}"></span>
             <button type="button" class="btn btn-sm btn-outline-danger syllabus-delete-week"
                 data-confirm="{{#str}} confirmdeleteweek, mod_syllabus {{/str}}">
                 {{#str}} delete, core {{/str}}
             </button>
+        </div>
+    </div>
+    <div class="row g-2 align-items-end mt-1">
+        <div class="col-md-6">
+            {{#startdatefield}}{{> mod_syllabus/date_select }}{{/startdatefield}}
+        </div>
+        <div class="col-md-6">
+            {{#enddatefield}}{{> mod_syllabus/date_select }}{{/enddatefield}}
         </div>
     </div>
     <div class="row g-2 align-items-end mt-1">

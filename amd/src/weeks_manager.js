@@ -16,6 +16,15 @@
 /**
  * AMD module for adding/editing/removing weeks and activities in a syllabus plan.
  *
+ * Existing rows autosave their structural fields on `change` (no per-row "Save" button, only
+ * "Delete") — the same pattern amd/src/plan_details.js already uses for the Characterisation
+ * fields, and plan_navigator.js's own delegated `change` listener already recomputes the
+ * totals bar from the same events, so no extra coupling is needed. Adding a week/activity
+ * creates the row on the server immediately, with a default title, then reloads the page with
+ * the full fieldset open and scrolled into view — replacing the old flow where the "Add"
+ * button only revealed a client-built blank row that still needed its own save click
+ * (Fase 5.6.a, after live user feedback on the friction of the previous flow).
+ *
  * @module     mod_syllabus/weeks_manager
  * @copyright  2026 Jean Lúcio
  * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
@@ -23,61 +32,21 @@
 
 import Ajax from 'core/ajax';
 import Notification from 'core/notification';
-import {getString, getStrings} from 'core/str';
-import {populate as populateDateSelect, readTimestamp as readDateSelectTimestamp} from './plan_dateselect';
+import {getString} from 'core/str';
+import {readTimestamp as readDateSelectTimestamp} from './plan_dateselect';
 
 /** @type {int} Course module ID. */
 let cmid = 0;
 
-/** @type {int} Counter for unique DOM ids on client-built (not yet saved) rows. */
-let tempRowSeq = 0;
+/** @type {string} sessionStorage key holding the id of a just-created week to scroll/focus. */
+const FOCUS_WEEK_KEY = 'syllabus-focus-week';
+
+/** @type {string} sessionStorage key holding the id of a just-created activity to scroll/focus. */
+const FOCUS_ACTIVITY_KEY = 'syllabus-focus-activity';
 
 /**
- * Fixed activity type/category tokens mirroring tab_full_plan::TYPE_OPTIONS/CATEGORY_OPTIONS
- * — kept in sync manually since a client-built "add activity" row has no server-rendered
- * option list to copy from. Values (not labels) must match the PHP side exactly.
- */
-const TYPE_OPTIONS = [
-    ['forum', 'typeforum'],
-    ['questionnaire', 'typequestionnaire'],
-    ['task', 'typetask'],
-    ['quiz', 'typequiz'],
-    ['game', 'typegame'],
-    ['chat', 'typechat'],
-    ['syncmeeting', 'syncmeeting'],
-    ['other', 'typeother'],
-];
-const CATEGORY_OPTIONS = [
-    ['synchronous', 'categorysynchronous'],
-    ['asynchronous', 'categoryasynchronous'],
-    ['online', 'categoryonline'],
-];
-
-/**
- * Builds the `<option>` markup for a closed select, with a leading "Choose..." placeholder —
- * mirrors tab_full_plan::build_select_options() minus the "mark current value" part, since a
- * freshly added activity never has one yet.
- *
- * @param {Array<Array<string>>} pairs Array of [value, langkey] pairs.
- * @returns {Promise<string>}
- */
-const buildOptionsHtml = async(pairs) => {
-    const [chooseLabel, ...labels] = await getStrings([
-        {key: 'choosedots', component: 'core'},
-        ...pairs.map(([, langkey]) => ({key: langkey, component: 'mod_syllabus'})),
-    ]);
-    let html = `<option value="">${chooseLabel}</option>`;
-    pairs.forEach(([value], index) => {
-        html += `<option value="${value}">${labels[index]}</option>`;
-    });
-    return html;
-};
-
-/**
- * Reloads the page after a successful structural change, mirroring mod_reflect's own
- * question-manager convention: simplest way to reflect a new/removed row and its narrative
- * field editors (each needs a fresh server-prepared draft file area) without hand-rolling a
- * client-side re-render.
+ * Reloads the page after a structural change that needs a fresh server render — creating a
+ * row (its narrative field editors need a server-prepared draft file area) or deleting one.
  */
 const reload = () => {
     window.location.reload();
@@ -99,9 +68,9 @@ const showRejected = async(error) => {
 };
 
 /**
- * Reads an `<input type="date">`/`<input type="datetime-local">` element's value as a Unix
- * timestamp, or null when empty. `hydrateDateInputs()` is what fills these in from the
- * server-rendered `data-timestamp` in the first place.
+ * Reads an `<input type="datetime-local">` element's value as a Unix timestamp, or null when
+ * empty. Only the week's synchronous meeting date/time still uses this raw input type — start/
+ * end dates use the day/month/year date_select component instead (readDateSelectTimestamp).
  *
  * @param {HTMLElement} input
  * @returns {?int}
@@ -115,8 +84,8 @@ const readTimestamp = (input) => {
 
 /**
  * Converts every `[data-timestamp]` date input's server-provided Unix timestamp into the
- * ISO-ish string the `date`/`datetime-local` input type expects as its value — mustache only
- * has the raw timestamp to hand it, so this runs once at init time against the whole page.
+ * ISO-ish string the `datetime-local` input type expects as its value — mustache only has the
+ * raw timestamp to hand it, so this runs once at init time against the whole page.
  *
  * @param {HTMLElement} container
  */
@@ -127,41 +96,170 @@ const hydrateDateInputs = (container) => {
             return;
         }
         const date = new Date(timestamp * 1000);
-        if (input.type === 'datetime-local') {
-            input.value = date.toISOString().slice(0, 16);
-        } else {
-            input.value = date.toISOString().slice(0, 10);
-        }
+        input.value = date.toISOString().slice(0, 16);
     });
 };
 
 /**
- * Saves a week (new or existing) from its row's current input values.
+ * Shows the "saving..." status next to a row.
+ *
+ * @param {?HTMLElement} status The row's own .syllabus-save-status element.
+ */
+const showRowSaving = (status) => {
+    if (status) {
+        status.classList.remove('d-none');
+        status.textContent = status.dataset.saving;
+    }
+};
+
+/**
+ * Shows the "saved" status next to a row, fading it out shortly after.
+ *
+ * @param {?HTMLElement} status The row's own .syllabus-save-status element.
+ */
+const showRowSaved = (status) => {
+    if (status) {
+        status.textContent = status.dataset.saved;
+        setTimeout(() => status.classList.add('d-none'), 3000);
+    }
+};
+
+/**
+ * Scrolls to and focuses the title field of a section, respecting prefers-reduced-motion —
+ * used to land on a freshly created week/activity right after the reload that follows its
+ * creation.
+ *
+ * @param {HTMLElement} section
+ * @param {string} titleSelector
+ */
+const scrollAndFocus = (section, titleSelector) => {
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    section.scrollIntoView({behavior: reduceMotion ? 'auto' : 'smooth', block: 'start'});
+    const titleInput = section.querySelector(titleSelector);
+    if (titleInput) {
+        titleInput.focus();
+    }
+};
+
+/**
+ * Consumes the sessionStorage flag (if any) left by a just-completed week/activity creation,
+ * scrolling to and focusing the resulting row. Called once at init(), after the reload that
+ * follows creation.
+ */
+const focusJustCreatedRow = () => {
+    const weekId = sessionStorage.getItem(FOCUS_WEEK_KEY);
+    if (weekId) {
+        sessionStorage.removeItem(FOCUS_WEEK_KEY);
+        const section = document.getElementById(`syllabus-section-week-${weekId}`);
+        if (section) {
+            scrollAndFocus(section, '.syllabus-week-title');
+        }
+        return;
+    }
+
+    const activityId = sessionStorage.getItem(FOCUS_ACTIVITY_KEY);
+    if (activityId) {
+        sessionStorage.removeItem(FOCUS_ACTIVITY_KEY);
+        const row = document.querySelector(`.syllabus-activity-row[data-activityid="${activityId}"]`);
+        if (row) {
+            scrollAndFocus(row, '.syllabus-activity-title');
+        }
+    }
+};
+
+/**
+ * Calls mod_syllabus_save_week, showing a plain alert on rejection.
+ *
+ * @param {Object} args Web service arguments, minus cmid.
+ * @returns {Promise<?Object>} The web service result, or null on rejection.
+ */
+const persistWeek = async(args) => {
+    try {
+        return await Ajax.call([{methodname: 'mod_syllabus_save_week', args: {cmid, ...args}}])[0];
+    } catch (error) {
+        showRejected(error);
+        return null;
+    }
+};
+
+/**
+ * Calls mod_syllabus_save_activity, showing a plain alert on rejection.
+ *
+ * @param {Object} args Web service arguments, minus cmid.
+ * @returns {Promise<?Object>} The web service result, or null on rejection.
+ */
+const persistActivity = async(args) => {
+    try {
+        return await Ajax.call([{methodname: 'mod_syllabus_save_activity', args: {cmid, ...args}}])[0];
+    } catch (error) {
+        showRejected(error);
+        return null;
+    }
+};
+
+/**
+ * Autosaves an existing week row's current structural field values.
  *
  * @param {HTMLElement} row The .syllabus-week-row element.
  */
-const saveWeek = async(row) => {
-    const weekid = parseInt(row.dataset.weekid, 10) || 0;
+const autosaveWeek = async(row) => {
+    const weekid = parseInt(row.dataset.weekid, 10);
+    if (!weekid) {
+        return;
+    }
     const title = row.querySelector('.syllabus-week-title').value.trim();
-    const durationInput = row.querySelector('.syllabus-week-duration').value;
-    const duration = durationInput === '' ? null : parseInt(durationInput, 10);
-    const syncdate = readTimestamp(row.querySelector('.syllabus-week-syncdate'));
-    const synclink = row.querySelector('.syllabus-week-synclink').value.trim() || null;
-    const synctopic = row.querySelector('.syllabus-week-synctopic').value.trim() || null;
-
     if (!title) {
         row.querySelector('.syllabus-week-title').focus();
         return;
     }
+    const durationInput = row.querySelector('.syllabus-week-duration').value;
+    const duration = durationInput === '' ? null : parseInt(durationInput, 10);
+    const startdate = readDateSelectTimestamp(row.querySelector('.syllabus-week-startdate'));
+    const enddate = readDateSelectTimestamp(row.querySelector('.syllabus-week-enddate'));
+    const syncdate = readTimestamp(row.querySelector('.syllabus-week-syncdate'));
+    const synclink = row.querySelector('.syllabus-week-synclink').value.trim() || null;
+    const synctopic = row.querySelector('.syllabus-week-synctopic').value.trim() || null;
 
-    try {
-        await Ajax.call([{
-            methodname: 'mod_syllabus_save_week',
-            args: {cmid, weekid, title, duration, startdate: null, enddate: null, syncdate, synclink, synctopic},
-        }])[0];
-        reload();
-    } catch (error) {
-        showRejected(error);
+    const status = row.querySelector('.syllabus-week-save-status');
+    showRowSaving(status);
+    const result = await persistWeek({weekid, title, duration, startdate, enddate, syncdate, synclink, synctopic});
+    if (result) {
+        showRowSaved(status);
+    }
+};
+
+/**
+ * Autosaves an existing activity row's current structural field values.
+ *
+ * @param {HTMLElement} row The .syllabus-activity-row element.
+ */
+const autosaveActivity = async(row) => {
+    const activityid = parseInt(row.dataset.activityid, 10);
+    if (!activityid) {
+        return;
+    }
+    const weekid = parseInt(row.dataset.weekid, 10);
+    const title = row.querySelector('.syllabus-activity-title').value.trim();
+    if (!title) {
+        row.querySelector('.syllabus-activity-title').focus();
+        return;
+    }
+    const type = row.querySelector('.syllabus-activity-type').value.trim() || null;
+    const category = row.querySelector('.syllabus-activity-category').value.trim() || null;
+    const pointsInput = row.querySelector('.syllabus-activity-points').value;
+    const points = pointsInput === '' ? null : parseFloat(pointsInput);
+    const startdate = readDateSelectTimestamp(row.querySelector('.syllabus-activity-startdate'));
+    const enddate = readDateSelectTimestamp(row.querySelector('.syllabus-activity-enddate'));
+    const isfinalassessmentInput = row.querySelector('.syllabus-activity-isfinalassessment');
+    const isfinalassessment = isfinalassessmentInput ? isfinalassessmentInput.checked : false;
+
+    const status = row.querySelector('.syllabus-activity-save-status');
+    showRowSaving(status);
+    const result = await persistActivity({
+        weekid, activityid, title, type, category, startdate, enddate, points, isfinalassessment,
+    });
+    if (result) {
+        showRowSaved(status);
     }
 };
 
@@ -180,40 +278,6 @@ const deleteWeek = async(row) => {
 
     try {
         await Ajax.call([{methodname: 'mod_syllabus_delete_week', args: {cmid, weekid}}])[0];
-        reload();
-    } catch (error) {
-        showRejected(error);
-    }
-};
-
-/**
- * Saves an activity (new or existing) from its row's current input values.
- *
- * @param {HTMLElement} row The .syllabus-activity-row element.
- */
-const saveActivity = async(row) => {
-    const activityid = parseInt(row.dataset.activityid, 10) || 0;
-    const weekid = parseInt(row.dataset.weekid, 10);
-    const title = row.querySelector('.syllabus-activity-title').value.trim();
-    const type = row.querySelector('.syllabus-activity-type').value.trim() || null;
-    const category = row.querySelector('.syllabus-activity-category').value.trim() || null;
-    const pointsInput = row.querySelector('.syllabus-activity-points').value;
-    const points = pointsInput === '' ? null : parseFloat(pointsInput);
-    const startdate = readDateSelectTimestamp(row.querySelector('.syllabus-activity-startdate'));
-    const enddate = readDateSelectTimestamp(row.querySelector('.syllabus-activity-enddate'));
-    const isfinalassessmentInput = row.querySelector('.syllabus-activity-isfinalassessment');
-    const isfinalassessment = isfinalassessmentInput ? isfinalassessmentInput.checked : false;
-
-    if (!title) {
-        row.querySelector('.syllabus-activity-title').focus();
-        return;
-    }
-
-    try {
-        await Ajax.call([{
-            methodname: 'mod_syllabus_save_activity',
-            args: {cmid, weekid, activityid, title, type, category, startdate, enddate, points, isfinalassessment},
-        }])[0];
         reload();
     } catch (error) {
         showRejected(error);
@@ -242,151 +306,43 @@ const deleteActivity = async(row) => {
 };
 
 /**
- * Builds a blank week row for adding a new week.
+ * Creates a new week with a default title ("Week N") and reloads, landing on its fieldset —
+ * fully open, with dates, synchronous meeting, narrative fields and its own activities area —
+ * instead of the old two-step "reveal a blank row, then save it" flow.
  *
- * @returns {Promise<HTMLElement>}
+ * @param {HTMLElement} container The .path-mod-syllabus element.
  */
-const buildNewWeekRow = async() => {
-    const suffix = `new${++tempRowSeq}`;
-    const [titleLabel, durationLabel, syncdateLabel, synclinkLabel, synctopicLabel] = await getStrings([
-        {key: 'weektitle', component: 'mod_syllabus'},
-        {key: 'weekduration', component: 'mod_syllabus'},
-        {key: 'syncmeetingdate', component: 'mod_syllabus'},
-        {key: 'syncmeetinglink', component: 'mod_syllabus'},
-        {key: 'syncmeetingtopic', component: 'mod_syllabus'},
-    ]);
-    const row = document.createElement('div');
-    row.className = 'syllabus-week-row border rounded p-3 mb-3';
-    row.dataset.weekid = '0';
-    row.innerHTML = `
-        <div class="row g-2 align-items-end">
-            <div class="col-md-6">
-                <label class="form-label small mb-1" for="syllabus-week-title-${suffix}">${titleLabel}</label>
-                <input type="text" class="form-control syllabus-week-title" id="syllabus-week-title-${suffix}">
-            </div>
-            <div class="col-md-3">
-                <label class="form-label small mb-1" for="syllabus-week-duration-${suffix}">${durationLabel}</label>
-                <input type="number" class="form-control syllabus-week-duration" id="syllabus-week-duration-${suffix}">
-            </div>
-            <div class="col-md-3 text-end">
-                <button type="button" class="btn btn-sm btn-primary syllabus-save-week"></button>
-            </div>
-        </div>
-        <div class="row g-2 align-items-end mt-1">
-            <div class="col-md-4">
-                <label class="form-label small mb-1" for="syllabus-week-syncdate-${suffix}">${syncdateLabel}</label>
-                <input type="datetime-local" class="form-control form-control-sm syllabus-week-syncdate"
-                    id="syllabus-week-syncdate-${suffix}">
-            </div>
-            <div class="col-md-4">
-                <label class="form-label small mb-1" for="syllabus-week-synclink-${suffix}">${synclinkLabel}</label>
-                <input type="url" class="form-control form-control-sm syllabus-week-synclink"
-                    id="syllabus-week-synclink-${suffix}">
-            </div>
-            <div class="col-md-4">
-                <label class="form-label small mb-1" for="syllabus-week-synctopic-${suffix}">${synctopicLabel}</label>
-                <input type="text" class="form-control form-control-sm syllabus-week-synctopic"
-                    id="syllabus-week-synctopic-${suffix}">
-            </div>
-        </div>
-    `;
-    return row;
+const createWeek = async(container) => {
+    const count = container.querySelectorAll('.syllabus-week-row').length;
+    const title = await getString('defaultweektitle', 'mod_syllabus', count + 1);
+    const result = await persistWeek({
+        weekid: 0, title, duration: null, startdate: null, enddate: null,
+        syncdate: null, synclink: null, synctopic: null,
+    });
+    if (result) {
+        sessionStorage.setItem(FOCUS_WEEK_KEY, String(result.weekid));
+        reload();
+    }
 };
 
 /**
- * Builds a blank activity row for adding a new activity to a given week.
+ * Creates a new activity with a default title ("Activity N") within a given week and reloads,
+ * landing on its row fully open with narrative fields ready — same reasoning as createWeek().
  *
- * @param {int} weekid
- * @returns {Promise<HTMLElement>}
+ * @param {HTMLElement} weekRow The .syllabus-week-row element to add the activity to.
  */
-const buildNewActivityRow = async(weekid) => {
-    const suffix = `new${++tempRowSeq}`;
-    const [titleLabel, typeLabel, categoryLabel, pointsLabel, startdateLabel, enddateLabel, isfinalassessmentLabel] =
-        await getStrings([
-            {key: 'activitytitle', component: 'mod_syllabus'},
-            {key: 'activitytype', component: 'mod_syllabus'},
-            {key: 'activitycategory', component: 'mod_syllabus'},
-            {key: 'activitypoints', component: 'mod_syllabus'},
-            {key: 'activitystartdate', component: 'mod_syllabus'},
-            {key: 'activityenddate', component: 'mod_syllabus'},
-            {key: 'finalassessment', component: 'mod_syllabus'},
-        ]);
-    const typeOptionsHtml = await buildOptionsHtml(TYPE_OPTIONS);
-    const categoryOptionsHtml = await buildOptionsHtml(CATEGORY_OPTIONS);
-
-    const row = document.createElement('div');
-    row.className = 'syllabus-activity-row border rounded p-2 mb-2';
-    row.dataset.activityid = '0';
-    row.dataset.weekid = String(weekid);
-    row.innerHTML = `
-        <div class="row g-2 align-items-end">
-            <div class="col-md-4">
-                <label class="form-label small mb-1" for="syllabus-activity-title-${suffix}">${titleLabel}</label>
-                <input type="text" class="form-control syllabus-activity-title" id="syllabus-activity-title-${suffix}">
-            </div>
-            <div class="col-md-2">
-                <label class="form-label small mb-1" for="syllabus-activity-type-${suffix}">${typeLabel}</label>
-                <select class="form-select syllabus-activity-type" id="syllabus-activity-type-${suffix}">
-                    ${typeOptionsHtml}
-                </select>
-            </div>
-            <div class="col-md-2">
-                <label class="form-label small mb-1" for="syllabus-activity-category-${suffix}">${categoryLabel}</label>
-                <select class="form-select syllabus-activity-category" id="syllabus-activity-category-${suffix}">
-                    ${categoryOptionsHtml}
-                </select>
-            </div>
-            <div class="col-md-2">
-                <label class="form-label small mb-1" for="syllabus-activity-points-${suffix}">${pointsLabel}</label>
-                <input type="number" step="0.01" class="form-control syllabus-activity-points"
-                    id="syllabus-activity-points-${suffix}">
-            </div>
-            <div class="col-md-2 text-end">
-                <button type="button" class="btn btn-sm btn-primary syllabus-save-activity"></button>
-            </div>
-        </div>
-        <div class="row g-2 align-items-center mt-1">
-            <div class="col-md-3">
-                <div class="syllabus-date-select syllabus-activity-startdate">
-                    <span class="form-label small mb-1 d-block" id="syllabus-activity-startdate-${suffix}-label">
-                        ${startdateLabel}
-                    </span>
-                    <div class="d-flex gap-1">
-                        <select class="form-select form-select-sm syllabus-date-day"
-                            aria-labelledby="syllabus-activity-startdate-${suffix}-label"></select>
-                        <select class="form-select form-select-sm syllabus-date-month"
-                            aria-labelledby="syllabus-activity-startdate-${suffix}-label"></select>
-                        <select class="form-select form-select-sm syllabus-date-year"
-                            aria-labelledby="syllabus-activity-startdate-${suffix}-label"></select>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="syllabus-date-select syllabus-activity-enddate">
-                    <span class="form-label small mb-1 d-block" id="syllabus-activity-enddate-${suffix}-label">
-                        ${enddateLabel}
-                    </span>
-                    <div class="d-flex gap-1">
-                        <select class="form-select form-select-sm syllabus-date-day"
-                            aria-labelledby="syllabus-activity-enddate-${suffix}-label"></select>
-                        <select class="form-select form-select-sm syllabus-date-month"
-                            aria-labelledby="syllabus-activity-enddate-${suffix}-label"></select>
-                        <select class="form-select form-select-sm syllabus-date-year"
-                            aria-labelledby="syllabus-activity-enddate-${suffix}-label"></select>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-6 form-check pt-1">
-                <input type="checkbox" class="form-check-input syllabus-activity-isfinalassessment"
-                    id="syllabus-activity-isfinalassessment-${suffix}">
-                <label class="form-check-label" for="syllabus-activity-isfinalassessment-${suffix}">
-                    ${isfinalassessmentLabel}
-                </label>
-            </div>
-        </div>
-    `;
-    row.querySelectorAll('.syllabus-date-select').forEach((el) => populateDateSelect(el));
-    return row;
+const createActivity = async(weekRow) => {
+    const weekid = parseInt(weekRow.dataset.weekid, 10);
+    const count = weekRow.querySelectorAll('.syllabus-activity-row').length;
+    const title = await getString('defaultactivitytitle', 'mod_syllabus', count + 1);
+    const result = await persistActivity({
+        weekid, activityid: 0, title, type: null, category: null,
+        startdate: null, enddate: null, points: null, isfinalassessment: false,
+    });
+    if (result) {
+        sessionStorage.setItem(FOCUS_ACTIVITY_KEY, String(result.activityid));
+        reload();
+    }
 };
 
 /**
@@ -403,35 +359,37 @@ export const init = (coursemoduleid) => {
     }
 
     hydrateDateInputs(container);
+    focusJustCreatedRow();
 
     const addWeekBtn = container.querySelector('.syllabus-add-week');
     if (addWeekBtn) {
-        addWeekBtn.addEventListener('click', async() => {
-            const row = await buildNewWeekRow();
-            row.querySelector('.syllabus-save-week').textContent = addWeekBtn.textContent.trim();
-            container.querySelector('.syllabus-weeks-list').appendChild(row);
-            row.querySelector('.syllabus-week-title').focus();
-        });
+        addWeekBtn.addEventListener('click', () => createWeek(container));
     }
 
-    // Delegated click handling: rows for existing weeks/activities are server-rendered,
-    // new ones are appended dynamically above — one listener covers both.
-    container.addEventListener('click', async(e) => {
-        const saveWeekBtn = e.target.closest('.syllabus-save-week');
-        if (saveWeekBtn) {
-            saveWeek(saveWeekBtn.closest('.syllabus-week-row'));
+    // Delegated change handling autosaves an existing week/activity row's structural fields.
+    // Narrative Custom Field boxes (inside .syllabus-field) have their own autosave.js
+    // listener on 'input', not 'change', and are explicitly skipped here to avoid a redundant
+    // resave firing alongside it.
+    container.addEventListener('change', (e) => {
+        if (e.target.closest('.syllabus-field')) {
             return;
         }
+        const activityRow = e.target.closest('.syllabus-activity-row');
+        if (activityRow) {
+            autosaveActivity(activityRow);
+            return;
+        }
+        const weekRow = e.target.closest('.syllabus-week-row');
+        if (weekRow) {
+            autosaveWeek(weekRow);
+        }
+    });
 
+    // Delegated click handling for delete/add-activity buttons.
+    container.addEventListener('click', (e) => {
         const deleteWeekBtn = e.target.closest('.syllabus-delete-week');
         if (deleteWeekBtn) {
             deleteWeek(deleteWeekBtn.closest('.syllabus-week-row'));
-            return;
-        }
-
-        const saveActivityBtn = e.target.closest('.syllabus-save-activity');
-        if (saveActivityBtn) {
-            saveActivity(saveActivityBtn.closest('.syllabus-activity-row'));
             return;
         }
 
@@ -443,11 +401,7 @@ export const init = (coursemoduleid) => {
 
         const addActivityBtn = e.target.closest('.syllabus-add-activity');
         if (addActivityBtn) {
-            const weekid = parseInt(addActivityBtn.dataset.weekid, 10);
-            const row = await buildNewActivityRow(weekid);
-            row.querySelector('.syllabus-save-activity').textContent = addActivityBtn.textContent.trim();
-            addActivityBtn.closest('.syllabus-week-row').querySelector('.syllabus-activities-list').appendChild(row);
-            row.querySelector('.syllabus-activity-title').focus();
+            createActivity(addActivityBtn.closest('.syllabus-week-row'));
         }
     });
 };

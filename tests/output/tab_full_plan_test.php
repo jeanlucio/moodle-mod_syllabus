@@ -30,10 +30,10 @@ use advanced_testcase;
 use mod_syllabus\local\plan_state_manager;
 
 /**
- * tab_visibility_test.php only ever exercises edit mode with zero real weeks (the blank_week()
- * placeholder path) — these tests drive the edit-mode branch with a real, saved week and
- * activity, and cover the workflow status flags (cansubmit/canreviewnow/canunpublish/
- * changesrequestedreason) across every plan status.
+ * tab_visibility_test.php only ever exercises edit mode with zero real weeks (the empty-list
+ * path) — these tests drive the edit-mode branch with a real, saved week and activity, and
+ * cover the workflow status flags (cansubmit/canreviewnow/canunpublish/changesrequestedreason)
+ * across every plan status.
  *
  * @coversDefaultClass \mod_syllabus\output\tab_full_plan
  */
@@ -61,6 +61,8 @@ final class tab_full_plan_test extends advanced_testcase {
         $DB->insert_record('syllabus_weeks', [
             'syllabusid'   => $syllabus->id,
             'title'        => 'Week 1',
+            'startdate'    => $now,
+            'enddate'      => $now + WEEKSECS,
             'sortorder'    => 0,
             'timecreated'  => $now,
             'timemodified' => $now,
@@ -105,6 +107,8 @@ final class tab_full_plan_test extends advanced_testcase {
 
         $week = $data->weeks[0];
         $this->assertSame('Week 1', $week->title);
+        $this->assertFalse($week->enddatefield->autosavedefault);
+        $this->assertEquals($week->enddate, $week->enddatefield->timestamp);
         $this->assertCount(1, $week->activities);
 
         $activity = $week->activities[0];

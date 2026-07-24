@@ -201,14 +201,14 @@ final class tab_visibility_test extends \advanced_testcase {
     }
 
     /**
-     * A brand-new plan with no weeks yet gets one already-open blank week row instead of an
-     * empty list — id 0, the same "not saved yet" convention weeks_manager.js already uses
-     * for a client-built row. hasweeks itself stays false, since no week was actually saved.
+     * A brand-new plan with no weeks yet exports an empty weeks list — since Fase 5.6.a, the
+     * "Add week" button creates the row on the server immediately (with a default title) and
+     * reloads with it fully open, so there is no more client-built/placeholder row to export.
      *
      * @covers \mod_syllabus\output\tab_full_plan::export_for_template
      * @return void
      */
-    public function test_edit_mode_with_no_weeks_gets_one_blank_week(): void {
+    public function test_edit_mode_with_no_weeks_exports_empty_list(): void {
         $course = $this->getDataGenerator()->create_course();
         $syllabus = $this->getDataGenerator()->create_module('syllabus', ['course' => $course->id]);
         $teacher = $this->getDataGenerator()->create_user();
@@ -221,9 +221,7 @@ final class tab_visibility_test extends \advanced_testcase {
 
         $this->assertTrue($data->caneditcontent);
         $this->assertFalse($data->hasweeks);
-        $this->assertCount(1, $data->weeks);
-        $this->assertSame(0, $data->weeks[0]->id);
-        $this->assertSame('', $data->weeks[0]->title);
+        $this->assertCount(0, $data->weeks);
     }
 
     /**

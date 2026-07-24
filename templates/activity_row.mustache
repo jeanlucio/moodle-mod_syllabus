@@ -18,7 +18,9 @@
     @template mod_syllabus/activity_row
 
     One activity within a week's editable list: structural fields form plus its narrative
-    Custom Field editors. Only rendered inside tab_full_plan for the author.
+    Custom Field editors. Only rendered inside tab_full_plan for the author. Structural
+    fields autosave on change (amd/src/weeks_manager.js, Fase 5.6.a) — there is no per-row
+    "Save" button; only "Delete" remains.
 
     Example context (json):
     {
@@ -104,9 +106,9 @@
                 placeholder="{{#str}} activitypoints, mod_syllabus {{/str}}">
         </div>
         <div class="col-md-2 text-end">
-            <button type="button" class="btn btn-sm btn-primary syllabus-save-activity">
-                {{#str}} save, core {{/str}}
-            </button>
+            <span class="syllabus-save-status syllabus-activity-save-status d-none small text-muted me-2"
+                data-saving="{{#str}} saving, mod_syllabus {{/str}}"
+                data-saved="{{#str}} saved, mod_syllabus {{/str}}"></span>
             <button type="button" class="btn btn-sm btn-outline-danger syllabus-delete-activity"
                 data-confirm="{{#str}} confirmdeleteactivity, mod_syllabus {{/str}}">
                 {{#str}} delete, core {{/str}}

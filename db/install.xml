@@ -22,7 +22,7 @@
         <FIELD NAME="academicperiod" TYPE="char" LENGTH="20" NOTNULL="false" SEQUENCE="false" COMMENT="Characterisation: academic year/term, e.g. 2026.1"/>
         <FIELD NAME="coursestartdate" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="Characterisation: course period start"/>
         <FIELD NAME="courseenddate" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="Characterisation: course period end"/>
-        <FIELD NAME="totalduration" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="Characterisation: declared total workload in minutes, target for the totals bar"/>
+        <FIELD NAME="totalduration" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="Characterisation: declared total workload in hours, target for the totals bar"/>
         <FIELD NAME="presentationvideourl" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="Teacher and course presentation video link"/>
         <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>

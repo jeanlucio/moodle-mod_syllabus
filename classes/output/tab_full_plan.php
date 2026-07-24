@@ -113,6 +113,21 @@ final class tab_full_plan implements renderable, templatable {
         $narrative = $reader->plan_narrative();
         $weeks = $reader->weeks();
 
+        // A brand-new plan (neither date ever set) is prefilled with today as a start and a
+        // month later as an end, mirroring Moodle's own date_selector convention of defaulting
+        // to "now" — but only visually, until the JS side actually autosaves it (see
+        // date_select.mustache's autosavedefault flag). Never overrides a plan that already has
+        // one of the two dates set — that is a deliberate choice by whoever left the other one
+        // blank, not an empty plan waiting for defaults.
+        $coursestartdate = $this->syllabus->coursestartdate;
+        $courseenddate = $this->syllabus->courseenddate;
+        $datesweredefaulted = false;
+        if ($caneditcontent && empty($coursestartdate) && empty($courseenddate)) {
+            $coursestartdate = usergetmidnight(time());
+            $courseenddate = strtotime('+1 month', $coursestartdate);
+            $datesweredefaulted = true;
+        }
+
         $data = (object) [
             'cmid'              => $this->cm->id,
             'statuslabel'       => get_string(plan_state_manager::status_string_key($status), 'mod_syllabus'),
@@ -125,13 +140,15 @@ final class tab_full_plan implements renderable, templatable {
                 'syllabus-plan-coursestartdate',
                 'syllabus-plan-coursestartdate',
                 'coursestartdate',
-                $this->syllabus->coursestartdate
+                $coursestartdate,
+                $datesweredefaulted
             ),
             'courseenddatefield' => $this->date_select_field(
                 'syllabus-plan-courseenddate',
                 'syllabus-plan-courseenddate',
                 'courseenddate',
-                $this->syllabus->courseenddate
+                $courseenddate,
+                $datesweredefaulted
             ),
             'totalduration'     => $this->syllabus->totalduration,
             'presentationvideourl' => $this->syllabus->presentationvideourl,
@@ -276,12 +293,19 @@ final class tab_full_plan implements renderable, templatable {
      * @param int|null $timestamp Currently stored value, or null/0 if unset.
      * @return stdClass
      */
-    private function date_select_field(string $fieldid, string $fieldclass, string $labelkey, ?int $timestamp): stdClass {
+    private function date_select_field(
+        string $fieldid,
+        string $fieldclass,
+        string $labelkey,
+        ?int $timestamp,
+        bool $autosavedefault = false
+    ): stdClass {
         return (object) [
-            'fieldid'    => $fieldid,
-            'fieldclass' => $fieldclass,
-            'labeltext'  => get_string($labelkey, 'mod_syllabus'),
-            'timestamp'  => $timestamp,
+            'fieldid'         => $fieldid,
+            'fieldclass'      => $fieldclass,
+            'labeltext'       => get_string($labelkey, 'mod_syllabus'),
+            'timestamp'       => $timestamp,
+            'autosavedefault' => $autosavedefault,
         ];
     }
 }

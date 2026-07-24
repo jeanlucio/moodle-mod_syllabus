@@ -49,7 +49,7 @@ class save_plan_details extends external_api {
             'academicperiod'       => new external_value(PARAM_TEXT, 'Academic year/term, e.g. 2026.1', VALUE_DEFAULT, null),
             'coursestartdate'      => new external_value(PARAM_INT, 'Course period start (timestamp)', VALUE_DEFAULT, null),
             'courseenddate'        => new external_value(PARAM_INT, 'Course period end (timestamp)', VALUE_DEFAULT, null),
-            'totalduration'        => new external_value(PARAM_INT, 'Declared total workload in minutes', VALUE_DEFAULT, null),
+            'totalduration'        => new external_value(PARAM_INT, 'Declared total workload in hours', VALUE_DEFAULT, null),
             'presentationvideourl' => new external_value(
                 PARAM_URL,
                 'Teacher and course presentation video link',
@@ -66,7 +66,7 @@ class save_plan_details extends external_api {
      * @param string|null $academicperiod Academic year/term.
      * @param int|null $coursestartdate Course period start.
      * @param int|null $courseenddate Course period end.
-     * @param int|null $totalduration Declared total workload in minutes.
+     * @param int|null $totalduration Declared total workload in hours.
      * @param string|null $presentationvideourl Presentation video link.
      * @return array Result with success status.
      */

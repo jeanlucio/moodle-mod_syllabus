@@ -137,7 +137,13 @@ export const readTimestamp = (container) => {
 
 /**
  * Populates and hydrates every `.syllabus-date-select` found within a given container — used
- * both for the whole-page pass at init() and for a single freshly client-built row.
+ * both for the whole-page pass at init() and for a single freshly client-built row. Any
+ * container carrying `data-autosave-default="1"` (a value that was only ever filled in as a
+ * starting suggestion, never actually saved — see date_select.mustache) gets a real 'change'
+ * dispatched on it once, so the author's autosave listener (plan_details.js) persists it
+ * exactly as if they had picked it themselves. Dispatched from the day select specifically —
+ * any of the three would do, plan_details.js's listener covers the whole Characterização
+ * container, not one field at a time.
  *
  * @param {HTMLElement} container
  */
@@ -145,6 +151,12 @@ export const wireContainer = (container) => {
     container.querySelectorAll('.syllabus-date-select').forEach((el) => {
         populate(el);
         hydrate(el);
+        if (el.dataset.autosaveDefault === '1') {
+            const daySelect = el.querySelector('.syllabus-date-day');
+            if (daySelect) {
+                daySelect.dispatchEvent(new Event('change', {bubbles: true}));
+            }
+        }
     });
 };
 

@@ -76,7 +76,7 @@ final class save_plan_details_test extends advanced_testcase {
             '2026.1',
             1749000000,
             1751500000,
-            1800,
+            30,
             'https://youtu.be/8MZLYHxOdUo'
         );
         $result = external_api::clean_returnvalue(save_plan_details::execute_returns(), $result);
@@ -86,7 +86,7 @@ final class save_plan_details_test extends advanced_testcase {
         $this->assertSame('2026.1', $updated->academicperiod);
         $this->assertEquals(1749000000, $updated->coursestartdate);
         $this->assertEquals(1751500000, $updated->courseenddate);
-        $this->assertEquals(1800, $updated->totalduration);
+        $this->assertEquals(30, $updated->totalduration);
         $this->assertSame('https://youtu.be/8MZLYHxOdUo', $updated->presentationvideourl);
     }
 

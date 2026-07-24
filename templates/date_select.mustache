@@ -28,15 +28,23 @@
     activity_row.mustache's startdatefield/enddatefield usage), so multiple instances on the
     same page never collide on variable names.
 
+    autosavedefault marks a value that was never actually saved — just filled in as a
+    sensible starting point (see tab_full_plan::export_for_template()) — so
+    amd/src/plan_dateselect.js knows to trigger a real save once, right after hydrating,
+    instead of silently showing a value that would vanish if the author never touches the
+    field at all.
+
     Example context (json):
     {
         "fieldid": "syllabus-activity-startdate-5",
         "fieldclass": "syllabus-activity-startdate",
         "labeltext": "Data de início",
-        "timestamp": 1749000000
+        "timestamp": 1749000000,
+        "autosavedefault": false
     }
 }}
-<div class="syllabus-date-select {{fieldclass}}" data-timestamp="{{timestamp}}">
+<div class="syllabus-date-select {{fieldclass}}" data-timestamp="{{timestamp}}"
+    data-autosave-default="{{#autosavedefault}}1{{/autosavedefault}}">
     <span class="form-label small mb-1 d-block" id="{{fieldid}}-label">{{labeltext}}</span>
     <div class="d-flex gap-1">
         <select class="form-select form-select-sm syllabus-date-day" aria-labelledby="{{fieldid}}-label"></select>

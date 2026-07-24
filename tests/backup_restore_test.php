@@ -58,7 +58,7 @@ final class backup_restore_test extends \advanced_testcase {
             'academicperiod'       => '2026.1',
             'coursestartdate'      => strtotime('2026-06-04'),
             'courseenddate'        => strtotime('2026-07-01'),
-            'totalduration'        => 1800,
+            'totalduration'        => 30,
             'presentationvideourl' => 'https://youtu.be/8MZLYHxOdUo',
         ]);
 
@@ -284,7 +284,7 @@ final class backup_restore_test extends \advanced_testcase {
         // (syllabus_weeks columns), Avaliação Final flag (syllabus_activities column) and
         // the two new plan-level narrative Custom Fields all survive a real backup/restore.
         $this->assertSame('2026.1', $newsyllabus->academicperiod);
-        $this->assertEquals(1800, $newsyllabus->totalduration);
+        $this->assertEquals(30, $newsyllabus->totalduration);
         $this->assertSame('https://youtu.be/8MZLYHxOdUo', $newsyllabus->presentationvideourl);
         $this->assertSame('https://meet.example.org/week1', $newweek->synclink);
         $this->assertSame('Kickoff session', $newweek->synctopic);

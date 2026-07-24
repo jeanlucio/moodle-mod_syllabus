@@ -42,7 +42,7 @@ class save_week extends external_api {
             'cmid'      => new external_value(PARAM_INT, 'Course module ID'),
             'weekid'    => new external_value(PARAM_INT, 'Week ID (0 for new)', VALUE_DEFAULT, 0),
             'title'     => new external_value(PARAM_TEXT, 'Week title'),
-            'duration'  => new external_value(PARAM_INT, 'Duration in minutes', VALUE_DEFAULT, null),
+            'duration'  => new external_value(PARAM_INT, 'Duration in hours', VALUE_DEFAULT, null),
             'startdate' => new external_value(PARAM_INT, 'Start date (timestamp)', VALUE_DEFAULT, null),
             'enddate'   => new external_value(PARAM_INT, 'End date (timestamp)', VALUE_DEFAULT, null),
             'syncdate'  => new external_value(PARAM_INT, 'Synchronous meeting date and time (timestamp)', VALUE_DEFAULT, null),
@@ -57,7 +57,7 @@ class save_week extends external_api {
      * @param int $cmid Course module ID.
      * @param int $weekid Week ID (0 for new).
      * @param string $title Week title.
-     * @param int|null $duration Duration in minutes.
+     * @param int|null $duration Duration in hours.
      * @param int|null $startdate Start date.
      * @param int|null $enddate End date.
      * @param int|null $syncdate Synchronous meeting date and time.

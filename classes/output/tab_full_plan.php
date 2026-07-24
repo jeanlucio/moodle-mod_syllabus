@@ -172,8 +172,13 @@ final class tab_full_plan implements renderable, templatable {
         if ($caneditcontent) {
             $planfielddata = plan_handler::create()->get_instance_data($this->syllabus->id, true);
             $data->planfields = $reader->export_editable_fields($planfielddata, 'plan');
-            $data->weeks = $this->export_editable_weeks($reader, $weeks);
-            $data->hasweeks = !empty($data->weeks);
+            $editableweeks = $this->export_editable_weeks($reader, $weeks);
+            // A brand-new plan starts with one blank, already-open week row instead of just a
+            // button — a teacher building this plan is always going to add at least one week,
+            // so skip the extra click. hasweeks stays tied to REAL saved weeks only, so the
+            // "no weeks yet" read-only messaging elsewhere is unaffected by this placeholder.
+            $data->hasweeks = !empty($weeks);
+            $data->weeks = $editableweeks ?: [$this->blank_week()];
             $data->tinyavailable = narrative_editor::is_tiny_available();
             if ($data->tinyavailable) {
                 $data->tinyconfig = json_encode(narrative_editor::base_config($context));
@@ -190,6 +195,30 @@ final class tab_full_plan implements renderable, templatable {
         }
 
         return $data;
+    }
+
+    /**
+     * A blank, unsaved week in the exact shape export_editable_weeks() produces — weekid 0 is
+     * the same "not saved yet" convention weeks_manager.js already uses for a client-built
+     * row, so week_row.mustache and its save/delete handlers need no special-casing for it.
+     * Used only to give a brand-new plan one already-open week row instead of an empty list.
+     *
+     * @return stdClass
+     */
+    private function blank_week(): stdClass {
+        return (object) [
+            'id'            => 0,
+            'title'         => '',
+            'duration'      => null,
+            'startdate'     => null,
+            'enddate'       => null,
+            'syncdate'      => null,
+            'synclink'      => null,
+            'synctopic'     => null,
+            'fields'        => [],
+            'activities'    => [],
+            'hasactivities' => false,
+        ];
     }
 
     /**

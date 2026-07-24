@@ -83,37 +83,28 @@ const updateSectionStates = (container) => {
 };
 
 /**
- * Minutes per hour, for converting summed week duration into the plan's own total-workload
- * unit (hours) — week duration itself stays in minutes, matching a single class session's
- * natural granularity.
- *
- * @type {number}
- */
-const MINUTES_PER_HOUR = 60;
-
-/**
- * Tolerance (in hours) for the duration match check, absorbing the rounding that summing
- * whole minutes and converting to hours introduces.
+ * Tolerance (in hours) for the duration match check — week duration inputs are whole hours
+ * by convention, but nothing stops someone typing a decimal, so a strict equality check would
+ * be too brittle.
  *
  * @type {number}
  */
 const DURATION_MATCH_TOLERANCE_HOURS = 0.05;
 
 /**
- * Recomputes the totals bar: summed week duration (minutes, converted to hours) against the
- * plan's own total workload (hours), and summed activity points against the fixed 100-point
- * scale, matching or not.
+ * Recomputes the totals bar: summed week duration against the plan's own total workload —
+ * both in hours — and summed activity points against the fixed 100-point scale, matching or
+ * not.
  *
  * @param {HTMLElement} container
  */
 const updateTotals = (container) => {
-    let durationSumMinutes = 0;
+    let durationSum = 0;
     container.querySelectorAll('.syllabus-week-duration').forEach((el) => {
-        durationSumMinutes += parseInt(el.value, 10) || 0;
+        durationSum += parseFloat(el.value) || 0;
     });
-    const durationSumHours = durationSumMinutes / MINUTES_PER_HOUR;
     const totaldurationInput = container.querySelector('.syllabus-plan-totalduration');
-    const targetDuration = totaldurationInput ? (parseInt(totaldurationInput.value, 10) || 0) : 0;
+    const targetDuration = totaldurationInput ? (parseFloat(totaldurationInput.value) || 0) : 0;
 
     let pointsSum = 0;
     container.querySelectorAll('.syllabus-activity-points').forEach((el) => {
@@ -127,7 +118,7 @@ const updateTotals = (container) => {
     const pointsValue = container.querySelector('.syllabus-totals-points-value');
 
     if (durationValue) {
-        durationValue.textContent = Math.round(durationSumHours * 10) / 10;
+        durationValue.textContent = Math.round(durationSum * 10) / 10;
     }
     if (durationTarget) {
         durationTarget.textContent = targetDuration;
@@ -136,7 +127,7 @@ const updateTotals = (container) => {
         pointsValue.textContent = pointsSum;
     }
 
-    applyTotalsState(durationBar, Math.abs(durationSumHours - targetDuration) < DURATION_MATCH_TOLERANCE_HOURS);
+    applyTotalsState(durationBar, Math.abs(durationSum - targetDuration) < DURATION_MATCH_TOLERANCE_HOURS);
     applyTotalsState(pointsBar, pointsSum === 100);
 };
 

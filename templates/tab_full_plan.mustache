@@ -94,7 +94,8 @@
             <a href="#syllabus-section-week-{{id}}" class="syllabus-rail-link">
                 <span class="syllabus-rail-icon" aria-hidden="true">○</span>
                 <span class="visually-hidden syllabus-rail-icon-text"></span>
-                {{title}}
+                {{#title}}{{title}}{{/title}}
+                {{^title}}{{#str}} addweek, mod_syllabus {{/str}}{{/title}}
             </a>
             {{/weeks}}
         </nav>
@@ -161,9 +162,6 @@
                     {{> mod_syllabus/week_row }}
                 {{/weeks}}
             </div>
-            {{^hasweeks}}
-            <p class="text-muted syllabus-noweeksyet">{{#str}} noweeksyet, mod_syllabus {{/str}}</p>
-            {{/hasweeks}}
             <button type="button" class="btn btn-outline-secondary syllabus-add-week">
                 {{#str}} addweek, mod_syllabus {{/str}}
             </button>

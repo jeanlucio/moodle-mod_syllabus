@@ -272,8 +272,24 @@ const updateCounts = (container) => {
 };
 
 /**
- * Toggles every week's [open] attribute at once, flipping the "Collapse all"/"Expand all"
- * button between the two — collapses if any week is currently open, expands otherwise.
+ * Sets the "Collapse all"/"Expand all" button's label to match the weeks' current open/closed
+ * state — called after the button's own click, and whenever a week is opened/closed
+ * individually (its native `<summary>` disclosure triangle, entirely outside this button's
+ * control), so the label never promises the opposite of what the next click would actually do.
+ *
+ * @param {HTMLElement} container
+ * @param {HTMLElement} button
+ */
+const updateCollapseAllLabel = (container, button) => {
+    const weeks = container.querySelectorAll('.syllabus-week-row');
+    const anyOpen = [...weeks].some((week) => week.open);
+    button.textContent = anyOpen ? button.dataset.collapse : button.dataset.expand;
+};
+
+/**
+ * Toggles every week's [open] attribute at once — collapses if any week is currently open,
+ * expands otherwise. Also keeps the button's own label in sync with weeks opened/closed
+ * individually via their native `<summary>`, which this button never otherwise hears about.
  *
  * @param {HTMLElement} container
  */
@@ -288,8 +304,12 @@ const wireCollapseAll = (container) => {
         weeks.forEach((week) => {
             week.open = shouldOpen;
         });
-        button.textContent = shouldOpen ? button.dataset.collapse : button.dataset.expand;
+        updateCollapseAllLabel(container, button);
     });
+    container.querySelectorAll('.syllabus-week-row').forEach((week) => {
+        week.addEventListener('toggle', () => updateCollapseAllLabel(container, button));
+    });
+    updateCollapseAllLabel(container, button);
 };
 
 /**

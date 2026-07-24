@@ -33,8 +33,7 @@ use mod_syllabus\customfield\week_handler;
 /**
  * Exercises the real backup_controller/restore_controller and duplicate_module() flows —
  * not just the stepslib methods in isolation — since that is the only way to catch a real
- * XML schema mismatch or a missing prepare_activity_structure() call (see CLAUDE.md §
- * Backup and restore).
+ * XML schema mismatch or a missing prepare_activity_structure() call.
  */
 final class backup_restore_test extends \advanced_testcase {
     #[\Override]
@@ -280,9 +279,10 @@ final class backup_restore_test extends \advanced_testcase {
             $this->get_customfield_value(activity_handler::create(), $newactivity->id, 'studentinstructions')
         );
 
-        // Fase 5.5.a: Caracterização/Apresentação (syllabus columns), Encontro Síncrono
-        // (syllabus_weeks columns), Avaliação Final flag (syllabus_activities column) and
-        // the two new plan-level narrative Custom Fields all survive a real backup/restore.
+        // Characterisation/Presentation fields (syllabus columns), the synchronous session
+        // fields (syllabus_weeks columns), the final assessment flag (syllabus_activities
+        // column) and the two plan-level narrative Custom Fields all survive a real
+        // backup/restore.
         $this->assertSame('2026.1', $newsyllabus->academicperiod);
         $this->assertEquals(30, $newsyllabus->totalduration);
         $this->assertSame('https://youtu.be/8MZLYHxOdUo', $newsyllabus->presentationvideourl);

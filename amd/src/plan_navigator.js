@@ -14,9 +14,8 @@
 // along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 /**
- * AMD module for the edit-mode navigation rail and totals bar in Tab 1 ("Plano completo").
- * Purely a client-side reading/scrolling aid — never validates or blocks a save, matching the
- * "heurística simples, não validação bloqueante" rule in SCOPE §8.
+ * AMD module for the edit-mode navigation rail and totals bar in Tab 1 ("Full plan").
+ * Purely a client-side reading/scrolling aid — never validates or blocks a save.
  *
  * @module     mod_syllabus/plan_navigator
  * @copyright  2026 Jean Lúcio

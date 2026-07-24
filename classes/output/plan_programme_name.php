@@ -17,10 +17,10 @@
 namespace mod_syllabus\output;
 
 /**
- * Resolves the "Curso" (programme) name for the Characterisation block from the Moodle
- * course's own category — the documents distinguish "Curso" (the broader programme) from
- * "Disciplina" (this specific subject, `course.fullname`), and only the latter has a direct
- * Moodle equivalent; category is the closest existing concept (see SCOPE §17).
+ * Resolves the "Programme" name for the Characterisation block from the Moodle course's own
+ * category — "Programme" (the broader curriculum) is distinct from "Discipline" (this
+ * specific subject, `course.fullname`), and only the latter has a direct Moodle equivalent;
+ * category is the closest existing concept.
  *
  * Reads the category name directly from the database rather than through
  * `core_course_category::get()`: that API enforces its own capability check meant for

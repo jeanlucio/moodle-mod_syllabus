@@ -23,11 +23,10 @@ use stdClass;
 use templatable;
 
 /**
- * Tab 2 — "Plano do Aluno": the student-facing read-only projection of the plan, mirroring
- * the "Plano de Disciplina - Aluno" source document. Never includes grading criteria/answer
- * keys, tutor accompaniment notes, interaction tools or observations — those fields are
- * simply never exported into this template's data (see the visibility matrix in SCOPE §8),
- * not hidden after the fact.
+ * Tab 2 — "Student's plan": the student-facing read-only projection of the plan. Never
+ * includes grading criteria/answer keys, tutor accompaniment notes, interaction tools or
+ * observations — those fields are simply never exported into this template's data, not
+ * hidden after the fact.
  *
  * Accessible to the teacher, coordination, admin and tutor too (as the second of their 3
  * tabs) — only the student reaches this without the surrounding tab bar (view.php decides

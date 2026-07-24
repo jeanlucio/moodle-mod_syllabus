@@ -23,14 +23,12 @@ use stdClass;
 use templatable;
 
 /**
- * Tab 3 — "Plano de Tutoria": the tutor-facing read-only projection of the plan, mirroring
- * the "Plano de Tutoria" source document. Deliberately does NOT repeat the plan-level
- * narrative fields (ementa/objetivos/conteúdos/metodologia) or the full Characterisation —
- * the tutor has Tab 2 ("Plano do Aluno") one click away for that, exactly as the source
- * document set (a separate, activity-focused sheet) intended. What this tab adds on top of
- * Tab 2's week/activity content is the tutor-exclusive fields: interaction tools,
- * observations, grading criteria (with answer keys) and tutor accompaniment notes — see the
- * visibility matrix in SCOPE §8.
+ * Tab 3 — "Tutor plan": the tutor-facing read-only projection of the plan. Deliberately does
+ * NOT repeat the plan-level narrative fields (coursedescription/objectives/contents/
+ * methodology) or the full Characterisation — the tutor has Tab 2 ("Student's plan") one
+ * click away for that. What this tab adds on top of Tab 2's week/activity content is the
+ * tutor-exclusive fields: interaction tools, observations, grading criteria (with answer
+ * keys) and tutor accompaniment notes.
  *
  * Never reachable by the student (view.php gates it on mod/syllabus:viewtutorview).
  *

@@ -124,7 +124,7 @@ final class privacy_provider_test extends provider_testcase {
         // Uses property_exists(), not a PHPUnit assertObjectHas*() method: those differ
         // between PHPUnit 9 (assertObjectHasAttribute, deprecated) and 10+
         // (assertObjectHasProperty), and this plugin's doc-comment test style must run
-        // unmodified on both (see CLAUDE.md § Automated Tests).
+        // unmodified on both.
         $this->assertTrue(property_exists($data, 'submitted'));
     }
 

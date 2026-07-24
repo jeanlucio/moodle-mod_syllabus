@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 /**
- * Tests for the per-tab field visibility matrix (SCOPE §8, Fase 5.5.c).
+ * Tests for the per-tab field visibility matrix.
  *
  * @package    mod_syllabus
  * @category   test
@@ -174,7 +174,7 @@ final class tab_visibility_test extends \advanced_testcase {
     /**
      * Coordination/admin reviewing Tab 1 without mod/syllabus:submit sees the same full
      * field set as the tutor tab (everything except the workflow being read-only), never
-     * the empty "no weeks yet" placeholder the pre-Fase-5.5 templates were stuck with.
+     * an empty "no weeks yet" placeholder.
      *
      * @covers \mod_syllabus\output\tab_full_plan::export_for_template
      * @return void
@@ -201,9 +201,9 @@ final class tab_visibility_test extends \advanced_testcase {
     }
 
     /**
-     * A brand-new plan with no weeks yet exports an empty weeks list — since Fase 5.6.a, the
-     * "Add week" button creates the row on the server immediately (with a default title) and
-     * reloads with it fully open, so there is no more client-built/placeholder row to export.
+     * A brand-new plan with no weeks yet exports an empty weeks list — the "Add week" button
+     * creates the row on the server immediately (with a default title) and reloads with it
+     * fully open, so there is no client-built placeholder row to export.
      *
      * @covers \mod_syllabus\output\tab_full_plan::export_for_template
      * @return void

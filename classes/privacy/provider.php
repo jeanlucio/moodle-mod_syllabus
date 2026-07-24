@@ -34,8 +34,8 @@ use stdClass;
  * pedagogical record, not personal data about an individual — only the three workflow
  * actor references (submittedby/reviewedby/unpublishedby) are. A plan is shared, ongoing
  * institutional content that students and tutors depend on, so deleting a user's data here
- * means anonymising those references (SCOPE §12), never deleting the plan row itself —
- * unlike a typical per-user submission this plugin has no equivalent of.
+ * means anonymising those references, never deleting the plan row itself — unlike a typical
+ * per-user submission this plugin has no equivalent of.
  *
  * @package    mod_syllabus
  * @copyright  2026 Jean Lúcio

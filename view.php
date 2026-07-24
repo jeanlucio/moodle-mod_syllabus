@@ -62,10 +62,10 @@ if (!$isreviewer && !$isauthor && $syllabus->status !== plan_state_manager::STAT
     throw new moodle_exception('plannotavailable', 'mod_syllabus');
 }
 
-// Tab 1 ("Plano completo") is professor/coordination/admin only — a tutor never sees
-// workflow, and a student never sees anything beyond their own tab. Tab 3 ("Plano de
-// Tutoria") is everyone except the student. Tab 2 ("Plano do Estudante") is the only tab a
-// pure student reaches, and reaches without a tab bar at all.
+// Tab 1 ("Full plan") is teacher/coordination/admin only — a tutor never sees
+// workflow, and a student never sees anything beyond their own tab. Tab 3 ("Tutor plan") is
+// everyone except the student. Tab 2 ("Student's plan") is the only tab a pure student
+// reaches, and reaches without a tab bar at all.
 $availabletabs = [];
 if ($isreviewer || $isauthor) {
     $availabletabs['full'] = get_string('tabfullplan', 'mod_syllabus');

@@ -23,9 +23,9 @@ use stdClass;
  * for Tab 1's read-only branch (coordination/admin reviewing without edit rights).
  *
  * The single `$showtutorfields` flag is what implements the week/activity portion of the
- * visibility matrix in SCOPE §8: with it false, interaction tools/observations (week level)
- * and grading criteria/tutor guidance (activity level) are never copied into the exported
- * object at all — the corresponding shared template (plan_week_read.mustache /
+ * visibility matrix: with it false, interaction tools/observations (week level) and grading
+ * criteria/tutor guidance (activity level) are never copied into the exported object at
+ * all — the corresponding shared template (plan_week_read.mustache /
  * plan_activity_read.mustache) never receives them, so there is nothing to accidentally
  * leak by a template change.
  *

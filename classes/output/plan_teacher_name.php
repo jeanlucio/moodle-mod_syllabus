@@ -19,7 +19,7 @@ namespace mod_syllabus\output;
 use stdClass;
 
 /**
- * Resolves the "Professor(a)" name for the Characterisation block.
+ * Resolves the "Teacher" name for the Characterisation block.
  *
  * The plugin has no dedicated "teacher" column — `submittedby` (who last submitted the
  * plan) is the closest first-class concept it already tracks, and is guaranteed to be set

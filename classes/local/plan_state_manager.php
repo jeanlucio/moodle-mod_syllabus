@@ -122,7 +122,7 @@ final class plan_state_manager {
      * Reopens an already approved plan for review after a structural field changed.
      *
      * Content fields (Custom Fields API) never call this — only structural columns on
-     * `syllabus_weeks`/`syllabus_activities` do, per the hybrid re-edition rule (SCOPE §3.1).
+     * `syllabus_weeks`/`syllabus_activities` do, per the hybrid re-edition rule.
      * A no-op outside `approved` keeps callers simple: they can call this unconditionally
      * after saving a structural field, without checking the current status themselves.
      *
@@ -150,7 +150,7 @@ final class plan_state_manager {
      * effect of an ordinary settings edit — this method is the only supported way to hide an
      * approved plan again. Like submit()/approve()/request_changes(), this class enforces only
      * the workflow's own business rules, never capability checks: the caller (the controller
-     * that will wire this to a UI action in a later phase) is responsible for verifying the
+     * that wires this to a UI action) is responsible for verifying the
      * user holds mod/syllabus:review, or is the author recorded in $plan->submittedby, before
      * calling this — an unrelated teacher who merely shares mod/syllabus:submit on the course
      * must never be able to unpublish someone else's plan.
@@ -195,7 +195,7 @@ final class plan_state_manager {
      * Maps a status constant to the Bootstrap contextual class for its status badge.
      *
      * `bg-secondary` (draft) is paired with a plugin CSS rule forcing dark text in styles.css:
-     * Bootstrap 5's default white-on-grey badge text fails WCAG contrast (CLAUDE.md § CSS).
+     * Bootstrap 5's default white-on-grey badge text fails WCAG contrast.
      * The other three colours already carry accessible default text colours in Bootstrap 5.
      *
      * @param string $status One of the STATUS_* constants.
@@ -213,9 +213,9 @@ final class plan_state_manager {
     /**
      * Guards structural writes to weeks/activities (title, duration, dates, type, category, points).
      *
-     * Per the workflow rules (SCOPE §4): while a plan is `submitted`, the author is blocked from
-     * further structural edits (the coordinator is reviewing a fixed snapshot) — narrative Custom
-     * Field content stays editable in every status and is never gated by this method. `draft` and
+     * While a plan is `submitted`, the author is blocked from further structural edits (the
+     * coordinator is reviewing a fixed snapshot) — narrative Custom Field content stays
+     * editable in every status and is never gated by this method. `draft` and
      * `changes_requested` always allow structural edits (the author has full control), and
      * `approved` allows them too, subject to reopen_for_structural_change() on the caller's side.
      *

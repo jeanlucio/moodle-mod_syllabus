@@ -17,12 +17,11 @@
 {{!
     @template mod_syllabus/plan_final_assessment
 
-    The "Avaliação Final" block the 3 source documents show as its own section, separate from
-    the week-by-week list — extracted here from whichever activity/activities carry
+    The "Final assessment" block, extracted here from whichever activity/activities carry
     isfinalassessment, via plan_read_export::final_assessment_activities(). Reuses
     plan_activity_read.mustache as-is (including its own red badge) so this section and the
     activity's own place inside its week never drift out of sync on a field change; the
-    activity is intentionally shown in both places, matching how the Cronograma table already
+    activity is intentionally shown in both places, matching how the schedule table already
     duplicates the same data. Shared by the 3 read-only tabs (student, tutor, Tab 1's
     read-only branch) — never rendered in the edit-mode branch, where the isfinalassessment
     checkbox on the activity itself is already the single source of truth.
@@ -32,15 +31,15 @@
         "hasfinalassessments": true,
         "finalassessments": [
             {
-                "title": "Prova Final",
+                "title": "Final Exam",
                 "type": "quiz",
                 "category": "online",
                 "startdate": 1749000000,
                 "enddate": 1749600000,
                 "points": 40,
                 "isfinalassessment": true,
-                "weektitle": "Semana 8",
-                "studentinstructions": "<p>Prova cobrindo todo o conteúdo do semestre.</p>",
+                "weektitle": "Week 8",
+                "studentinstructions": "<p>Exam covering the whole semester's content.</p>",
                 "showtutorfields": false
             }
         ]

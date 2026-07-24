@@ -30,8 +30,8 @@
  * writes into — nothing drops them on its own. Without this hook, every uninstall +
  * reinstall cycle re-runs xmldb_syllabus_install() and leaves the previous category/fields/
  * data behind as orphans, so a "fresh" install ends up showing every narrative field
- * duplicated once per past reinstall — confirmed live: three superimposed copies of
- * "Ementa da Disciplina" etc. after three reinstalls during development.
+ * duplicated once per past reinstall — e.g. three superimposed copies of "Course
+ * description" after three reinstalls.
  *
  * @return void
  */

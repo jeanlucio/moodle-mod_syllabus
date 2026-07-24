@@ -22,15 +22,15 @@ use editor_tiny\manager as tiny_manager;
 use stdClass;
 
 /**
- * Builds the shared Tiny configuration used by every narrative field on the edit-mode form
- * (Fase 5.5.e), without ever calling \editor_tiny\editor::use_editor() itself — that method
- * always queues its setup call onto $PAGE->requires for immediate execution at page load,
- * which is exactly the eager-instantiation behaviour lazy init needs to avoid.
+ * Builds the shared Tiny configuration used by every narrative field on the edit-mode form,
+ * without ever calling \editor_tiny\editor::use_editor() itself — that method always queues
+ * its setup call onto $PAGE->requires for immediate execution at page load, which is exactly
+ * the eager-instantiation behaviour lazy init needs to avoid.
  *
  * The two private pieces this mirrors — \editor_tiny\editor::use_editor()'s config array and
  * \core_form\filetypes_util-adjacent $fpoptions construction from
- * MoodleQuickForm_editor::toHtml() — are the "~70 lines the core keeps private" noted in
- * SCOPE §17's Fase 3 entry. This class only replicates the first (the config array itself,
+ * MoodleQuickForm_editor::toHtml() — are roughly 70 lines core keeps private. This class only
+ * replicates the first (the config array itself,
  * built from public APIs: editor_tiny\manager::get_plugin_configuration() is public). The
  * second ($fpoptions per media type via initialise_filepicker()) is deliberately skipped —
  * the shared config below passes an empty filepicker option set, so image/media insert

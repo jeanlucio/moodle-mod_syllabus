@@ -31,9 +31,8 @@ use stdClass;
  * (export_editable_fields(), for the author's form) or a flattened read-only one
  * (flatten_fields()), and which of the resulting shortnames it actually copies into its own
  * export_for_template() array. This class never filters by role: the per-tab visibility
- * matrix (SCOPE §8) is enforced entirely by what each renderable chooses to export — a
- * field never exported is a field that never reaches the template, the same discipline the
- * original student_view.php already established.
+ * matrix is enforced entirely by what each renderable chooses to export — a field never
+ * exported is a field that never reaches the template.
  *
  * @package    mod_syllabus
  * @copyright  2026 Jean Lúcio
@@ -53,7 +52,7 @@ final class plan_reader {
     }
 
     /**
-     * Plan-level narrative Custom Field values (ementa, objetivos, etc.), unfiltered.
+     * Plan-level narrative Custom Field values (coursedescription, objectives, etc.), unfiltered.
      *
      * @return stdClass
      */
@@ -105,7 +104,7 @@ final class plan_reader {
 
     /**
      * The consolidated schedule: every activity across every week, flattened and sorted by
-     * end date, matching the "Cronograma de Atividades e Pontuação" table in all 3 source
+     * end date, matching the "Activity and grading schedule" table in all 3 source
      * documents. Never persisted — computed fresh from weeks() each time it's needed.
      *
      * @param array $weeks Result of weeks(), passed in to avoid querying twice in the same request.
@@ -161,11 +160,10 @@ final class plan_reader {
                 'text'        => $editorvalue['text'],
                 'itemid'      => $editorvalue['itemid'],
                 'area'        => $area,
-                // Only plan-level fields count toward the Caracterização rail section's fill
-                // heuristic — a week/activity narrative field lives inside the WEEK's own
-                // data-syllabus-section wrapper, so marking it required-input too would dilute
-                // that section's state with fields the rail was never meant to track (see
-                // SCOPE §17 on the 5.5.d.2 rail design).
+                // Only plan-level fields count toward the Characterisation rail section's
+                // fill heuristic — a week/activity narrative field lives inside the WEEK's
+                // own data-syllabus-section wrapper, so marking it required-input too would
+                // dilute that section's state with fields the rail was never meant to track.
                 'isplanfield' => $area === 'plan',
                 'description' => $description === '' ? '' : format_text($description, (int) $field->get('descriptionformat'), [
                     'context' => $field->get_handler()->get_configuration_context(),

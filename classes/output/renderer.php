@@ -32,7 +32,7 @@ use stdClass;
  */
 class renderer extends plugin_renderer_base {
     /**
-     * Renders Tab 1 — "Plano completo" (editable for the author, read + review panel for
+     * Renders Tab 1 — "Full plan" (editable for the author, read + review panel for
      * coordination/admin).
      *
      * @param stdClass $templatedata Data exported by tab_full_plan::export_for_template().
@@ -43,7 +43,7 @@ class renderer extends plugin_renderer_base {
     }
 
     /**
-     * Renders Tab 2 — "Plano do Estudante".
+     * Renders Tab 2 — "Student's plan".
      *
      * @param stdClass $templatedata Data exported by tab_student_plan::export_for_template().
      * @return string HTML rendered output.
@@ -53,7 +53,7 @@ class renderer extends plugin_renderer_base {
     }
 
     /**
-     * Renders Tab 3 — "Plano de Tutoria".
+     * Renders Tab 3 — "Tutor plan".
      *
      * @param stdClass $templatedata Data exported by tab_tutor_plan::export_for_template().
      * @return string HTML rendered output.

@@ -21,8 +21,8 @@ use stdClass;
 /**
  * Decides whether a week/activity upsert actually changed a structural field.
  *
- * Every column on `syllabus_weeks`/`syllabus_activities` is structural (SCOPE §3.1/§4) — the
- * narrative content lives entirely in Custom Fields instead. So the only question this class
+ * Every column on `syllabus_weeks`/`syllabus_activities` is structural — the narrative
+ * content lives entirely in Custom Fields instead. So the only question this class
  * answers is whether the submitted values differ from what is already stored, which is what
  * decides whether an edit on an approved plan needs to reopen it for review: an autosave tick
  * that resubmits identical values (e.g. the user tabbed through a field without changing it)

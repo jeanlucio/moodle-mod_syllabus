@@ -25,19 +25,17 @@ use stdClass;
 use templatable;
 
 /**
- * Tab 1 — "Plano completo": the teacher (author) gets the editable weeks/activities
+ * Tab 1 — "Full plan": the teacher (author) gets the editable weeks/activities
  * management UI with narrative Custom Field autosave; coordination/admin without
- * mod/syllabus:submit gets the same content coordination review, plus the review panel and
- * workflow actions. Both branches see the full field set — this tab's visibility is nothing
- * more/less than "everything the plan has" (see the matrix in SCOPE §8); the split is
- * edit-vs-read, not field visibility.
+ * mod/syllabus:submit gets the same content for review, plus the review panel and workflow
+ * actions. Both branches see the full field set — this tab's visibility is nothing more/less
+ * than "everything the plan has"; the split is edit-vs-read, not field visibility.
  *
- * The visual editing form built here is the same simple pattern the plugin already used
- * before Fase 5.5 — this class' job is making sure every field the documents require has
- * *some* way to be edited and read correctly, with the right people seeing the right things.
- * Fase 5.5.d.1 added the closed-select option lists (build_select_options()) and per-field
- * help text (via plan_reader::export_editable_fields()); the navigation rail, totals bar and
- * real date pickers remain 5.5.d.2/5.5.d.3's job.
+ * This class' job is making sure every field the documents require has *some* way to be
+ * edited and read correctly, with the right people seeing the right things — including the
+ * closed-select option lists (build_select_options()) and per-field help text (via
+ * plan_reader::export_editable_fields()). The navigation rail, totals bar and real date
+ * pickers live elsewhere.
  *
  * @package    mod_syllabus
  * @copyright  2026 Jean Lúcio
@@ -45,10 +43,10 @@ use templatable;
  */
 final class tab_full_plan implements renderable, templatable {
     /**
-     * Fixed set of activity types the source documents define, token => lang string key.
+     * Fixed set of activity types, token => lang string key.
      * The `type` column stays free VARCHAR — this only drives the closed `<select>` in the
-     * edit-mode UI (Fase 5.5.d.1); save_activity still accepts any string, so a legacy value
-     * outside this list is never lost (see build_select_options()).
+     * edit-mode UI; save_activity still accepts any string, so a value outside this list is
+     * never lost (see build_select_options()).
      */
     private const TYPE_OPTIONS = [
         'forum'         => 'typeforum',
@@ -62,7 +60,7 @@ final class tab_full_plan implements renderable, templatable {
     ];
 
     /**
-     * Fixed set of activity categories the source documents define, token => lang string key.
+     * Fixed set of activity categories, token => lang string key.
      * Same free-VARCHAR/closed-select relationship as TYPE_OPTIONS above.
      */
     private const CATEGORY_OPTIONS = [
@@ -172,9 +170,9 @@ final class tab_full_plan implements renderable, templatable {
         if ($caneditcontent) {
             $planfielddata = plan_handler::create()->get_instance_data($this->syllabus->id, true);
             $data->planfields = $reader->export_editable_fields($planfielddata, 'plan');
-            // Adding a week/activity now creates the row on the server immediately (Fase 5.6.a)
-            // and reloads with the full fieldset open, so an empty plan needs no client-built
-            // placeholder row anymore — the button itself is the only affordance required.
+            // Adding a week/activity creates the row on the server immediately and reloads
+            // with the full fieldset open, so an empty plan needs no client-built placeholder
+            // row — the button itself is the only affordance required.
             $data->hasweeks = !empty($weeks);
             $data->weeks = $this->export_editable_weeks($reader, $weeks);
             $data->tinyavailable = narrative_editor::is_tiny_available();

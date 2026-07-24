@@ -15,13 +15,12 @@
 
 /**
  * AMD module for the real day/month/year date pickers used outside a mform (activity
- * start/end dates, plan course start/end dates) — SCOPE §8 "date-pickers reais em vez de
- * <input type=\"date\"> cru", mirroring the day/month/year selects of core's own
- * element-date_selector.mustache. Each `.syllabus-date-select` container is rendered as 3
- * empty `<select>` shells (see templates/date_select.mustache); this module fills their
- * options and initial selection. Localized month names come from the server via init()'s
- * argument — userdate()-backed (core_calendar\type_factory::get_months()), no simple
- * translatable string exists for them, so they cannot be fetched through core/str.
+ * start/end dates, plan course start/end dates), mirroring the day/month/year selects of
+ * core's own element-date_selector.mustache. Each `.syllabus-date-select` container is
+ * rendered as 3 empty `<select>` shells (see templates/date_select.mustache); this module
+ * fills their options and initial selection. Localized month names come from the server via
+ * init()'s argument — userdate()-backed (core_calendar\type_factory::get_months()), no
+ * simple translatable string exists for them, so they cannot be fetched through core/str.
  *
  * @module     mod_syllabus/plan_dateselect
  * @copyright  2026 Jean Lúcio
@@ -142,7 +141,7 @@ export const readTimestamp = (container) => {
  * starting suggestion, never actually saved — see date_select.mustache) gets a real 'change'
  * dispatched on it once, so the author's autosave listener (plan_details.js) persists it
  * exactly as if they had picked it themselves. Dispatched from the day select specifically —
- * any of the three would do, plan_details.js's listener covers the whole Characterização
+ * any of the three would do, plan_details.js's listener covers the whole Characterisation
  * container, not one field at a time.
  *
  * @param {HTMLElement} container

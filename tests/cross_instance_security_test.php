@@ -19,12 +19,10 @@
  *
  * A single authoritative place proving every write Web Service rejects a request that
  * targets a week/activity/field belonging to a *different* syllabus instance than the one
- * the caller's cmid resolves to — the exact case CLAUDE.md's Security Review Checklist
- * calls out (operating on an entity by isolated PK instead of one bound to an
- * already-validated instanceid). Each write function has its own focused test for this
- * elsewhere too; this file exists so a reviewer can see the whole isolation guarantee
- * proven in one place, and catches gaps like delete_week previously having no such test at
- * all.
+ * the caller's cmid resolves to — operating on an entity by isolated PK instead of one bound
+ * to an already-validated instanceid. Each write function has its own focused test for this
+ * elsewhere too; this file exists so a reviewer can see the whole isolation guarantee proven
+ * in one place.
  *
  * @package    mod_syllabus
  * @category   test
@@ -87,7 +85,7 @@ final class cross_instance_security_test extends \advanced_testcase {
     /**
      * No write Web Service lets course A's teacher touch course B's week/activity/field data
      * by supplying course A's cmid alongside a week/activity/field id that actually belongs
-     * to course B — the exact isolated-PK-operation CLAUDE.md's checklist warns against.
+     * to course B.
      *
      * @covers \mod_syllabus\external\save_week::execute
      * @covers \mod_syllabus\external\delete_week::execute

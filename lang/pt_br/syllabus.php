@@ -63,7 +63,6 @@ $string['deleteweek'] = 'Excluir aula';
 $string['details'] = 'Detalhamento da aula';
 $string['detailshelp'] = 'Descreva o que acontece na aula desta semana.';
 $string['discipline'] = 'Disciplina';
-$string['editfield'] = 'Editar {$a}';
 $string['eventplanapproved'] = 'Plano aprovado';
 $string['eventplanchangesrequested'] = 'Ajustes solicitados no plano';
 $string['eventplansubmitted'] = 'Plano submetido';

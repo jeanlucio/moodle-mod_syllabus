@@ -15,12 +15,18 @@
 
 /**
  * AMD module for the lazily-initialised Tiny editor on narrative Custom Fields (Fase 5.5.e).
- * Each field starts as a light read-only preview; activating it (click or the explicit "Edit"
- * button, for a real activation control keyboard/screen-reader users can reach) swaps in the
- * underlying `<textarea>` and attaches a real Tiny instance to it via editor_tiny/editor's own
- * setupForTarget() — the same API a normal mform editor element ends up calling, just invoked
- * on demand instead of at page load. Losing focus removes the instance again, so a plan with
- * many narrative fields never has more than a couple of live editors at once.
+ * Each field starts as a focusable, formatted read-only preview styled to look like an open
+ * text field. Focusing it (click or Tab — a plain 'focus' listener covers both, and the
+ * preview's own visible content already tells a keyboard/screen-reader user what it is, no
+ * separate activation control needed) swaps in the underlying `<textarea>` and attaches a
+ * real Tiny instance via editor_tiny/editor's own setupForTarget() — the same API a normal
+ * mform editor element ends up calling, just invoked on demand instead of at page load.
+ * Losing focus removes the instance again, so a plan with many narrative fields never has
+ * more than a couple of live editors at once. An earlier version of this module used a
+ * separate "Edit" button as the activation control, added out of an over-cautious reading of
+ * WCAG's "on focus" guidance — dropped after live use showed the extra click/button felt
+ * like unnecessary friction for a transition this visually continuous (same box, same
+ * content, same position; it only gains a toolbar).
  *
  * Deliberately does not wire a working filepicker (image/media/link upload) — see
  * classes/output/narrative_editor.php's docblock for why the shared config passes empty
@@ -44,16 +50,12 @@ let baseConfig = null;
  */
 const activateField = async(wrapper) => {
     const preview = wrapper.querySelector('.syllabus-narrative-preview');
-    const button = wrapper.querySelector('.syllabus-narrative-edit-btn');
     const textarea = wrapper.querySelector('.syllabus-customfield-editor');
     if (!preview || !textarea || getInstanceForElementId(textarea.id)) {
         return;
     }
 
     preview.hidden = true;
-    if (button) {
-        button.hidden = true;
-    }
     textarea.classList.remove('d-none');
 
     const config = Object.assign({}, baseConfig, {
@@ -80,7 +82,6 @@ const activateField = async(wrapper) => {
  */
 const deactivateField = (wrapper) => {
     const preview = wrapper.querySelector('.syllabus-narrative-preview');
-    const button = wrapper.querySelector('.syllabus-narrative-edit-btn');
     const textarea = wrapper.querySelector('.syllabus-customfield-editor');
     const instance = textarea ? getInstanceForElementId(textarea.id) : null;
     if (!instance) {
@@ -91,13 +92,13 @@ const deactivateField = (wrapper) => {
     if (preview) {
         preview.innerHTML = textarea.value;
         preview.hidden = false;
+        // Returning focus to the preview is itself a 'focus' event — without this guard the
+        // listener below would immediately reactivate the field it just closed.
+        preview.dataset.restoringFocus = '1';
+        preview.focus();
     }
     instance.remove();
     textarea.classList.add('d-none');
-    if (button) {
-        button.hidden = false;
-        button.focus();
-    }
 };
 
 /**
@@ -114,12 +115,14 @@ export const init = () => {
 
     document.querySelectorAll('.syllabus-narrative-field').forEach((wrapper) => {
         const preview = wrapper.querySelector('.syllabus-narrative-preview');
-        const button = wrapper.querySelector('.syllabus-narrative-edit-btn');
         if (preview) {
-            preview.addEventListener('click', () => activateField(wrapper));
-        }
-        if (button) {
-            button.addEventListener('click', () => activateField(wrapper));
+            preview.addEventListener('focus', () => {
+                if (preview.dataset.restoringFocus) {
+                    delete preview.dataset.restoringFocus;
+                    return;
+                }
+                activateField(wrapper);
+            });
         }
     });
 };

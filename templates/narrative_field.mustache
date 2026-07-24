@@ -20,12 +20,14 @@
     One editable narrative Custom Field box, shared by the plan/week/activity editable
     loops. When the author's preferred editor is Tiny (tinyavailable — resolved once at the
     top of tab_full_plan's render and read here via Mustache's normal context-stack
-    fallback), the field starts as a light read-only preview plus an "Edit" button; focusing
-    either lazily attaches a full Tiny instance to the underlying textarea
+    fallback), the field starts as a focusable, formatted read-only preview styled to look
+    like an open text field — no separate "Edit" button or read/edit mode switch to notice.
+    Focusing it (click or Tab) lazily attaches a full Tiny instance in its place
     (amd/src/narrative_editor.js) and removes it again on blur, so a page with many
-    narrative fields never has more than a couple of live editor instances at once. A user
-    whose own editor preference is the plain textarea (tinyavailable false) gets exactly
-    that, unchanged, with no lazy-load machinery attached.
+    narrative fields never has more than a couple of live editor instances at once — the
+    user only ever sees "a text box that becomes rich when you click into it". A user whose
+    own editor preference is the plain textarea (tinyavailable false) gets exactly that,
+    unchanged, with no lazy-load machinery attached.
 
     The id/data-syllabus-section pair on the wrapper is harmless even for week/activity
     fields that have no matching rail entry — plan_navigator.js simply finds no link for
@@ -46,16 +48,13 @@
     }
 }}
 <div class="syllabus-field mb-3" id="syllabus-section-field-{{fieldid}}" data-syllabus-section>
-    <h3><label for="{{elementid}}">{{name}}</label></h3>
+    <h3><label id="{{elementid}}-label" for="{{elementid}}">{{name}}</label></h3>
     {{#description}}
     <p class="form-text text-muted syllabus-field-help">{{{description}}}</p>
     {{/description}}
     {{#tinyavailable}}
     <div class="syllabus-narrative-field">
-        <div class="syllabus-narrative-preview">{{{text}}}</div>
-        <button type="button" class="btn btn-sm btn-outline-secondary syllabus-narrative-edit-btn">
-            {{#str}} editfield, mod_syllabus, {{name}} {{/str}}
-        </button>
+        <div class="syllabus-narrative-preview" tabindex="0" aria-labelledby="{{elementid}}-label">{{{text}}}</div>
         <textarea id="{{elementid}}" class="syllabus-customfield-editor d-none{{#isplanfield}} syllabus-required-input{{/isplanfield}}"
             data-fieldid="{{fieldid}}" data-instanceid="{{instanceid}}" data-area="{{area}}"
             data-itemid="{{itemid}}">{{text}}</textarea>

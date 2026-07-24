@@ -63,7 +63,6 @@ $string['deleteweek'] = 'Delete week';
 $string['details'] = 'Details';
 $string['detailshelp'] = "Describe what happens in this week's class.";
 $string['discipline'] = 'Discipline';
-$string['editfield'] = 'Edit {$a}';
 $string['eventplanapproved'] = 'Plan approved';
 $string['eventplanchangesrequested'] = 'Plan changes requested';
 $string['eventplansubmitted'] = 'Plan submitted';

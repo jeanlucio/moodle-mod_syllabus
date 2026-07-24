@@ -94,7 +94,9 @@ final class plan_reader_test extends advanced_testcase {
     /**
      * export_editable_fields() only exports textarea-type fields, each with its editable box
      * pre-filled, its own element id, its formatted description and the isplanfield flag set
-     * for the plan area only.
+     * for the plan area only. Each field also carries the full model guidance for its
+     * shortname, resolved live from a "{shortname}helpfull" lang string rather than stored in
+     * the Custom Field itself.
      *
      * @covers ::export_editable_fields
      * @return void
@@ -118,6 +120,7 @@ final class plan_reader_test extends advanced_testcase {
         $descriptionfield = current(array_filter($fields, fn ($f) => $f->name === get_string('coursedescription', 'mod_syllabus')));
         $this->assertNotFalse($descriptionfield);
         $this->assertStringContainsString('Editable content.', $descriptionfield->text);
+        $this->assertSame(get_string('coursedescriptionhelpfull', 'mod_syllabus'), $descriptionfield->helpfull);
     }
 
     /**

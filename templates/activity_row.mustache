@@ -115,7 +115,11 @@
             </button>
         </div>
     </div>
-    <div class="row g-2 align-items-center mt-1">
+    <details class="syllabus-field-help-full mt-1">
+        <summary>{{#str}} viewmodelguidance, mod_syllabus {{/str}}</summary>
+        <p>{{#str}} activitytypehelpfull, mod_syllabus {{/str}}</p>
+    </details>
+    <div class="row g-2 align-items-center mt-2">
         <div class="col-md-3">
             {{#startdatefield}}{{> mod_syllabus/date_select }}{{/startdatefield}}
         </div>
@@ -130,6 +134,10 @@
             </label>
         </div>
     </div>
+    <details class="syllabus-field-help-full mt-1 mb-2">
+        <summary>{{#str}} viewmodelguidance, mod_syllabus {{/str}}</summary>
+        <p>{{#str}} finalassessmenthelpfull, mod_syllabus {{/str}}</p>
+    </details>
     {{#fields}}
         {{> mod_syllabus/narrative_field }}
     {{/fields}}

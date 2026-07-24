@@ -40,6 +40,37 @@
     margin-bottom: 0.35rem;
 }
 
+.path-mod-syllabus .syllabus-field-help-full {
+    margin-bottom: 0.5rem;
+    font-size: 0.85rem;
+}
+
+.path-mod-syllabus .syllabus-field-help-full summary {
+    color: var(--bs-primary, #0d6efd);
+    cursor: pointer;
+    font-weight: 600;
+    list-style: none;
+}
+
+.path-mod-syllabus .syllabus-field-help-full summary::-webkit-details-marker {
+    display: none;
+}
+
+.path-mod-syllabus .syllabus-field-help-full summary::before {
+    content: "▸ ";
+}
+
+.path-mod-syllabus .syllabus-field-help-full[open] summary::before {
+    content: "▾ ";
+}
+
+.path-mod-syllabus .syllabus-field-help-full p {
+    margin: 0.4rem 0 0;
+    padding: 0.5rem 0.75rem;
+    border-inline-start: 3px solid var(--bs-primary-bg-subtle, #cfe0ef);
+    color: var(--bs-secondary-color, #6c757d);
+}
+
 .path-mod-syllabus .syllabus-edit-layout {
     display: flex;
     align-items: flex-start;

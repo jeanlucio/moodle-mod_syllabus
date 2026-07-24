@@ -108,7 +108,11 @@
                 {{#enddatefield}}{{> mod_syllabus/date_select }}{{/enddatefield}}
             </div>
         </div>
-        <div class="row g-2 align-items-end mt-1">
+        <details class="syllabus-field-help-full mt-1">
+            <summary>{{#str}} viewmodelguidance, mod_syllabus {{/str}}</summary>
+            <p>{{#str}} weekplanninghelpfull, mod_syllabus {{/str}}</p>
+        </details>
+        <div class="row g-2 align-items-end mt-2">
             <div class="col-md-4">
                 <label class="form-label small mb-1" for="syllabus-week-syncdate-{{id}}">
                     {{#str}} syncmeetingdate, mod_syllabus {{/str}}
@@ -133,6 +137,10 @@
                     placeholder="{{#str}} syncmeetingtopic, mod_syllabus {{/str}}">
             </div>
         </div>
+        <details class="syllabus-field-help-full mt-1 mb-2">
+            <summary>{{#str}} viewmodelguidance, mod_syllabus {{/str}}</summary>
+            <p>{{#str}} syncmeetinghelpfull, mod_syllabus {{/str}}</p>
+        </details>
         {{#fields}}
             {{> mod_syllabus/narrative_field }}
         {{/fields}}

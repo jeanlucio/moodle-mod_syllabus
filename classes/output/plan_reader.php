@@ -152,6 +152,7 @@ final class plan_reader {
             $editorvalue = $holder->{$datacontroller->get_form_element_name()};
             $field = $datacontroller->get_field();
             $description = (string) $field->get('description');
+            $shortname = $field->get('shortname');
             $result[] = (object) [
                 'fieldid'     => $fieldid,
                 'instanceid'  => $datacontroller->get('instanceid'),
@@ -168,6 +169,12 @@ final class plan_reader {
                 'description' => $description === '' ? '' : format_text($description, (int) $field->get('descriptionformat'), [
                     'context' => $field->get_handler()->get_configuration_context(),
                 ]),
+                // Unlike the short description above (a Custom Field property, seeded once at
+                // install and admin-editable via managefields.php), the full model guidance is
+                // static prose taken from the source documents — resolved live from a lang
+                // string, never stored in the database, so improving its wording never needs
+                // an upgrade step.
+                'helpfull' => get_string($shortname . 'helpfull', 'mod_syllabus'),
             ];
         }
         return $result;

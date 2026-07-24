@@ -44,6 +44,7 @@
         "area": "week",
         "isplanfield": false,
         "description": "Describe what happens in this week's class.",
+        "helpfull": "The source template asks for a simple, dialogic text, written in the first person, that walks the student through this week's plan...",
         "tinyavailable": true
     }
 }}
@@ -52,6 +53,12 @@
     {{#description}}
     <p class="form-text text-muted syllabus-field-help">{{{description}}}</p>
     {{/description}}
+    {{#helpfull}}
+    <details class="syllabus-field-help-full">
+        <summary>{{#str}} viewmodelguidance, mod_syllabus {{/str}}</summary>
+        <p>{{helpfull}}</p>
+    </details>
+    {{/helpfull}}
     {{#tinyavailable}}
     <div class="syllabus-narrative-field">
         <div class="syllabus-narrative-preview" tabindex="0" aria-labelledby="{{elementid}}-label">{{{text}}}</div>

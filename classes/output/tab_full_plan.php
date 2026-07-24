@@ -291,6 +291,8 @@ final class tab_full_plan implements renderable, templatable {
      * @param string $fieldclass Base CSS class identifying this field's 3 selects.
      * @param string $labelkey Lang string key (component mod_syllabus) for the field's label.
      * @param int|null $timestamp Currently stored value, or null/0 if unset.
+     * @param bool $autosavedefault Whether $timestamp is only a starting suggestion (never
+     *     actually saved) that the client should autosave once, right after hydrating.
      * @return stdClass
      */
     private function date_select_field(

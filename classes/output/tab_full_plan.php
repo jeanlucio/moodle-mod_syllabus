@@ -173,6 +173,7 @@ final class tab_full_plan implements renderable, templatable {
         if ($caneditcontent) {
             $planfielddata = plan_handler::create()->get_instance_data($this->syllabus->id, true);
             $data->planfields = $reader->export_editable_fields($planfielddata, 'plan');
+            $data->structuralhelp = (object) $reader->structural_help();
             // Adding a week/activity creates the row on the server immediately and reloads
             // with the full fieldset open, so an empty plan needs no client-built placeholder
             // row — the button itself is the only affordance required.

@@ -45,14 +45,15 @@ final class db_upgrade_test extends advanced_testcase {
     }
 
     /**
-     * A site that installed the plugin before the "<shortname>help" lang strings existed never
-     * had its narrative Custom Field descriptions seeded — this is the regression test for
-     * that real gap, found live: coursedescription's description cleared (simulating a
-     * pre-existing site) is backfilled from the current lang string once the upgrade step runs.
+     * A site that installed the plugin before the "<shortname>help"/"<shortname>helpfull" lang
+     * strings existed never had its narrative Custom Field descriptions seeded — this is the
+     * regression test for that real gap, found live: coursedescription's description cleared
+     * (simulating a pre-existing site) ends up with the current combined summary + full model
+     * guidance once both upgrade steps run.
      *
      * @return void
      */
-    public function test_upgrade_backfills_missing_short_descriptions(): void {
+    public function test_upgrade_backfills_missing_descriptions(): void {
         global $DB;
 
         $field = $DB->get_record('customfield_field', ['shortname' => 'coursedescription'], '*', MUST_EXIST);
@@ -66,14 +67,14 @@ final class db_upgrade_test extends advanced_testcase {
         xmldb_syllabus_upgrade(2026072509);
 
         $updated = $DB->get_record('customfield_field', ['id' => $field->id], '*', MUST_EXIST);
-        $this->assertSame(get_string('coursedescriptionhelp', 'mod_syllabus'), $updated->description);
+        $this->assertSame(\mod_syllabus\local\help_text_builder::build('coursedescription'), $updated->description);
         $this->assertEquals(FORMAT_HTML, $updated->descriptionformat);
     }
 
     /**
-     * A field an institution already customised via managefields.php (a non-empty
-     * description) is left exactly as it is — the upgrade step only fills in gaps, it never
-     * overwrites a deliberate customisation.
+     * A field an institution already customised via managefields.php (a non-empty description
+     * that is neither the short-only default nor blank) is left exactly as it is by both
+     * steps — the upgrade only fills in gaps, it never overwrites a deliberate customisation.
      *
      * @return void
      */
@@ -85,6 +86,120 @@ final class db_upgrade_test extends advanced_testcase {
 
         set_config('version', 2026072509, 'mod_syllabus');
         xmldb_syllabus_upgrade(2026072509);
+
+        $updated = $DB->get_record('customfield_field', ['id' => $field->id], '*', MUST_EXIST);
+        $this->assertSame('Custom institutional wording.', $updated->description);
+    }
+
+    /**
+     * A site that installed the plugin before the 'help' Custom Field area existed never got
+     * it (there was nothing to seed it — db/install.php only runs once, at initial install).
+     * The upgrade step seeds it from scratch, exactly as a fresh install would.
+     *
+     * @return void
+     */
+    public function test_upgrade_seeds_missing_help_area(): void {
+        global $DB;
+
+        // A fresh PHPUnit install already has the 'help' area (db/install.php seeds all four
+        // areas today) — delete it to simulate a site that predates it.
+        \mod_syllabus\customfield\help_handler::create()->delete_all();
+        $this->assertFalse(
+            $DB->record_exists('customfield_category', ['component' => 'mod_syllabus', 'area' => 'help'])
+        );
+
+        set_config('version', 2026072509, 'mod_syllabus');
+        xmldb_syllabus_upgrade(2026072509);
+
+        $this->assertTrue(
+            $DB->record_exists('customfield_category', ['component' => 'mod_syllabus', 'area' => 'help'])
+        );
+        $field = $DB->get_record('customfield_field', ['shortname' => 'characterisation'], '*', MUST_EXIST);
+        $this->assertSame(\mod_syllabus\local\help_text_builder::build('characterisation'), $field->description);
+    }
+
+    /**
+     * Builds the exact <details>/<summary>-based HTML the previous version of this upgrade
+     * step wrote for a given shortname, before the fix — used by the two tests below to
+     * reconstruct the two possible broken states a real site could be left in.
+     *
+     * @param string $shortname
+     * @return string
+     */
+    private function broken_details_description(string $shortname): string {
+        return \html_writer::tag('p', get_string($shortname . 'help', 'mod_syllabus')) .
+            \html_writer::tag(
+                'details',
+                \html_writer::tag('summary', get_string('viewmodelguidance', 'mod_syllabus')) .
+                    \html_writer::tag('p', get_string($shortname . 'helpfull', 'mod_syllabus')),
+                ['class' => 'syllabus-field-help-full']
+            );
+    }
+
+    /**
+     * Regression test for the second real bug found live: the previous version of this
+     * upgrade step wrote straight to the database, bypassing the Custom Field save API's own
+     * HTML cleaning — so a real site is left with this RAW, uncleaned <details>/<summary>
+     * value, which format_text() then strips down to broken, tag-less text on every render.
+     * A field whose description exactly matches that raw signature is rebuilt with the
+     * current <div>/<span>-based markup.
+     *
+     * @return void
+     */
+    public function test_upgrade_repairs_the_raw_details_based_description(): void {
+        global $DB;
+
+        $field = $DB->get_record('customfield_field', ['shortname' => 'objectives'], '*', MUST_EXIST);
+        $DB->set_field(
+            'customfield_field',
+            'description',
+            $this->broken_details_description('objectives'),
+            ['id' => $field->id]
+        );
+
+        set_config('version', 2026072511, 'mod_syllabus');
+        xmldb_syllabus_upgrade(2026072511);
+
+        $updated = $DB->get_record('customfield_field', ['id' => $field->id], '*', MUST_EXIST);
+        $this->assertSame(\mod_syllabus\local\help_text_builder::build('objectives'), $updated->description);
+    }
+
+    /**
+     * A site where an admin re-saved the broken field via managefields.php in between (which
+     * DOES clean on save, per core_customfield's own save path) is left with the CLEANED
+     * broken signature instead of the raw one — also repaired.
+     *
+     * @return void
+     */
+    public function test_upgrade_repairs_the_cleaned_details_based_description(): void {
+        global $DB;
+
+        $field = $DB->get_record('customfield_field', ['shortname' => 'objectives'], '*', MUST_EXIST);
+        $cleaned = clean_text($this->broken_details_description('objectives'), FORMAT_HTML);
+        $DB->set_field('customfield_field', 'description', $cleaned, ['id' => $field->id]);
+
+        set_config('version', 2026072511, 'mod_syllabus');
+        xmldb_syllabus_upgrade(2026072511);
+
+        $updated = $DB->get_record('customfield_field', ['id' => $field->id], '*', MUST_EXIST);
+        $this->assertSame(\mod_syllabus\local\help_text_builder::build('objectives'), $updated->description);
+    }
+
+    /**
+     * The repair step above must not touch a real customisation just because it does not
+     * contain the plugin's own CSS class names — only an exact match of the reconstructed
+     * broken signature is replaced.
+     *
+     * @return void
+     */
+    public function test_upgrade_repair_step_does_not_overwrite_a_customised_description(): void {
+        global $DB;
+
+        $field = $DB->get_record('customfield_field', ['shortname' => 'objectives'], '*', MUST_EXIST);
+        $DB->set_field('customfield_field', 'description', 'Custom institutional wording.', ['id' => $field->id]);
+
+        set_config('version', 2026072511, 'mod_syllabus');
+        xmldb_syllabus_upgrade(2026072511);
 
         $updated = $DB->get_record('customfield_field', ['id' => $field->id], '*', MUST_EXIST);
         $this->assertSame('Custom institutional wording.', $updated->description);

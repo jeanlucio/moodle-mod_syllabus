@@ -26,7 +26,7 @@ require(__DIR__ . '/../../config.php');
 require_once($CFG->libdir . '/adminlib.php');
 
 $area = required_param('area', PARAM_ALPHA);
-$allowedareas = ['plan', 'week', 'activity'];
+$allowedareas = ['plan', 'week', 'activity', 'help'];
 if (!in_array($area, $allowedareas, true)) {
     throw new moodle_exception('invalidarea', 'mod_syllabus');
 }

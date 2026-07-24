@@ -43,22 +43,15 @@
         "itemid": 9,
         "area": "week",
         "isplanfield": false,
-        "description": "Describe what happens in this week's class.",
-        "helpfull": "The source template asks for a simple, dialogic text, written in the first person, that walks the student through this week's plan...",
+        "description": "<p>Describe what happens in this week's class.</p><div class=\"syllabus-field-help-full\"><span class=\"syllabus-help-toggle\">View model guidance</span><div class=\"syllabus-help-body\"><p>The source template asks for...</p></div></div>",
         "tinyavailable": true
     }
 }}
 <div class="syllabus-field mb-3" id="syllabus-section-field-{{fieldid}}" data-syllabus-section>
     <h3><label id="{{elementid}}-label" for="{{elementid}}">{{name}}</label></h3>
     {{#description}}
-    <p class="form-text text-muted syllabus-field-help">{{{description}}}</p>
+    <div class="form-text text-muted syllabus-field-help">{{{description}}}</div>
     {{/description}}
-    {{#helpfull}}
-    <details class="syllabus-field-help-full">
-        <summary>{{#str}} viewmodelguidance, mod_syllabus {{/str}}</summary>
-        <p>{{helpfull}}</p>
-    </details>
-    {{/helpfull}}
     {{#tinyavailable}}
     <div class="syllabus-narrative-field">
         <div class="syllabus-narrative-preview" tabindex="0" aria-labelledby="{{elementid}}-label">{{{text}}}</div>

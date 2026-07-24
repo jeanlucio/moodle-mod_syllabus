@@ -94,9 +94,9 @@ final class plan_reader_test extends advanced_testcase {
     /**
      * export_editable_fields() only exports textarea-type fields, each with its editable box
      * pre-filled, its own element id, its formatted description and the isplanfield flag set
-     * for the plan area only. Each field also carries the full model guidance for its
-     * shortname, resolved live from a "{shortname}helpfull" lang string rather than stored in
-     * the Custom Field itself.
+     * for the plan area only. The description is the field's Custom Field property as-is —
+     * combining the short summary and the full model guidance behind a disclosure is
+     * help_text_builder's job at seed time, not this method's.
      *
      * @covers ::export_editable_fields
      * @return void
@@ -120,7 +120,10 @@ final class plan_reader_test extends advanced_testcase {
         $descriptionfield = current(array_filter($fields, fn ($f) => $f->name === get_string('coursedescription', 'mod_syllabus')));
         $this->assertNotFalse($descriptionfield);
         $this->assertStringContainsString('Editable content.', $descriptionfield->text);
-        $this->assertSame(get_string('coursedescriptionhelpfull', 'mod_syllabus'), $descriptionfield->helpfull);
+        $this->assertStringContainsString(
+            get_string('viewmodelguidance', 'mod_syllabus'),
+            $descriptionfield->description
+        );
     }
 
     /**
@@ -153,5 +156,29 @@ final class plan_reader_test extends advanced_testcase {
             $this->assertFalse($field->isplanfield);
             $this->assertSame('week', $field->area);
         }
+    }
+
+    /**
+     * structural_help() returns the formatted description of every field in the 'help' area,
+     * keyed by shortname — the guidance for structural fields (Characterisation, a week's
+     * workload/period, Synchronous meeting, an activity's type/category, Final assessment)
+     * that have no narrative Custom Field of their own.
+     *
+     * @covers ::structural_help
+     * @return void
+     */
+    public function test_structural_help_returns_all_five_fields(): void {
+        $this->setAdminUser();
+        $course = $this->getDataGenerator()->create_course();
+        $syllabus = $this->getDataGenerator()->create_module('syllabus', ['course' => $course->id]);
+
+        $reader = new plan_reader($syllabus);
+        $help = $reader->structural_help();
+
+        $this->assertEqualsCanonicalizing(
+            ['characterisation', 'weekplanning', 'syncmeeting', 'activitytype', 'finalassessment'],
+            array_keys($help)
+        );
+        $this->assertStringContainsString(get_string('viewmodelguidance', 'mod_syllabus'), $help['characterisation']);
     }
 }

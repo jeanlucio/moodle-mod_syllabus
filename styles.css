@@ -45,26 +45,37 @@
     font-size: 0.85rem;
 }
 
-.path-mod-syllabus .syllabus-field-help-full summary {
+/*
+ * Plain <div>/<span> with only a `class` attribute, deliberately not <details>/<summary> —
+ * this markup is stored HTML (a Custom Field description an institution can edit), and
+ * Moodle's cleaner strips <details>/<summary> (and role, tabindex, aria- and data- attributes) outright.
+ * amd/src/field_help_toggle.js adds the interactive behaviour and toggles
+ * .syllabus-help-open; the ▸/▾ marker and body visibility below are pure CSS reacting to
+ * that one class, with no dependency on any attribute the stored HTML itself can't keep.
+ */
+.path-mod-syllabus .syllabus-help-toggle {
     color: var(--bs-primary, #0d6efd);
     cursor: pointer;
     font-weight: 600;
-    list-style: none;
 }
 
-.path-mod-syllabus .syllabus-field-help-full summary::-webkit-details-marker {
-    display: none;
-}
-
-.path-mod-syllabus .syllabus-field-help-full summary::before {
+.path-mod-syllabus .syllabus-help-toggle::before {
     content: "▸ ";
 }
 
-.path-mod-syllabus .syllabus-field-help-full[open] summary::before {
+.path-mod-syllabus .syllabus-field-help-full.syllabus-help-open .syllabus-help-toggle::before {
     content: "▾ ";
 }
 
-.path-mod-syllabus .syllabus-field-help-full p {
+.path-mod-syllabus .syllabus-help-body {
+    display: none;
+}
+
+.path-mod-syllabus .syllabus-field-help-full.syllabus-help-open .syllabus-help-body {
+    display: block;
+}
+
+.path-mod-syllabus .syllabus-help-body p {
     margin: 0.4rem 0 0;
     padding: 0.5rem 0.75rem;
     border-inline-start: 3px solid var(--bs-primary-bg-subtle, #cfe0ef);

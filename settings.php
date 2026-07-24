@@ -15,10 +15,10 @@
 // along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 /**
- * Admin settings for mod_syllabus: links to the three Custom Fields template pages.
+ * Admin settings for mod_syllabus: links to the four Custom Fields template pages.
  *
  * No plugin-wide configuration value exists, so $settings itself is discarded — only the
- * category and the three external pages below are added to the admin tree.
+ * category and the four external pages below are added to the admin tree.
  *
  * @package    mod_syllabus
  * @copyright  2026 Jean Lúcio
@@ -51,6 +51,12 @@ if ($hassiteconfig) {
         'syllabus_managefields_activity',
         get_string('managefieldsactivity', 'mod_syllabus'),
         new moodle_url('/mod/syllabus/managefields.php', ['area' => 'activity']),
+        'mod/syllabus:review'
+    ));
+    $ADMIN->add('modsyllabusfolder', new admin_externalpage(
+        'syllabus_managefields_help',
+        get_string('managefieldshelp', 'mod_syllabus'),
+        new moodle_url('/mod/syllabus/managefields.php', ['area' => 'help']),
         'mod/syllabus:review'
     ));
 

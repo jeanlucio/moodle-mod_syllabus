@@ -23,52 +23,27 @@
  */
 
 /**
- * Seeds the three Custom Fields areas (plan, week, activity) with the narrative fields
- * of the original three plan documents, so a fresh install already looks like today's
- * template. Every field name comes from get_string(), so it is seeded in whatever
- * language is active for the installing session — never hardcoded to one language. The
- * institution can later add, remove or relabel fields via Site administration > Plugins >
- * Activity modules > Syllabus, without a plugin release.
+ * Seeds the four Custom Fields areas (plan, week, activity, help) with the narrative fields of
+ * the original three plan documents plus the structural fields' guidance, so a fresh install
+ * already looks like today's template. Every field name and description comes from
+ * get_string()/help_text_builder::build(), so it is seeded in whatever language is active for
+ * the installing session — never hardcoded to one language. Each field's description combines
+ * a short summary with the full model guidance behind a disclosure (see help_text_builder) —
+ * the institution can freely edit, shorten or rewrite either part later via Site
+ * administration > Plugins > Activity modules > Syllabus, without a plugin release.
+ *
+ * The 'help' area is unlike the other three: its fields never hold a per-instance value (there
+ * is no narrative content to author for Characterisation or an activity's type/category — those
+ * are structural inputs, not Custom Fields) — only their description is ever read, by
+ * plan_reader::structural_help(), purely so the same institution-editable mechanism can cover
+ * guidance for fields that have no Custom Field of their own. See customfield_seeder for the
+ * shared area definitions and seeding logic — db/upgrade.php reuses the same class to backfill
+ * an area onto a site that installed the plugin before that area existed.
  *
  * @return void
  */
 function xmldb_syllabus_install(): void {
-    $areas = [
-        'plan_handler' => [
-            'category' => 'categoryplan',
-            'fields' => [
-                'coursedescription', 'objectives', 'contents', 'methodology',
-                'presentationscript', 'generalreferences',
-            ],
-        ],
-        'week_handler' => [
-            'category' => 'categoryweek',
-            'fields' => ['details', 'supportmaterial', 'supplementarymaterial', 'interactiontools', 'notes'],
-        ],
-        'activity_handler' => [
-            'category' => 'categoryactivity',
-            'fields' => ['studentinstructions', 'gradingcriteria', 'tutorguidance'],
-        ],
-    ];
-
-    foreach ($areas as $handlerclass => $definition) {
-        $classname = "mod_syllabus\\customfield\\{$handlerclass}";
-        $handler = $classname::create();
-        $categoryid = $handler->create_category(get_string($definition['category'], 'mod_syllabus'));
-        $category = core_customfield\category_controller::create($categoryid);
-
-        foreach ($definition['fields'] as $shortname) {
-            $record = (object) [
-                'shortname' => $shortname,
-                'name' => get_string($shortname, 'mod_syllabus'),
-                'type' => 'textarea',
-                'categoryid' => $categoryid,
-                'configdata' => [],
-                'description' => get_string($shortname . 'help', 'mod_syllabus'),
-                'descriptionformat' => FORMAT_HTML,
-            ];
-            $field = core_customfield\field_controller::create(0, $record, $category);
-            core_customfield\api::save_field_configuration($field, $record);
-        }
+    foreach (\mod_syllabus\local\customfield_seeder::areas() as $handlerclass => $definition) {
+        \mod_syllabus\local\customfield_seeder::seed_area($handlerclass, $definition);
     }
 }

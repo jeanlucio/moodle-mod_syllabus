@@ -67,5 +67,108 @@ function xmldb_syllabus_upgrade(int $oldversion): bool {
         upgrade_mod_savepoint(true, 2026072510, 'syllabus');
     }
 
+    if ($oldversion < 2026072511) {
+        // The 14 narrative fields' description held only the short summary (backfilled by the
+        // step above, or seeded that way by any pre-5.6.c install) — it now holds that summary
+        // plus the full model guidance behind a disclosure (help_text_builder::build()).
+        // Replace the description only where it is still exactly that short-only text (or
+        // empty); an institution that has already rewritten it via managefields.php is left
+        // untouched.
+        $narrativeshortnames = [
+            'coursedescription', 'objectives', 'contents', 'methodology',
+            'presentationscript', 'generalreferences',
+            'details', 'supportmaterial', 'supplementarymaterial', 'interactiontools', 'notes',
+            'studentinstructions', 'gradingcriteria', 'tutorguidance',
+        ];
+        [$shortnamesql, $params] = $DB->get_in_or_equal($narrativeshortnames, SQL_PARAMS_NAMED);
+        $params['component'] = 'mod_syllabus';
+        $fields = $DB->get_records_sql(
+            "SELECT f.id, f.shortname, f.description
+               FROM {customfield_field} f
+               JOIN {customfield_category} c ON c.id = f.categoryid
+              WHERE c.component = :component
+                AND f.shortname $shortnamesql",
+            $params
+        );
+        foreach ($fields as $field) {
+            $current = (string) $field->description;
+            $shortonly = get_string($field->shortname . 'help', 'mod_syllabus');
+            if ($current === '' || $current === $shortonly) {
+                $DB->update_record('customfield_field', (object) [
+                    'id' => $field->id,
+                    'description' => \mod_syllabus\local\help_text_builder::build($field->shortname),
+                    'descriptionformat' => FORMAT_HTML,
+                ]);
+            }
+        }
+
+        // A site that installed the plugin before the 'help' Custom Field area existed never
+        // got it — seed it now, exactly as a fresh install would (same shared definitions and
+        // seeding logic as db/install.php, via customfield_seeder).
+        if (!$DB->record_exists('customfield_category', ['component' => 'mod_syllabus', 'area' => 'help'])) {
+            $areas = \mod_syllabus\local\customfield_seeder::areas();
+            \mod_syllabus\local\customfield_seeder::seed_area('help_handler', $areas['help_handler']);
+        }
+
+        upgrade_mod_savepoint(true, 2026072511, 'syllabus');
+    }
+
+    if ($oldversion < 2026072513) {
+        // The step above built the combined description with <details>/<summary>. This upgrade
+        // step writes straight to customfield_field via update_record(), bypassing the Custom
+        // Field save API's own HTML cleaning entirely — so the value it wrote is the RAW,
+        // uncleaned <details>/<summary> markup, still sitting in the database exactly as
+        // built. The bug only shows up at *display* time: format_text() (called by both
+        // plan_reader::export_editable_fields() and the Custom Field admin UI) cleans the
+        // description on every read, and confirmed live that its cleaner strips
+        // <details>/<summary> entirely — along with role, tabindex, aria- and data-
+        // attributes — leaving the professor's edit form showing broken, tag-less text.
+        // help_text_builder::build() now uses plain <div>/<span> with only a `class`
+        // attribute instead (confirmed live to survive that same cleaning). Rebuild only a
+        // field whose description exactly matches the broken signature — either the raw
+        // version actually written above, or (for extra safety, e.g. a site where an admin
+        // re-saved it via managefields.php in between, which DOES clean on save) the cleaned
+        // version — or is empty. Never merely "doesn't look like the new format", which would
+        // risk overwriting a real institutional customisation that just doesn't happen to
+        // mention this plugin's own CSS class names.
+        $allshortnames = [
+            'coursedescription', 'objectives', 'contents', 'methodology',
+            'presentationscript', 'generalreferences',
+            'details', 'supportmaterial', 'supplementarymaterial', 'interactiontools', 'notes',
+            'studentinstructions', 'gradingcriteria', 'tutorguidance',
+            'characterisation', 'weekplanning', 'syncmeeting', 'activitytype', 'finalassessment',
+        ];
+        [$shortnamesql, $params] = $DB->get_in_or_equal($allshortnames, SQL_PARAMS_NAMED);
+        $params['component'] = 'mod_syllabus';
+        $fields = $DB->get_records_sql(
+            "SELECT f.id, f.shortname, f.description
+               FROM {customfield_field} f
+               JOIN {customfield_category} c ON c.id = f.categoryid
+              WHERE c.component = :component
+                AND f.shortname $shortnamesql",
+            $params
+        );
+        foreach ($fields as $field) {
+            $current = (string) $field->description;
+            $brokenraw = \html_writer::tag('p', get_string($field->shortname . 'help', 'mod_syllabus')) .
+                \html_writer::tag(
+                    'details',
+                    \html_writer::tag('summary', get_string('viewmodelguidance', 'mod_syllabus')) .
+                        \html_writer::tag('p', get_string($field->shortname . 'helpfull', 'mod_syllabus')),
+                    ['class' => 'syllabus-field-help-full']
+                );
+            $brokencleaned = clean_text($brokenraw, FORMAT_HTML);
+            if ($current === '' || $current === $brokenraw || $current === $brokencleaned) {
+                $DB->update_record('customfield_field', (object) [
+                    'id' => $field->id,
+                    'description' => \mod_syllabus\local\help_text_builder::build($field->shortname),
+                    'descriptionformat' => FORMAT_HTML,
+                ]);
+            }
+        }
+
+        upgrade_mod_savepoint(true, 2026072513, 'syllabus');
+    }
+
     return true;
 }

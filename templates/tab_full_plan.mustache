@@ -58,6 +58,13 @@
         "generalreferences": "<p>References text.</p>",
         "tinyavailable": false,
         "tinyconfig": "",
+        "structuralhelp": {
+            "characterisation": "<p>Course, Discipline name and Teacher are filled in automatically...</p>",
+            "weekplanning": "<p>Set this class's duration and period...</p>",
+            "syncmeeting": "<p>Date, time, link and topic of this week's live meeting...</p>",
+            "activitytype": "<p>Choose the LMS tool used...</p>",
+            "finalassessment": "<p>Mark the activity that represents the Final assessment...</p>"
+        },
         "planfields": [],
         "weeks": [],
         "hasweeks": false,
@@ -167,10 +174,7 @@
                         placeholder="{{#str}} presentationvideo, mod_syllabus {{/str}}">
                 </div>
             </div>
-            <details class="syllabus-field-help-full mb-3">
-                <summary>{{#str}} viewmodelguidance, mod_syllabus {{/str}}</summary>
-                <p>{{#str}} characterisationhelpfull, mod_syllabus {{/str}}</p>
-            </details>
+            <div class="mb-3">{{{structuralhelp.characterisation}}}</div>
 
             {{#planfields}}
                 {{> mod_syllabus/narrative_field }}

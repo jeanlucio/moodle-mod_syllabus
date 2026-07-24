@@ -24,6 +24,11 @@
     "Add week"/"Add activity" buttons calling the web service directly with a default title,
     then reloading — this row is always a real, already-saved record.
 
+    structuralhelp (weekplanning/syncmeeting keys) is set once on tab_full_plan's own context
+    and read here via Mustache's normal context-stack fallback (same pattern as tinyavailable
+    in narrative_field.mustache) — each value is pre-rendered HTML from the 'help' Custom
+    Field area (plan_reader::structural_help()), institution-editable via managefields.php.
+
     The row is a native <details> element, open by default, with its own collapsible summary
     bar (title + a live "Xh · date range · N activities · Y pts" line kept up to date by
     amd/src/plan_navigator.js on every input/change, the same delegated listener that already
@@ -50,6 +55,10 @@
         "syncdate": 1749250000,
         "synclink": "https://meet.example.org/week1",
         "synctopic": "Kickoff session",
+        "structuralhelp": {
+            "weekplanning": "<p>Set this class's duration and period...</p>",
+            "syncmeeting": "<p>Date, time, link and topic of this week's live meeting...</p>"
+        },
         "fields": [
             {
                 "fieldid": 7,
@@ -60,7 +69,7 @@
                 "itemid": 9,
                 "area": "week",
                 "isplanfield": false,
-                "description": "Describe what happens in this week's class."
+                "description": "<p>Describe what happens in this week's class.</p>"
             }
         ],
         "activities": [],
@@ -108,10 +117,7 @@
                 {{#enddatefield}}{{> mod_syllabus/date_select }}{{/enddatefield}}
             </div>
         </div>
-        <details class="syllabus-field-help-full mt-1">
-            <summary>{{#str}} viewmodelguidance, mod_syllabus {{/str}}</summary>
-            <p>{{#str}} weekplanninghelpfull, mod_syllabus {{/str}}</p>
-        </details>
+        <div class="mt-1">{{{structuralhelp.weekplanning}}}</div>
         <div class="row g-2 align-items-end mt-2">
             <div class="col-md-4">
                 <label class="form-label small mb-1" for="syllabus-week-syncdate-{{id}}">
@@ -137,10 +143,7 @@
                     placeholder="{{#str}} syncmeetingtopic, mod_syllabus {{/str}}">
             </div>
         </div>
-        <details class="syllabus-field-help-full mt-1 mb-2">
-            <summary>{{#str}} viewmodelguidance, mod_syllabus {{/str}}</summary>
-            <p>{{#str}} syncmeetinghelpfull, mod_syllabus {{/str}}</p>
-        </details>
+        <div class="mt-1 mb-2">{{{structuralhelp.syncmeeting}}}</div>
         {{#fields}}
             {{> mod_syllabus/narrative_field }}
         {{/fields}}

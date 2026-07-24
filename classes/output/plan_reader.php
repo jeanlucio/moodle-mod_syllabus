@@ -17,6 +17,7 @@
 namespace mod_syllabus\output;
 
 use mod_syllabus\customfield\activity_handler;
+use mod_syllabus\customfield\help_handler;
 use mod_syllabus\customfield\plan_handler;
 use mod_syllabus\customfield\week_handler;
 use stdClass;
@@ -152,7 +153,6 @@ final class plan_reader {
             $editorvalue = $holder->{$datacontroller->get_form_element_name()};
             $field = $datacontroller->get_field();
             $description = (string) $field->get('description');
-            $shortname = $field->get('shortname');
             $result[] = (object) [
                 'fieldid'     => $fieldid,
                 'instanceid'  => $datacontroller->get('instanceid'),
@@ -166,16 +166,46 @@ final class plan_reader {
                 // own data-syllabus-section wrapper, so marking it required-input too would
                 // dilute that section's state with fields the rail was never meant to track.
                 'isplanfield' => $area === 'plan',
+                // Combines the short summary and the full model guidance behind a "View model
+                // guidance" disclosure (see help_text_builder) — a single Custom Field property
+                // the institution can freely edit via managefields.php, without a plugin release.
                 'description' => $description === '' ? '' : format_text($description, (int) $field->get('descriptionformat'), [
                     'context' => $field->get_handler()->get_configuration_context(),
                 ]),
-                // Unlike the short description above (a Custom Field property, seeded once at
-                // install and admin-editable via managefields.php), the full model guidance is
-                // static prose taken from the source documents — resolved live from a lang
-                // string, never stored in the database, so improving its wording never needs
-                // an upgrade step.
-                'helpfull' => get_string($shortname . 'helpfull', 'mod_syllabus'),
             ];
+        }
+        return $result;
+    }
+
+    /**
+     * Fetches the formatted description of every field in the 'help' Custom Field area,
+     * keyed by shortname — the model guidance for structural fields that have no narrative
+     * Custom Field of their own (Characterisation, a week's workload/period, Synchronous
+     * meeting, an activity's type/category, Final assessment). Only used by the editable
+     * form (tab_full_plan::export_for_template()); read-only tabs never show field-level help.
+     *
+     * @return array<string, string> shortname => formatted description HTML.
+     */
+    public function structural_help(): array {
+        global $DB;
+
+        $context = help_handler::create()->get_configuration_context();
+        $fields = $DB->get_records_sql(
+            "SELECT f.shortname, f.description, f.descriptionformat
+               FROM {customfield_field} f
+               JOIN {customfield_category} c ON c.id = f.categoryid
+              WHERE c.component = :component AND c.area = :area",
+            ['component' => 'mod_syllabus', 'area' => 'help']
+        );
+
+        $result = [];
+        foreach ($fields as $field) {
+            $description = (string) $field->description;
+            $result[$field->shortname] = $description === '' ? '' : format_text(
+                $description,
+                (int) $field->descriptionformat,
+                ['context' => $context]
+            );
         }
         return $result;
     }

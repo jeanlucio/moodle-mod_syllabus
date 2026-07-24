@@ -26,7 +26,7 @@
  * Removes the Custom Fields categories/fields/data that db/install.php seeds.
  *
  * Core automatically drops install.xml tables and admin settings on uninstall, but the
- * three core_customfield areas (plan/week/activity) live in core tables the plugin merely
+ * four core_customfield areas (plan/week/activity/help) live in core tables the plugin merely
  * writes into — nothing drops them on its own. Without this hook, every uninstall +
  * reinstall cycle re-runs xmldb_syllabus_install() and leaves the previous category/fields/
  * data behind as orphans, so a "fresh" install ends up showing every narrative field
@@ -39,4 +39,5 @@ function xmldb_syllabus_uninstall(): void {
     \mod_syllabus\customfield\plan_handler::create()->delete_all();
     \mod_syllabus\customfield\week_handler::create()->delete_all();
     \mod_syllabus\customfield\activity_handler::create()->delete_all();
+    \mod_syllabus\customfield\help_handler::create()->delete_all();
 }

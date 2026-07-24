@@ -187,6 +187,7 @@ $string['typechat'] = 'Chat';
 $string['typeforum'] = 'Fórum';
 $string['typegame'] = 'Jogo';
 $string['typeother'] = 'Outro';
+$string['typepresential'] = 'Presencial';
 $string['typequestionnaire'] = 'Questionário';
 $string['typequiz'] = 'Quiz';
 $string['typetask'] = 'Tarefa';

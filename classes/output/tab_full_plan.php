@@ -56,6 +56,7 @@ final class tab_full_plan implements renderable, templatable {
         'game'          => 'typegame',
         'chat'          => 'typechat',
         'syncmeeting'   => 'syncmeeting',
+        'presential'    => 'typepresential',
         'other'         => 'typeother',
     ];
 

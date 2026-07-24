@@ -20,7 +20,9 @@
  * same pattern amd/src/plan_details.js uses, and plan_navigator.js's own delegated `change`
  * listener already recomputes the totals bar from the same events, so no extra coupling is
  * needed here. A plan with zero weeks has init() create the first week automatically, so the
- * teacher never faces a page with nothing but a lone "Add week" button.
+ * teacher never faces a page with nothing but a lone "Add week" button. Every save dispatches
+ * a `syllabus-autosave` CustomEvent on `document` (see persistWeek()/persistActivity()) for
+ * plan_navigator.js's aggregate save-status chip.
  *
  * @module     mod_syllabus/weeks_manager
  * @copyright  2026 Jean Lúcio
@@ -165,32 +167,42 @@ const focusJustCreatedRow = () => {
 };
 
 /**
- * Calls mod_syllabus_save_week, showing a plain alert on rejection.
+ * Calls mod_syllabus_save_week, showing a plain alert on rejection. Dispatches the same
+ * `syllabus-autosave` event autosave.js/plan_details.js use, so plan_navigator.js's totals
+ * bar chip reflects this save too, whether it came from an existing row's autosave or from
+ * createWeek().
  *
  * @param {Object} args Web service arguments, minus cmid.
  * @returns {Promise<?Object>} The web service result, or null on rejection.
  */
 const persistWeek = async(args) => {
+    document.dispatchEvent(new CustomEvent('syllabus-autosave', {detail: {pending: true}}));
     try {
         return await Ajax.call([{methodname: 'mod_syllabus_save_week', args: {cmid, ...args}}])[0];
     } catch (error) {
         showRejected(error);
         return null;
+    } finally {
+        document.dispatchEvent(new CustomEvent('syllabus-autosave', {detail: {pending: false}}));
     }
 };
 
 /**
- * Calls mod_syllabus_save_activity, showing a plain alert on rejection.
+ * Calls mod_syllabus_save_activity, showing a plain alert on rejection. See persistWeek()
+ * above for the syllabus-autosave event this also dispatches.
  *
  * @param {Object} args Web service arguments, minus cmid.
  * @returns {Promise<?Object>} The web service result, or null on rejection.
  */
 const persistActivity = async(args) => {
+    document.dispatchEvent(new CustomEvent('syllabus-autosave', {detail: {pending: true}}));
     try {
         return await Ajax.call([{methodname: 'mod_syllabus_save_activity', args: {cmid, ...args}}])[0];
     } catch (error) {
         showRejected(error);
         return null;
+    } finally {
+        document.dispatchEvent(new CustomEvent('syllabus-autosave', {detail: {pending: false}}));
     }
 };
 

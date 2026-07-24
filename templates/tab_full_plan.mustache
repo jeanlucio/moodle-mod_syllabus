@@ -30,6 +30,9 @@
         "statuslabel": "Draft",
         "statusbadgeclass": "bg-secondary",
         "caneditcontent": true,
+        "coursename": "Distance Education Fundamentals",
+        "disciplinename": "Introduction to Educational Technology",
+        "teachername": "Jane Doe",
         "academicperiod": "2026.1",
         "coursestartdate": 1749020400,
         "courseenddate": 1751342400,
@@ -113,6 +116,20 @@
                     {{#str}} activitypoints, mod_syllabus {{/str}}:
                     <strong class="syllabus-totals-points-value">0</strong> / 100
                 </span>
+                <span class="syllabus-totals-counts">
+                    <strong class="syllabus-totals-weeks-value">0</strong> {{#str}} weeks, mod_syllabus {{/str}} ·
+                    <strong class="syllabus-totals-activities-value">0</strong> {{#str}} activities, mod_syllabus {{/str}}
+                </span>
+                <span class="syllabus-totals-autosave" data-idle="{{#str}} allchangessaved, mod_syllabus {{/str}}"
+                    data-pending="{{#str}} saving, mod_syllabus {{/str}}">
+                    {{#str}} allchangessaved, mod_syllabus {{/str}}
+                </span>
+                <span class="syllabus-totals-spacer"></span>
+                <button type="button" class="btn btn-link btn-sm syllabus-collapse-all"
+                    data-collapse="{{#str}} collapseall, mod_syllabus {{/str}}"
+                    data-expand="{{#str}} expandall, mod_syllabus {{/str}}">
+                    {{#str}} collapseall, mod_syllabus {{/str}}
+                </button>
             </div>
 
             <h3 id="syllabus-section-characterisation" data-syllabus-section>
@@ -169,6 +186,39 @@
     {{/caneditcontent}}
 
     {{^caneditcontent}}
+        <h3>{{#str}} characterisation, mod_syllabus {{/str}}</h3>
+        <div class="syllabus-characterisation-grid mb-3">
+            <div>
+                <span class="syllabus-grid-label">{{#str}} studyprogram, mod_syllabus {{/str}}</span>
+                {{coursename}}
+            </div>
+            <div>
+                <span class="syllabus-grid-label">{{#str}} discipline, mod_syllabus {{/str}}</span>
+                {{disciplinename}}
+            </div>
+            <div>
+                <span class="syllabus-grid-label">{{#str}} teacher, mod_syllabus {{/str}}</span>
+                {{teachername}}
+            </div>
+            <div>
+                <span class="syllabus-grid-label">{{#str}} academicperiod, mod_syllabus {{/str}}</span>
+                {{academicperiod}}
+            </div>
+            {{#coursestartdate}}
+            <div>
+                <span class="syllabus-grid-label">{{#str}} courseperiod, mod_syllabus {{/str}}</span>
+                {{#userdate}} {{coursestartdate}}, {{#str}} strftimedatefullshort, core_langconfig {{/str}} {{/userdate}}
+                {{#courseenddate}}– {{#userdate}} {{courseenddate}}, {{#str}} strftimedatefullshort, core_langconfig {{/str}} {{/userdate}}{{/courseenddate}}
+            </div>
+            {{/coursestartdate}}
+            {{#totalduration}}
+            <div>
+                <span class="syllabus-grid-label">{{#str}} totalworkload, mod_syllabus {{/str}}</span>
+                {{totalduration}}
+            </div>
+            {{/totalduration}}
+        </div>
+
         <h3>{{#str}} coursedescription, mod_syllabus {{/str}}</h3>
         <div class="syllabus-coursedescription mb-3">{{{coursedescription}}}</div>
 

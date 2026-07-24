@@ -16,6 +16,11 @@
 /**
  * AMD module for autosaving narrative Custom Field content in mod_syllabus.
  *
+ * Dispatches a `syllabus-autosave` CustomEvent on `document` around each save
+ * (`{detail: {pending: true}}` / `{detail: {pending: false}}`) — plan_navigator.js listens
+ * for it to drive the totals bar's aggregate "Saving.../All changes saved" chip, without this
+ * module needing to know that chip (or a totals bar at all) exists.
+ *
  * @module     mod_syllabus/autosave
  * @copyright  2026 Jean Lúcio
  * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
@@ -79,6 +84,7 @@ const showRejected = async(error) => {
 const doSave = async(textarea) => {
     const field = textarea.closest('.syllabus-field');
     showSaving(field);
+    document.dispatchEvent(new CustomEvent('syllabus-autosave', {detail: {pending: true}}));
 
     try {
         await Ajax.call([{
@@ -95,6 +101,8 @@ const doSave = async(textarea) => {
         showSaved(field);
     } catch (error) {
         showRejected(error);
+    } finally {
+        document.dispatchEvent(new CustomEvent('syllabus-autosave', {detail: {pending: false}}));
     }
 };
 

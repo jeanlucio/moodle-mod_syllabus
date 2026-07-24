@@ -55,20 +55,35 @@
     </div>
 
     <h3>{{#str}} characterisation, mod_syllabus {{/str}}</h3>
-    <div class="row syllabus-characterisation mb-3">
-        <div class="col-md-6"><strong>{{#str}} studyprogram, mod_syllabus {{/str}}:</strong> {{coursename}}</div>
-        <div class="col-md-6"><strong>{{#str}} discipline, mod_syllabus {{/str}}:</strong> {{disciplinename}}</div>
-        <div class="col-md-6"><strong>{{#str}} teacher, mod_syllabus {{/str}}:</strong> {{teachername}}</div>
-        <div class="col-md-6"><strong>{{#str}} academicperiod, mod_syllabus {{/str}}:</strong> {{academicperiod}}</div>
+    <div class="syllabus-characterisation-grid mb-3">
+        <div>
+            <span class="syllabus-grid-label">{{#str}} studyprogram, mod_syllabus {{/str}}</span>
+            {{coursename}}
+        </div>
+        <div>
+            <span class="syllabus-grid-label">{{#str}} discipline, mod_syllabus {{/str}}</span>
+            {{disciplinename}}
+        </div>
+        <div>
+            <span class="syllabus-grid-label">{{#str}} teacher, mod_syllabus {{/str}}</span>
+            {{teachername}}
+        </div>
+        <div>
+            <span class="syllabus-grid-label">{{#str}} academicperiod, mod_syllabus {{/str}}</span>
+            {{academicperiod}}
+        </div>
         {{#coursestartdate}}
-        <div class="col-md-6">
-            <strong>{{#str}} courseperiod, mod_syllabus {{/str}}:</strong>
+        <div>
+            <span class="syllabus-grid-label">{{#str}} courseperiod, mod_syllabus {{/str}}</span>
             {{#userdate}} {{coursestartdate}}, {{#str}} strftimedatefullshort, core_langconfig {{/str}} {{/userdate}}
             {{#courseenddate}}– {{#userdate}} {{courseenddate}}, {{#str}} strftimedatefullshort, core_langconfig {{/str}} {{/userdate}}{{/courseenddate}}
         </div>
         {{/coursestartdate}}
         {{#totalduration}}
-        <div class="col-md-6"><strong>{{#str}} totalworkload, mod_syllabus {{/str}}:</strong> {{totalduration}}</div>
+        <div>
+            <span class="syllabus-grid-label">{{#str}} totalworkload, mod_syllabus {{/str}}</span>
+            {{totalduration}}
+        </div>
         {{/totalduration}}
     </div>
 

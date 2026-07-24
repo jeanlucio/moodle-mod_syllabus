@@ -90,6 +90,7 @@ final class tab_visibility_test extends \advanced_testcase {
         $teacher = $this->getDataGenerator()->create_user();
         $this->getDataGenerator()->enrol_user($teacher->id, $course->id, 'editingteacher');
         $DB->set_field('syllabus', 'submittedby', $teacher->id, ['id' => $syllabus->id]);
+        $syllabus = $DB->get_record('syllabus', ['id' => $syllabus->id], '*', MUST_EXIST);
 
         $now = time();
         $weekid = $DB->insert_record('syllabus_weeks', [
@@ -174,7 +175,8 @@ final class tab_visibility_test extends \advanced_testcase {
     /**
      * Coordination/admin reviewing Tab 1 without mod/syllabus:submit sees the same full
      * field set as the tutor tab (everything except the workflow being read-only), never
-     * an empty "no weeks yet" placeholder.
+     * an empty "no weeks yet" placeholder — including the Characterisation names (course,
+     * discipline, teacher), which this branch did not export before.
      *
      * @covers \mod_syllabus\output\tab_full_plan::export_for_template
      * @return void
@@ -194,6 +196,9 @@ final class tab_visibility_test extends \advanced_testcase {
 
         $this->assertFalse($data->caneditcontent);
         $this->assertTrue($data->hasweeks);
+        $this->assertSame(format_string($course->fullname), $data->disciplinename);
+        $this->assertNotEmpty($data->coursename);
+        $this->assertNotEmpty($data->teachername);
         $week = $data->readweeks[0];
         $this->assertStringContainsString('TUTOR_ONLY_WEEK_MARKER', $week->interactiontools);
         $activity = $week->activities[0];

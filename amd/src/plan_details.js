@@ -16,6 +16,9 @@
 /**
  * AMD module for autosaving the plan-level Characterisation and Presentation fields.
  *
+ * Dispatches a `syllabus-autosave` CustomEvent on `document` around each save — see
+ * amd/src/autosave.js for the full contract this shares with plan_navigator.js's totals bar.
+ *
  * @module     mod_syllabus/plan_details
  * @copyright  2026 Jean Lúcio
  * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
@@ -53,6 +56,7 @@ const save = async(container) => {
     const totalduration = totaldurationInput === '' ? null : parseInt(totaldurationInput, 10);
     const presentationvideourl = container.querySelector('.syllabus-plan-presentationvideourl').value.trim() || null;
 
+    document.dispatchEvent(new CustomEvent('syllabus-autosave', {detail: {pending: true}}));
     try {
         await Ajax.call([{
             methodname: 'mod_syllabus_save_plan_details',
@@ -60,6 +64,8 @@ const save = async(container) => {
         }])[0];
     } catch (error) {
         showRejected(error);
+    } finally {
+        document.dispatchEvent(new CustomEvent('syllabus-autosave', {detail: {pending: false}}));
     }
 };
 

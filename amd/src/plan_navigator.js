@@ -17,6 +17,13 @@
  * AMD module for the edit-mode navigation rail and totals bar in Tab 1 ("Full plan").
  * Purely a client-side reading/scrolling aid — never validates or blocks a save.
  *
+ * The other AMD modules that autosave a field (autosave.js, plan_details.js,
+ * weeks_manager.js) dispatch a `syllabus-autosave` CustomEvent on `document` around each web
+ * service call (`{detail: {pending: true}}` before, `{detail: {pending: false}}` after,
+ * success or failure) instead of importing this module directly — a plain event keeps those
+ * modules decoupled from whether a totals bar even exists on the page (e.g. read-only tabs).
+ * This module is the only listener, aggregating every in-flight save into one chip.
+ *
  * @module     mod_syllabus/plan_navigator
  * @copyright  2026 Jean Lúcio
  * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
@@ -29,6 +36,9 @@ let stateLabels = {};
 
 /** @type {Object<string, string>} Totals-match label cache, filled once by init(). */
 let totalsLabels = {};
+
+/** @type {number} Count of currently in-flight autosave calls, across every AMD module. */
+let pendingSaves = 0;
 
 /**
  * Updates every rail link's icon/label to reflect whether the section it points to has all,
@@ -153,6 +163,141 @@ const applyTotalsState = (el, matches) => {
 };
 
 /**
+ * Reads a `.syllabus-date-select` container's day/month selects as a "DD/MM" string, or an
+ * empty string if either is unset — a compact numeric format (no month names needed) good
+ * enough for a one-line week summary; the full date pickers elsewhere already show the
+ * complete, localised value.
+ *
+ * @param {?HTMLElement} dateSelect
+ * @returns {string}
+ */
+const formatShortDate = (dateSelect) => {
+    if (!dateSelect) {
+        return '';
+    }
+    const day = dateSelect.querySelector('.syllabus-date-day')?.value;
+    const month = dateSelect.querySelector('.syllabus-date-month')?.value;
+    if (!day || month === '' || month === undefined) {
+        return '';
+    }
+    const paddedDay = day.padStart(2, '0');
+    const paddedMonth = String(parseInt(month, 10) + 1).padStart(2, '0');
+    return `${paddedDay}/${paddedMonth}`;
+};
+
+/**
+ * Updates every week's collapsible summary line (title + "Xh · date range · N activities ·
+ * Y pts") to reflect its current field values — called on the same input/change events that
+ * already recompute the totals bar, so the summary never goes stale while editing.
+ *
+ * @param {HTMLElement} container
+ */
+const updateWeekSummaries = (container) => {
+    container.querySelectorAll('.syllabus-week-row').forEach((week) => {
+        const titleInput = week.querySelector('.syllabus-week-title');
+        const titleEl = week.querySelector('.syllabus-week-summary-title');
+        if (titleInput && titleEl) {
+            titleEl.textContent = titleInput.value.trim();
+        }
+
+        const parts = [];
+        const durationInput = week.querySelector('.syllabus-week-duration');
+        if (durationInput && durationInput.value !== '') {
+            parts.push(`${durationInput.value}h`);
+        }
+        const start = formatShortDate(week.querySelector('.syllabus-week-startdate'));
+        const end = formatShortDate(week.querySelector('.syllabus-week-enddate'));
+        if (start && end) {
+            parts.push(`${start}–${end}`);
+        } else if (start) {
+            parts.push(start);
+        }
+
+        const activityRows = week.querySelectorAll('.syllabus-activity-row');
+        if (activityRows.length) {
+            parts.push(`${activityRows.length} ${activitiesLabel}`);
+        }
+        let pointsSum = 0;
+        activityRows.forEach((row) => {
+            pointsSum += parseFloat(row.querySelector('.syllabus-activity-points')?.value) || 0;
+        });
+        if (pointsSum > 0) {
+            parts.push(`${pointsSum} ${pointsLabel}`);
+        }
+
+        const metaEl = week.querySelector('.syllabus-week-summary-meta');
+        if (metaEl) {
+            metaEl.textContent = parts.join(' · ');
+        }
+    });
+};
+
+/** @type {string} Cached "Activities"/"Points" labels for updateWeekSummaries(), filled by init(). */
+let activitiesLabel = '';
+
+/** @type {string} See activitiesLabel. */
+let pointsLabel = '';
+
+/**
+ * Updates the "N weeks · M activities" chip from the current DOM state — weeks/activities are
+ * only ever added or removed via a full page reload (see weeks_manager.js), so a plain count
+ * at recompute time is always accurate without any extra event wiring.
+ *
+ * @param {HTMLElement} container
+ */
+const updateCounts = (container) => {
+    const weeksValue = container.querySelector('.syllabus-totals-weeks-value');
+    const activitiesValue = container.querySelector('.syllabus-totals-activities-value');
+    if (weeksValue) {
+        weeksValue.textContent = container.querySelectorAll('.syllabus-week-row').length;
+    }
+    if (activitiesValue) {
+        activitiesValue.textContent = container.querySelectorAll('.syllabus-activity-row').length;
+    }
+};
+
+/**
+ * Toggles every week's [open] attribute at once, flipping the "Collapse all"/"Expand all"
+ * button between the two — collapses if any week is currently open, expands otherwise.
+ *
+ * @param {HTMLElement} container
+ */
+const wireCollapseAll = (container) => {
+    const button = container.querySelector('.syllabus-collapse-all');
+    if (!button) {
+        return;
+    }
+    button.addEventListener('click', () => {
+        const weeks = container.querySelectorAll('.syllabus-week-row');
+        const shouldOpen = ![...weeks].some((week) => week.open);
+        weeks.forEach((week) => {
+            week.open = shouldOpen;
+        });
+        button.textContent = shouldOpen ? button.dataset.collapse : button.dataset.expand;
+    });
+};
+
+/**
+ * Listens for the `syllabus-autosave` event other AMD modules dispatch on `document` around
+ * each web service call, aggregating them into the totals bar's single "Saving.../All changes
+ * saved" chip.
+ *
+ * @param {HTMLElement} container
+ */
+const wireAutosaveChip = (container) => {
+    const chip = container.querySelector('.syllabus-totals-autosave');
+    if (!chip) {
+        return;
+    }
+    document.addEventListener('syllabus-autosave', (e) => {
+        pendingSaves = Math.max(0, pendingSaves + (e.detail.pending ? 1 : -1));
+        const isPending = pendingSaves > 0;
+        chip.classList.toggle('syllabus-totals-pending', isPending);
+        chip.textContent = isPending ? chip.dataset.pending : chip.dataset.idle;
+    });
+};
+
+/**
  * Intercepts rail link clicks to scroll smoothly to their target section, respecting
  * prefers-reduced-motion; falls back to the browser's native anchor jump if the target isn't
  * found (should not happen for a server-rendered rail against server-rendered sections).
@@ -219,22 +364,30 @@ export const init = async() => {
         return;
     }
 
-    const [complete, empty, partial, match, mismatch] = await getStrings([
+    const [complete, empty, partial, match, mismatch, activities, points] = await getStrings([
         {key: 'sectionstatecomplete', component: 'mod_syllabus'},
         {key: 'sectionstateempty', component: 'mod_syllabus'},
         {key: 'sectionstatepartial', component: 'mod_syllabus'},
         {key: 'totalsmatch', component: 'mod_syllabus'},
         {key: 'totalsmismatch', component: 'mod_syllabus'},
+        {key: 'activities', component: 'mod_syllabus'},
+        {key: 'activitypoints', component: 'mod_syllabus'},
     ]);
     stateLabels = {complete, empty, partial};
     totalsLabels = {match, mismatch};
+    activitiesLabel = activities;
+    pointsLabel = points;
 
     wireRailLinks(container);
     wireScrollSpy(container);
+    wireCollapseAll(container);
+    wireAutosaveChip(container);
 
     const recompute = () => {
         updateSectionStates(container);
         updateTotals(container);
+        updateCounts(container);
+        updateWeekSummaries(container);
     };
     recompute();
     container.addEventListener('input', recompute);

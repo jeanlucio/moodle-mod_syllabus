@@ -199,4 +199,103 @@ final class privacy_provider_test extends provider_testcase {
         $this->assertNull($plan->submittedby);
         $this->assertEquals($reviewer->id, $plan->reviewedby, 'Only the requesting user is anonymised.');
     }
+
+    /**
+     * unpublishedby is tracked and anonymised exactly like submittedby/reviewedby — none of
+     * the tests above ever unpublish a plan, so that third reference is otherwise never
+     * exercised.
+     *
+     * @covers \mod_syllabus\privacy\provider::get_contexts_for_userid
+     * @covers \mod_syllabus\privacy\provider::get_users_in_context
+     * @covers \mod_syllabus\privacy\provider::export_user_data
+     * @covers \mod_syllabus\privacy\provider::delete_data_for_all_users_in_context
+     * @return void
+     */
+    public function test_unpublishedby_is_tracked_and_anonymised(): void {
+        global $DB;
+
+        $this->resetAfterTest();
+        $this->setAdminUser();
+
+        [, $syllabus] = $this->create_reviewed_plan();
+        $unpublisher = $this->getDataGenerator()->create_user();
+        plan_state_manager::unpublish($syllabus->id, (int) $unpublisher->id);
+        $cm = get_coursemodule_from_instance('syllabus', $syllabus->id, 0, false, MUST_EXIST);
+        $context = context_module::instance($cm->id);
+
+        $this->assertCount(1, provider::get_contexts_for_userid($unpublisher->id));
+
+        $userlist = new userlist($context, 'mod_syllabus');
+        provider::get_users_in_context($userlist);
+        $this->assertContains((int) $unpublisher->id, $userlist->get_userids());
+
+        $contextlist = provider::get_contexts_for_userid($unpublisher->id);
+        $approved = new approved_contextlist($unpublisher, 'mod_syllabus', $contextlist->get_contextids());
+        provider::export_user_data($approved);
+        $data = writer::with_context($context)->get_data([get_string('pluginname', 'mod_syllabus')]);
+        $this->assertTrue(property_exists($data, 'unpublished'));
+
+        provider::delete_data_for_all_users_in_context($context);
+        $plan = $DB->get_record('syllabus', ['id' => $syllabus->id], '*', MUST_EXIST);
+        $this->assertNull($plan->unpublishedby);
+    }
+
+    /**
+     * get_users_in_context() and delete_data_for_all_users_in_context() both no-op at any
+     * context level other than CONTEXT_MODULE, rather than running a query against a context
+     * they were never meant to handle.
+     *
+     * @covers \mod_syllabus\privacy\provider::get_users_in_context
+     * @covers \mod_syllabus\privacy\provider::delete_data_for_all_users_in_context
+     * @return void
+     */
+    public function test_wrong_context_level_is_a_noop(): void {
+        global $DB;
+
+        $this->resetAfterTest();
+        $this->setAdminUser();
+
+        [, $syllabus] = $this->create_reviewed_plan();
+        $systemcontext = \context_system::instance();
+
+        $userlist = new userlist($systemcontext, 'mod_syllabus');
+        provider::get_users_in_context($userlist);
+        $this->assertCount(0, $userlist->get_userids());
+
+        provider::delete_data_for_all_users_in_context($systemcontext);
+        $plan = $DB->get_record('syllabus', ['id' => $syllabus->id], '*', MUST_EXIST);
+        $this->assertNotNull($plan->submittedby, 'A system-context call must never touch module data.');
+    }
+
+    /**
+     * export_user_data() and delete_data_for_user() both no-op on an empty approved contextlist,
+     * and delete_data_for_users() no-ops on an empty approved userlist — none of these ever
+     * reach the database.
+     *
+     * @covers \mod_syllabus\privacy\provider::export_user_data
+     * @covers \mod_syllabus\privacy\provider::delete_data_for_user
+     * @covers \mod_syllabus\privacy\provider::delete_data_for_users
+     * @return void
+     */
+    public function test_empty_lists_are_a_noop(): void {
+        global $DB;
+
+        $this->resetAfterTest();
+        $this->setAdminUser();
+
+        [, $syllabus, $submitter] = $this->create_reviewed_plan();
+        $cm = get_coursemodule_from_instance('syllabus', $syllabus->id, 0, false, MUST_EXIST);
+        $context = context_module::instance($cm->id);
+
+        $emptycontextlist = new approved_contextlist($submitter, 'mod_syllabus', []);
+        provider::export_user_data($emptycontextlist);
+        $this->assertEmpty(writer::with_context($context)->get_data([get_string('pluginname', 'mod_syllabus')]));
+
+        provider::delete_data_for_user($emptycontextlist);
+        $emptyuserlist = new approved_userlist($context, 'mod_syllabus', []);
+        provider::delete_data_for_users($emptyuserlist);
+
+        $plan = $DB->get_record('syllabus', ['id' => $syllabus->id], '*', MUST_EXIST);
+        $this->assertNotNull($plan->submittedby, 'Empty approved lists must never anonymise anything.');
+    }
 }

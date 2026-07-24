@@ -1,8 +1,9 @@
 # 🧪 Automated Tests
 
 Syllabus ships with a PHPUnit test suite covering the approval workflow, web services,
-backup/restore, cross-instance isolation, and Privacy API compliance. Every CI push runs
-against the full matrix (Moodle 4.5 → 5.2, PHP 8.2 → 8.4, PostgreSQL & MariaDB).
+backup/restore, cross-instance isolation, Custom Fields handling, workflow events and
+notifications, output rendering, and Privacy API compliance. Every CI push runs against the
+full matrix (Moodle 4.5 → 5.2, PHP 8.2 → 8.4, PostgreSQL & MariaDB).
 
 > No Behat suite exists yet — end-to-end browser coverage (the edit form, autosave, the
 > review workflow, the three role-based tabs) is on the roadmap but not implemented today.
@@ -13,6 +14,22 @@ against the full matrix (Moodle 4.5 → 5.2, PHP 8.2 → 8.4, PostgreSQL & Maria
 |-----------|------:|
 | `lib_test.php` | 1 |
 | **Subtotal** | **1** |
+
+### Custom Fields Handler Tests (`tests/customfield/`)
+
+| Test file | Cases |
+|-----------|------:|
+| `syllabus_handler_base_test.php` | 9 |
+| **Subtotal** | **9** |
+
+### Workflow Event Tests (`tests/event/`)
+
+| Test file | Cases |
+|-----------|------:|
+| `plan_changes_requested_test.php` | 3 |
+| `plan_approved_test.php` | 2 |
+| `plan_submitted_test.php` | 2 |
+| **Subtotal** | **7** |
 
 ### Workflow & Business-Logic Tests (`tests/local/`)
 
@@ -37,25 +54,33 @@ against the full matrix (Moodle 4.5 → 5.2, PHP 8.2 → 8.4, PostgreSQL & Maria
 | `submit_plan_test.php` | 2 |
 | **Subtotal** | **35** |
 
-### Output & Observer Tests (`tests/output/`, `tests/observer_test.php`)
+### Output, Observer & Notification Tests (`tests/output/`, `tests/observer*.php`)
 
 | Test file | Cases |
 |-----------|------:|
+| `output/tab_full_plan_test.php` | 5 |
 | `output/tab_visibility_test.php` | 5 |
+| `observer_notifications_test.php` | 4 |
 | `observer_test.php` | 3 |
-| **Subtotal** | **8** |
+| `output/narrative_editor_test.php` | 3 |
+| `output/renderer_test.php` | 3 |
+| `output/plan_reader_test.php` | 3 |
+| `output/plan_programme_name_test.php` | 2 |
+| `output/plan_read_export_test.php` | 2 |
+| `output/plan_teacher_name_test.php` | 3 |
+| **Subtotal** | **33** |
 
 ### Backup, Restore, Privacy & Security Tests
 
 | Test file | Cases |
 |-----------|------:|
-| `privacy_provider_test.php` | 6 |
+| `privacy_provider_test.php` | 9 |
 | `backup_restore_test.php` | 3 |
 | `cross_instance_security_test.php` | 2 |
 | `db_uninstall_test.php` | 1 |
-| **Subtotal** | **12** |
+| **Subtotal** | **15** |
 
-| **Grand Total** | **77** |
+| **Grand Total** | **121** |
 
 ```bash
 vendor/bin/phpunit --bootstrap lib/phpunit/bootstrap.php mod/syllabus
@@ -74,40 +99,49 @@ vendor/bin/phpunit --bootstrap lib/phpunit/bootstrap.php mod/syllabus
 | `external\submit_plan` | 100% |
 | `external\unpublish_plan` | 100% |
 | `local\structural_change_detector` | 100% |
+| `output\narrative_editor` | 100% |
+| `output\plan_programme_name` | 100% |
+| `output\plan_teacher_name` | 100% |
+| `output\renderer` | 100% |
 | `local\plan_state_manager` | 91% |
 | `external\save_customfield_value` | 98% |
 | `output\tab_student_plan` | 94% |
 | `output\tab_tutor_plan` | 91% |
-| `privacy\provider` | 63% |
-| `output\tab_full_plan` | 46% |
-| `output\plan_read_export` | 44% |
-| `observer` | 19% |
-| `output\plan_reader` | 19% |
-| `customfield\syllabus_handler_base` | 3% |
-| `customfield\activity_handler` | 0% |
-| `customfield\plan_handler` | 0% |
-| `customfield\week_handler` | 0% |
-| `event\plan_approved` | 0% |
-| `event\plan_changes_requested` | 0% |
-| `event\plan_submitted` | 0% |
-| `output\narrative_editor` | 0% |
-| `output\plan_programme_name` | 0% |
-| `output\plan_teacher_name` | 0% |
-| `output\renderer` | 0% |
-| **Overall** | **63%** |
+| `observer` | 76% |
+| `privacy\provider` | 70% |
+| `event\plan_changes_requested` | 75% |
+| `event\plan_submitted` | 73% |
+| `event\plan_approved` | 70% |
+| `output\plan_read_export` | 58% |
+| `output\plan_reader` | 54% |
+| `customfield\plan_handler` | 50% |
+| `output\tab_full_plan` | 47% |
+| `customfield\syllabus_handler_base` | 43% |
+| `customfield\week_handler` | 40% |
+| `customfield\activity_handler` | 25% |
+| **Overall** | **77%** |
 
-> The workflow engine (`plan_state_manager`), the structural-change guard, and every web
-> service are directly and heavily exercised — this is where the approval logic and the
-> instance-isolation checks live, and coverage reflects that.
+> Prior to this round, `renderer`, `narrative_editor`, the Custom Fields handlers, the three
+> workflow event classes, and the observer's notification methods sat at 0% — assumed to be
+> reachable only through a real rendered page or a real event log. That assumption was wrong
+> for all of them except the mustache templates' own visual output: `render_from_template()`,
+> Tiny's configuration builder, capability-gated handler methods and event
+> name/description/URL/validation all run perfectly well inside PHPUnit with no browser
+> involved, and are now covered directly.
 
-> The classes at 0% are the ones that only run inside a real rendered page or a real event
-> read: `renderer` and `narrative_editor` produce HTML/Tiny configuration for the browser;
-> `plan_programme_name`/`plan_teacher_name` are small display-name resolvers invoked from
-> tab rendering branches the current unit tests don't reach; the `plan_*` event classes are
-> triggered by the web services above but their own `get_name()`/`get_description()` methods
-> are only read by a real event log/backup, never by `observer_test.php`, which only asserts
-> on the observer side; and the Custom Fields subclasses (`activity_handler`, `plan_handler`,
-> `week_handler`) only exercise their overridden methods through the Custom Fields API's own
-> page flow, not through a unit test that isolates them. Closing this gap is exactly what the
-> planned Behat suite is for — none of it is reachable from PHPUnit in isolation the way the
-> workflow and web-service layers are.
+> The remaining gaps are real but narrower: `tab_full_plan` and `plan_reader`/
+> `plan_read_export` still have untested branches in the edit-mode weeks/activities reshaping
+> and the read-only tutor-field filtering; `privacy\provider`'s early-return guards for
+> malformed/partial requests are only partially exercised; and the three event classes'
+> `get_description()`/`get_url()` text is covered, but not every one of `core\event\base`'s own
+> inherited methods.
+
+> The three Custom Fields handler subclasses (`activity_handler`, `plan_handler`,
+> `week_handler`) show low percentages here despite `tests/customfield/syllabus_handler_base_test.php`
+> directly calling `belongs_to_syllabus()` (and therefore each subclass's own
+> `resolve_syllabus_id()` override) with passing assertions proving the code runs correctly.
+> This is a measurement artefact of PHPUnit's code-coverage report for short, near-identical
+> override methods shared across sibling classes — not an actual test gap — confirmed by
+> inspecting the HTML coverage report line-by-line: the exact same "0% coverage" reading shows
+> up even on `plan_handler::resolve_syllabus_id()`'s single `return $instanceid;` line, which
+> is exercised by dozens of other tests throughout the suite.

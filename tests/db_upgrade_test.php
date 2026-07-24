@@ -204,4 +204,51 @@ final class db_upgrade_test extends advanced_testcase {
         $updated = $DB->get_record('customfield_field', ['id' => $field->id], '*', MUST_EXIST);
         $this->assertSame('Custom institutional wording.', $updated->description);
     }
+
+    /**
+     * Regression test for the toggle label shortened from "Ver orientações do modelo"/"View
+     * model guidance" to "Ver orientações"/"View guidance" — a field still holding the old
+     * label (baked in at seed time) has just that <span> replaced, the rest of the description
+     * left exactly as it was.
+     *
+     * @return void
+     */
+    public function test_upgrade_shortens_the_old_toggle_label(): void {
+        global $DB;
+
+        $field = $DB->get_record('customfield_field', ['shortname' => 'objectives'], '*', MUST_EXIST);
+        $old = str_replace(
+            \html_writer::span(get_string('viewmodelguidance', 'mod_syllabus'), 'syllabus-help-toggle'),
+            \html_writer::span('Ver orientações do modelo', 'syllabus-help-toggle'),
+            \mod_syllabus\local\help_text_builder::build('objectives')
+        );
+        $DB->set_field('customfield_field', 'description', $old, ['id' => $field->id]);
+
+        set_config('version', 2026072513, 'mod_syllabus');
+        xmldb_syllabus_upgrade(2026072513);
+
+        $updated = $DB->get_record('customfield_field', ['id' => $field->id], '*', MUST_EXIST);
+        $this->assertSame(\mod_syllabus\local\help_text_builder::build('objectives'), $updated->description);
+    }
+
+    /**
+     * A description an institution rewrote so the old toggle label no longer appears in it
+     * verbatim (e.g. they translated the toggle text themselves) is left byte-for-byte
+     * untouched — the replacement only ever fires on an exact match of the known old label.
+     *
+     * @return void
+     */
+    public function test_upgrade_toggle_label_step_does_not_touch_a_rewritten_toggle(): void {
+        global $DB;
+
+        $field = $DB->get_record('customfield_field', ['shortname' => 'objectives'], '*', MUST_EXIST);
+        $custom = 'Custom institutional wording with its own toggle text.';
+        $DB->set_field('customfield_field', 'description', $custom, ['id' => $field->id]);
+
+        set_config('version', 2026072513, 'mod_syllabus');
+        xmldb_syllabus_upgrade(2026072513);
+
+        $updated = $DB->get_record('customfield_field', ['id' => $field->id], '*', MUST_EXIST);
+        $this->assertSame($custom, $updated->description);
+    }
 }

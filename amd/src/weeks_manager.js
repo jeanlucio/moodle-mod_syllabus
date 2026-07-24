@@ -16,16 +16,11 @@
 /**
  * AMD module for adding/editing/removing weeks and activities in a syllabus plan.
  *
- * Existing rows autosave their structural fields on `change` (no per-row "Save" button, only
- * "Delete") — the same pattern amd/src/plan_details.js already uses for the Characterisation
- * fields, and plan_navigator.js's own delegated `change` listener already recomputes the
- * totals bar from the same events, so no extra coupling is needed. Adding a week/activity
- * creates the row on the server immediately, with a default title, then reloads the page with
- * the full fieldset open and scrolled into view — replacing the old flow where the "Add"
- * button only revealed a client-built blank row that still needed its own save click
- * (Fase 5.6.a, after live user feedback on the friction of the previous flow). A plan with
- * zero weeks goes one step further: init() creates the first week automatically, so the
- * professor never faces a page with nothing but a lone "Add week" button.
+ * Existing rows autosave their structural fields on `change` (no per-row "Save" button) — the
+ * same pattern amd/src/plan_details.js uses, and plan_navigator.js's own delegated `change`
+ * listener already recomputes the totals bar from the same events, so no extra coupling is
+ * needed here. A plan with zero weeks has init() create the first week automatically, so the
+ * teacher never faces a page with nothing but a lone "Add week" button.
  *
  * @module     mod_syllabus/weeks_manager
  * @copyright  2026 Jean Lúcio

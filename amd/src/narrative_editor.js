@@ -14,19 +14,16 @@
 // along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 /**
- * AMD module for the lazily-initialised Tiny editor on narrative Custom Fields (Fase 5.5.e).
+ * AMD module for the lazily-initialised Tiny editor on narrative Custom Fields.
+ *
  * Each field starts as a focusable, formatted read-only preview styled to look like an open
- * text field. Focusing it (click or Tab — a plain 'focus' listener covers both, and the
- * preview's own visible content already tells a keyboard/screen-reader user what it is, no
- * separate activation control needed) swaps in the underlying `<textarea>` and attaches a
- * real Tiny instance via editor_tiny/editor's own setupForTarget() — the same API a normal
- * mform editor element ends up calling, just invoked on demand instead of at page load.
- * Losing focus removes the instance again, so a plan with many narrative fields never has
- * more than a couple of live editors at once. An earlier version of this module used a
- * separate "Edit" button as the activation control, added out of an over-cautious reading of
- * WCAG's "on focus" guidance — dropped after live use showed the extra click/button felt
- * like unnecessary friction for a transition this visually continuous (same box, same
- * content, same position; it only gains a toolbar).
+ * text field. A plain 'focus' listener (covers both click and Tab) swaps in the underlying
+ * `<textarea>` and attaches a real Tiny instance via editor_tiny/editor's own
+ * setupForTarget() — the same API a normal mform editor element ends up calling, just invoked
+ * on demand instead of at page load. No separate activation control is needed: the preview's
+ * own visible content already tells a keyboard/screen-reader user what it is, satisfying
+ * WCAG's "on focus" concern without an extra button. Losing focus removes the instance again,
+ * so a plan with many narrative fields never has more than a couple of live editors at once.
  *
  * Deliberately does not wire a working filepicker (image/media/link upload) — see
  * classes/output/narrative_editor.php's docblock for why the shared config passes empty

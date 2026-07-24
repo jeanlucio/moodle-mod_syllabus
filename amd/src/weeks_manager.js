@@ -23,7 +23,9 @@
  * creates the row on the server immediately, with a default title, then reloads the page with
  * the full fieldset open and scrolled into view — replacing the old flow where the "Add"
  * button only revealed a client-built blank row that still needed its own save click
- * (Fase 5.6.a, after live user feedback on the friction of the previous flow).
+ * (Fase 5.6.a, after live user feedback on the friction of the previous flow). A plan with
+ * zero weeks goes one step further: init() creates the first week automatically, so the
+ * professor never faces a page with nothing but a lone "Add week" button.
  *
  * @module     mod_syllabus/weeks_manager
  * @copyright  2026 Jean Lúcio
@@ -364,6 +366,13 @@ export const init = (coursemoduleid) => {
     const addWeekBtn = container.querySelector('.syllabus-add-week');
     if (addWeekBtn) {
         addWeekBtn.addEventListener('click', () => createWeek(container));
+
+        // A plan with zero weeks starts by creating the first one automatically — same
+        // "Add week" call the button itself makes — instead of landing on a page with
+        // nothing but that lone button. "Add week" stays visible below for a second week.
+        if (!container.querySelector('.syllabus-week-row')) {
+            createWeek(container);
+        }
     }
 
     // Delegated change handling autosaves an existing week/activity row's structural fields.

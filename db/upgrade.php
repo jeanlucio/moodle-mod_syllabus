@@ -171,18 +171,13 @@ function xmldb_syllabus_upgrade(int $oldversion): bool {
     }
 
     if ($oldversion < 2026072514) {
-        // User feedback from live testing (24/07/2026): "Ver orientações do modelo" read as
-        // redundant, since every guidance block already only ever concerns "the model" —
-        // shortened the viewmodelguidance toggle label to "Ver orientações"/"View guidance".
-        // The label is baked once into each field's description at seed time
-        // (help_text_builder::build()), so an already-seeded site keeps the old wording until
-        // this step runs. A targeted replacement of just the toggle <span>'s old text, not a
-        // whole-description rebuild, so it still applies even if an institution has already
+        // The toggle label is baked once into each field's description at seed time
+        // (help_text_builder::build()), so an already-seeded site keeps whatever label was
+        // baked in until this step runs. Replace only the toggle <span>'s old text, not the
+        // whole description, so it still applies even if an institution has already
         // customised some other part of the same description via managefields.php; a
-        // description that no longer contains the exact old label (because the institution
-        // rewrote the toggle text itself) is left untouched. Both shipped languages' old
-        // labels are tried, since a field's description was seeded under whichever language
-        // was active at seed time.
+        // description that no longer contains either shipped language's old label exactly
+        // (because the institution rewrote the toggle text itself) is left untouched.
         $oldlabels = [
             \html_writer::span('View model guidance', 'syllabus-help-toggle'),
             \html_writer::span('Ver orientações do modelo', 'syllabus-help-toggle'),

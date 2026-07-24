@@ -206,10 +206,8 @@ final class db_upgrade_test extends advanced_testcase {
     }
 
     /**
-     * Regression test for the toggle label shortened from "Ver orientações do modelo"/"View
-     * model guidance" to "Ver orientações"/"View guidance" — a field still holding the old
-     * label (baked in at seed time) has just that <span> replaced, the rest of the description
-     * left exactly as it was.
+     * A field still holding the old toggle label (baked in at seed time) has just that <span>
+     * replaced, the rest of the description left exactly as it was.
      *
      * @return void
      */

@@ -57,6 +57,14 @@ $functions = [
         'ajax'         => true,
         'capabilities' => 'mod/syllabus:submit',
     ],
+    'mod_syllabus_reset_field_description' => [
+        'classname'    => 'mod_syllabus\external\reset_field_description',
+        'methodname'   => 'execute',
+        'description'  => 'Reset a Custom Field description back to the plugin\'s seeded default text.',
+        'type'         => 'write',
+        'ajax'         => true,
+        'capabilities' => 'mod/syllabus:review',
+    ],
     'mod_syllabus_save_customfield_value' => [
         'classname'    => 'mod_syllabus\external\save_customfield_value',
         'methodname'   => 'execute',

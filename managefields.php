@@ -38,6 +38,8 @@ $handler = core_customfield\handler::get_handler('mod_syllabus', $area);
 $output = $PAGE->get_renderer('core_customfield');
 $outputpage = new core_customfield\output\management($handler);
 
+$PAGE->requires->js_call_amd('mod_syllabus/managefields_reset', 'init');
+
 echo $output->header();
 echo $output->heading(get_string('managefields' . $area, 'mod_syllabus'));
 echo $output->render($outputpage);

@@ -101,6 +101,7 @@ if ($tab === 'full') {
         $PAGE->requires->js_call_amd('mod_syllabus/weeks_manager', 'init', [$cm->id]);
         $PAGE->requires->js_call_amd('mod_syllabus/autosave', 'init', [$cm->id]);
         $PAGE->requires->js_call_amd('mod_syllabus/plan_details', 'init', [$cm->id]);
+        $PAGE->requires->js_call_amd('mod_syllabus/final_assessment', 'init', [$cm->id]);
         $PAGE->requires->js_call_amd('mod_syllabus/plan_navigator', 'init');
         $monthnames = array_values(type_factory::get_calendar_instance()->get_months());
         $PAGE->requires->js_call_amd('mod_syllabus/plan_dateselect', 'init', [$monthnames]);

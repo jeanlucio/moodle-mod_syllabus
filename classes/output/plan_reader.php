@@ -122,6 +122,7 @@ final class plan_reader {
                     'title'     => $activity->title,
                     'points'    => $activity->points,
                     'enddate'   => $activity->enddate,
+                    'stage'     => $week->stage,
                 ];
             }
         }

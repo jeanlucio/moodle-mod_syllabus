@@ -65,7 +65,7 @@ final class cross_instance_security_test extends \advanced_testcase {
         $this->getDataGenerator()->enrol_user($teacher->id, $course->id, 'editingteacher');
 
         $this->setUser($teacher);
-        $week = save_week::execute($syllabus->cmid, 0, "Week {$label}", null, null, null, null, null, null);
+        $week = save_week::execute($syllabus->cmid, 0, "Week {$label}", null, null, null, null, null, null, 1);
         $activity = save_activity::execute(
             $syllabus->cmid,
             $week['weekid'],
@@ -75,8 +75,7 @@ final class cross_instance_security_test extends \advanced_testcase {
             null,
             null,
             null,
-            null,
-            false
+            null
         );
 
         return [$syllabus, $teacher, $week['weekid'], $activity['activityid']];
@@ -103,7 +102,7 @@ final class cross_instance_security_test extends \advanced_testcase {
         $this->setUser($teachera);
 
         $this->assert_rejected(
-            fn () => save_week::execute($syllabusa->cmid, $weekbid, 'Hijacked', null, null, null, null, null, null),
+            fn () => save_week::execute($syllabusa->cmid, $weekbid, 'Hijacked', null, null, null, null, null, null, 1),
             'save_week'
         );
         $this->assert_rejected(
@@ -120,8 +119,7 @@ final class cross_instance_security_test extends \advanced_testcase {
                 null,
                 null,
                 null,
-                null,
-                false
+                null
             ),
             'save_activity (foreign weekid)'
         );

@@ -17,39 +17,39 @@
 {{!
     @template mod_syllabus/plan_final_assessment
 
-    The "Final assessment" block, extracted here from whichever activity/activities carry
-    isfinalassessment, via plan_read_export::final_assessment_activities(). Reuses
-    plan_activity_read.mustache as-is (including its own red badge) so this section and the
-    activity's own place inside its week never drift out of sync on a field change; the
-    activity is intentionally shown in both places, matching how the schedule table already
-    duplicates the same data. Shared by the 3 read-only tabs (student, tutor, Tab 1's
-    read-only branch) — never rendered in the edit-mode branch, where the isfinalassessment
-    checkbox on the activity itself is already the single source of truth.
+    The "Final assessment" block — a single, plan-level object (plan_read_export::
+    final_assessment()), structurally paralleling Characterisation rather than an activity
+    inside some week. Shared by the 3 read-only tabs (student, tutor, Tab 1's read-only
+    branch) — never rendered in the edit-mode branch, which has its own structured form for
+    the same fields plus the narrative Custom Field editor.
 
     Example context (json):
     {
-        "hasfinalassessments": true,
-        "finalassessments": [
-            {
-                "title": "Final Exam",
-                "type": "quiz",
-                "category": "online",
-                "startdate": 1749000000,
-                "enddate": 1749600000,
-                "points": 40,
-                "isfinalassessment": true,
-                "weektitle": "Week 8",
-                "studentinstructions": "<p>Exam covering the whole semester's content.</p>",
-                "showtutorfields": false
-            }
-        ]
+        "hasfinalassessment": true,
+        "finalassessment": {
+            "title": "Final Exam",
+            "type": "quiz",
+            "startdate": 1749000000,
+            "enddate": 1749600000,
+            "points": 100,
+            "instructions": "<p>Exam covering the whole semester's content.</p>"
+        }
     }
 }}
-{{#hasfinalassessments}}
+{{#hasfinalassessment}}
 <h3>{{#str}} finalassessment, mod_syllabus {{/str}}</h3>
-<div class="syllabus-final-assessment-list mb-3">
-    {{#finalassessments}}
-        {{> mod_syllabus/plan_activity_read }}
-    {{/finalassessments}}
+<div class="syllabus-final-assessment-read border rounded p-2 mb-3">
+    <h5 class="mb-1">{{finalassessment.title}}</h5>
+    <p class="small text-muted mb-2">
+        {{#finalassessment.type}}{{finalassessment.type}}{{/finalassessment.type}}
+        {{#finalassessment.startdate}}
+            · {{#userdate}} {{finalassessment.startdate}}, {{#str}} strftimedatefullshort, core_langconfig {{/str}} {{/userdate}}
+            {{#finalassessment.enddate}}– {{#userdate}} {{finalassessment.enddate}}, {{#str}} strftimedatefullshort, core_langconfig {{/str}} {{/userdate}}{{/finalassessment.enddate}}
+        {{/finalassessment.startdate}}
+        {{#finalassessment.points}} · {{finalassessment.points}} {{#str}} activitypoints, mod_syllabus {{/str}}{{/finalassessment.points}}
+    </p>
+    {{#finalassessment.instructions}}
+    <div class="syllabus-studentinstructions">{{{finalassessment.instructions}}}</div>
+    {{/finalassessment.instructions}}
 </div>
-{{/hasfinalassessments}}
+{{/hasfinalassessment}}

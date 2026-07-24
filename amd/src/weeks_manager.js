@@ -228,10 +228,14 @@ const autosaveWeek = async(row) => {
     const syncdate = readTimestamp(row.querySelector('.syllabus-week-syncdate'));
     const synclink = row.querySelector('.syllabus-week-synclink').value.trim() || null;
     const synctopic = row.querySelector('.syllabus-week-synctopic').value.trim() || null;
+    const stageSelect = row.querySelector('.syllabus-week-stage');
+    const stage = stageSelect ? parseInt(stageSelect.value, 10) : 1;
 
     const status = row.querySelector('.syllabus-week-save-status');
     showRowSaving(status);
-    const result = await persistWeek({weekid, title, duration, startdate, enddate, syncdate, synclink, synctopic});
+    const result = await persistWeek({
+        weekid, title, duration, startdate, enddate, syncdate, synclink, synctopic, stage,
+    });
     if (result) {
         showRowSaved(status);
     }
@@ -259,13 +263,11 @@ const autosaveActivity = async(row) => {
     const points = pointsInput === '' ? null : parseFloat(pointsInput);
     const startdate = readDateSelectTimestamp(row.querySelector('.syllabus-activity-startdate'));
     const enddate = readDateSelectTimestamp(row.querySelector('.syllabus-activity-enddate'));
-    const isfinalassessmentInput = row.querySelector('.syllabus-activity-isfinalassessment');
-    const isfinalassessment = isfinalassessmentInput ? isfinalassessmentInput.checked : false;
 
     const status = row.querySelector('.syllabus-activity-save-status');
     showRowSaving(status);
     const result = await persistActivity({
-        weekid, activityid, title, type, category, startdate, enddate, points, isfinalassessment,
+        weekid, activityid, title, type, category, startdate, enddate, points,
     });
     if (result) {
         showRowSaved(status);
@@ -326,7 +328,7 @@ const createWeek = async(container) => {
     const title = await getString('defaultweektitle', 'mod_syllabus', count + 1);
     const result = await persistWeek({
         weekid: 0, title, duration: null, startdate: null, enddate: null,
-        syncdate: null, synclink: null, synctopic: null,
+        syncdate: null, synclink: null, synctopic: null, stage: 1,
     });
     if (result) {
         sessionStorage.setItem(FOCUS_WEEK_KEY, String(result.weekid));
@@ -346,7 +348,7 @@ const createActivity = async(weekRow) => {
     const title = await getString('defaultactivitytitle', 'mod_syllabus', count + 1);
     const result = await persistActivity({
         weekid, activityid: 0, title, type: null, category: null,
-        startdate: null, enddate: null, points: null, isfinalassessment: false,
+        startdate: null, enddate: null, points: null,
     });
     if (result) {
         sessionStorage.setItem(FOCUS_ACTIVITY_KEY, String(result.activityid));

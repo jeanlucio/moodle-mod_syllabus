@@ -17,11 +17,11 @@
 {{!
     @template mod_syllabus/tab_tutor_plan
 
-    Tab 3 — "Tutor plan". Read-only: a reduced Characterisation (no full plan-level narrative
-    — the tutor has Tab 2 for that, one click away), every week and activity with the
-    tutor-exclusive fields included (interaction tools, observations, grading criteria with
-    answer keys, tutor guidance), and the consolidated schedule. Never reachable by the
-    student (view.php gates it on mod/syllabus:viewtutorview).
+    Tab 3 — "Tutor plan". Read-only: a reduced Characterisation (no full plan-level narrative,
+    including Final assessment — the tutor has Tab 2 for that, one click away), every week and
+    activity with the tutor-exclusive fields included (interaction tools, observations,
+    grading criteria with answer keys, tutor guidance), and the consolidated schedule. Never
+    reachable by the student (view.php gates it on mod/syllabus:viewtutorview).
 
     Example context (json):
     {
@@ -34,8 +34,6 @@
         "totalduration": 1800,
         "hasweeks": false,
         "weeks": [],
-        "hasfinalassessments": false,
-        "finalassessments": [],
         "hasschedule": false,
         "schedule": []
     }
@@ -70,8 +68,6 @@
         </div>
         {{/totalduration}}
     </div>
-
-    {{> mod_syllabus/plan_final_assessment }}
 
     {{#hasweeks}}
         {{#weeks}}

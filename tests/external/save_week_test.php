@@ -81,7 +81,8 @@ final class save_week_test extends advanced_testcase {
             1700086400,
             1700050000,
             'https://meet.example.org/week1',
-            'Kickoff session'
+            'Kickoff session',
+            1
         );
         $result = external_api::clean_returnvalue(save_week::execute_returns(), $result);
 
@@ -106,12 +107,48 @@ final class save_week_test extends advanced_testcase {
         [$syllabus, $teacher] = $this->create_syllabus_with_teacher();
         $this->setUser($teacher);
 
-        $created = save_week::execute($syllabus->cmid, 0, 'Original title', 60, null, null, null, null, null);
-        save_week::execute($syllabus->cmid, $created['weekid'], 'Updated title', 120, null, null, null, null, null);
+        $created = save_week::execute($syllabus->cmid, 0, 'Original title', 60, null, null, null, null, null, 1);
+        save_week::execute($syllabus->cmid, $created['weekid'], 'Updated title', 120, null, null, null, null, null, 1);
 
         $week = $DB->get_record('syllabus_weeks', ['id' => $created['weekid']], '*', MUST_EXIST);
         $this->assertSame('Updated title', $week->title);
         $this->assertEquals(120, $week->duration);
+    }
+
+    /**
+     * A week's stage persists, and changing it on an approved plan reopens it for review —
+     * same treatment as the other structural fields.
+     *
+     * @return void
+     */
+    public function test_stage_persists_and_a_change_reopens_approved_plan(): void {
+        global $DB;
+
+        [$syllabus, $teacher] = $this->create_syllabus_with_teacher();
+        $this->setUser($teacher);
+        $created = save_week::execute($syllabus->cmid, 0, 'Week 1', 60, null, null, null, null, null, 2);
+
+        $week = $DB->get_record('syllabus_weeks', ['id' => $created['weekid']], '*', MUST_EXIST);
+        $this->assertEquals(2, $week->stage);
+
+        $DB->set_field('syllabus', 'status', plan_state_manager::STATUS_APPROVED, ['id' => $syllabus->id]);
+        save_week::execute($syllabus->cmid, $created['weekid'], 'Week 1', 60, null, null, null, null, null, 3);
+
+        $status = $DB->get_field('syllabus', 'status', ['id' => $syllabus->id]);
+        $this->assertSame(plan_state_manager::STATUS_SUBMITTED, $status);
+    }
+
+    /**
+     * A stage below 1 is rejected.
+     *
+     * @return void
+     */
+    public function test_rejects_stage_below_one(): void {
+        [$syllabus, $teacher] = $this->create_syllabus_with_teacher();
+        $this->setUser($teacher);
+
+        $this->expectException(\invalid_parameter_exception::class);
+        save_week::execute($syllabus->cmid, 0, 'Week 1', null, null, null, null, null, null, 0);
     }
 
     /**
@@ -124,11 +161,11 @@ final class save_week_test extends advanced_testcase {
         [$syllabusb, $teacherb] = $this->create_syllabus_with_teacher();
 
         $this->setUser($teacherb);
-        $otherweek = save_week::execute($syllabusb->cmid, 0, 'Belongs to B', null, null, null, null, null, null);
+        $otherweek = save_week::execute($syllabusb->cmid, 0, 'Belongs to B', null, null, null, null, null, null, 1);
 
         $this->setUser($teachera);
         $this->expectException(\dml_missing_record_exception::class);
-        save_week::execute($syllabusa->cmid, $otherweek['weekid'], 'Hijacked', null, null, null, null, null, null);
+        save_week::execute($syllabusa->cmid, $otherweek['weekid'], 'Hijacked', null, null, null, null, null, null, 1);
     }
 
     /**
@@ -141,7 +178,7 @@ final class save_week_test extends advanced_testcase {
         $this->setUser($teacher);
 
         $this->expectException(moodle_exception::class);
-        save_week::execute($syllabus->cmid, 0, 'New week', null, null, null, null, null, null);
+        save_week::execute($syllabus->cmid, 0, 'New week', null, null, null, null, null, null, 1);
     }
 
     /**
@@ -154,11 +191,11 @@ final class save_week_test extends advanced_testcase {
 
         [$syllabus, $teacher] = $this->create_syllabus_with_teacher();
         $this->setUser($teacher);
-        $created = save_week::execute($syllabus->cmid, 0, 'Week 1', 60, null, null, null, null, null);
+        $created = save_week::execute($syllabus->cmid, 0, 'Week 1', 60, null, null, null, null, null, 1);
 
         $DB->set_field('syllabus', 'status', plan_state_manager::STATUS_APPROVED, ['id' => $syllabus->id]);
 
-        save_week::execute($syllabus->cmid, $created['weekid'], 'Week 1 revised', 60, null, null, null, null, null);
+        save_week::execute($syllabus->cmid, $created['weekid'], 'Week 1 revised', 60, null, null, null, null, null, 1);
 
         $status = $DB->get_field('syllabus', 'status', ['id' => $syllabus->id]);
         $this->assertSame(plan_state_manager::STATUS_SUBMITTED, $status);
@@ -174,11 +211,11 @@ final class save_week_test extends advanced_testcase {
 
         [$syllabus, $teacher] = $this->create_syllabus_with_teacher();
         $this->setUser($teacher);
-        $created = save_week::execute($syllabus->cmid, 0, 'Week 1', 60, null, null, null, null, null);
+        $created = save_week::execute($syllabus->cmid, 0, 'Week 1', 60, null, null, null, null, null, 1);
 
         $DB->set_field('syllabus', 'status', plan_state_manager::STATUS_APPROVED, ['id' => $syllabus->id]);
 
-        save_week::execute($syllabus->cmid, $created['weekid'], 'Week 1', 60, null, null, null, null, null);
+        save_week::execute($syllabus->cmid, $created['weekid'], 'Week 1', 60, null, null, null, null, null, 1);
 
         $status = $DB->get_field('syllabus', 'status', ['id' => $syllabus->id]);
         $this->assertSame(plan_state_manager::STATUS_APPROVED, $status);
@@ -201,6 +238,6 @@ final class save_week_test extends advanced_testcase {
         $this->setUser($student);
 
         $this->expectException(\required_capability_exception::class);
-        save_week::execute($syllabus->cmid, 0, 'Week 1', null, null, null, null, null, null);
+        save_week::execute($syllabus->cmid, 0, 'Week 1', null, null, null, null, null, null, 1);
     }
 }

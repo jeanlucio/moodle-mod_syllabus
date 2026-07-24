@@ -53,12 +53,19 @@ final class backup_restore_test extends \advanced_testcase {
         global $DB;
 
         $syllabus = $this->getDataGenerator()->create_module('syllabus', [
-            'course'               => $courseid,
-            'academicperiod'       => '2026.1',
-            'coursestartdate'      => strtotime('2026-06-04'),
-            'courseenddate'        => strtotime('2026-07-01'),
-            'totalduration'        => 30,
-            'presentationvideourl' => 'https://youtu.be/8MZLYHxOdUo',
+            'course'                   => $courseid,
+            'academicperiod'           => '2026.1',
+            'coursestartdate'          => strtotime('2026-06-04'),
+            'courseenddate'            => strtotime('2026-07-01'),
+            'totalduration'            => 30,
+            'presentationvideourl'     => 'https://youtu.be/8MZLYHxOdUo',
+            'stagecount'               => 3,
+            'grademethod'              => 'average',
+            'finalassessmenttitle'     => 'Final exam',
+            'finalassessmenttype'      => 'quiz',
+            'finalassessmentstartdate' => strtotime('2026-07-02'),
+            'finalassessmentenddate'   => strtotime('2026-07-05'),
+            'finalassessmentpoints'    => 100,
         ]);
 
         $now = time();
@@ -71,27 +78,33 @@ final class backup_restore_test extends \advanced_testcase {
             'syncdate'     => $now + DAYSECS,
             'synclink'     => 'https://meet.example.org/week1',
             'synctopic'    => 'Kickoff session',
+            'stage'        => 2,
             'sortorder'    => 0,
             'timecreated'  => $now,
             'timemodified' => $now,
         ]);
         $activityid = $DB->insert_record('syllabus_activities', [
-            'weekid'            => $weekid,
-            'title'             => 'Forum kickoff',
-            'type'              => 'forum',
-            'category'          => 'asynchronous',
-            'startdate'         => $now,
-            'enddate'           => $now + WEEKSECS,
-            'points'            => 10.5,
-            'isfinalassessment' => 1,
-            'sortorder'         => 0,
-            'timecreated'       => $now,
-            'timemodified'      => $now,
+            'weekid'       => $weekid,
+            'title'        => 'Forum kickoff',
+            'type'         => 'forum',
+            'category'     => 'asynchronous',
+            'startdate'    => $now,
+            'enddate'      => $now + WEEKSECS,
+            'points'       => 10.5,
+            'sortorder'    => 0,
+            'timecreated'  => $now,
+            'timemodified' => $now,
         ]);
 
         $this->set_customfield_value(plan_handler::create(), $syllabus->id, 'coursedescription', 'Plan level content.');
         $this->set_customfield_value(plan_handler::create(), $syllabus->id, 'presentationscript', 'Presentation script content.');
         $this->set_customfield_value(plan_handler::create(), $syllabus->id, 'generalreferences', 'General references content.');
+        $this->set_customfield_value(
+            plan_handler::create(),
+            $syllabus->id,
+            'finalassessmentinstructions',
+            'Final assessment instructions content.'
+        );
         $this->set_customfield_value(week_handler::create(), $weekid, 'details', 'Week level content.');
         $this->set_customfield_value(activity_handler::create(), $activityid, 'studentinstructions', 'Activity level content.');
 
@@ -280,16 +293,21 @@ final class backup_restore_test extends \advanced_testcase {
         );
 
         // Characterisation/Presentation fields (syllabus columns), the synchronous session
-        // fields (syllabus_weeks columns), the final assessment flag (syllabus_activities
-        // column) and the two plan-level narrative Custom Fields all survive a real
-        // backup/restore.
+        // fields (syllabus_weeks columns), the grading-stage columns (syllabus and
+        // syllabus_weeks), the Final assessment columns (syllabus) and the plan-level
+        // narrative Custom Fields all survive a real backup/restore.
         $this->assertSame('2026.1', $newsyllabus->academicperiod);
         $this->assertEquals(30, $newsyllabus->totalduration);
         $this->assertSame('https://youtu.be/8MZLYHxOdUo', $newsyllabus->presentationvideourl);
         $this->assertSame('https://meet.example.org/week1', $newweek->synclink);
         $this->assertSame('Kickoff session', $newweek->synctopic);
         $this->assertNotEmpty($newweek->syncdate);
-        $this->assertEquals(1, $newactivity->isfinalassessment);
+        $this->assertEquals(3, $newsyllabus->stagecount);
+        $this->assertSame('average', $newsyllabus->grademethod);
+        $this->assertEquals(2, $newweek->stage);
+        $this->assertSame('Final exam', $newsyllabus->finalassessmenttitle);
+        $this->assertSame('quiz', $newsyllabus->finalassessmenttype);
+        $this->assertEquals(100, $newsyllabus->finalassessmentpoints);
         $this->assertStringContainsString(
             'Presentation script content.',
             $this->get_customfield_value(plan_handler::create(), $newsyllabus->id, 'presentationscript')
@@ -297,6 +315,10 @@ final class backup_restore_test extends \advanced_testcase {
         $this->assertStringContainsString(
             'General references content.',
             $this->get_customfield_value(plan_handler::create(), $newsyllabus->id, 'generalreferences')
+        );
+        $this->assertStringContainsString(
+            'Final assessment instructions content.',
+            $this->get_customfield_value(plan_handler::create(), $newsyllabus->id, 'finalassessmentinstructions')
         );
     }
 

@@ -28,6 +28,9 @@
     and read here via Mustache's normal context-stack fallback (same pattern as tinyavailable
     in narrative_field.mustache) — each value is pre-rendered HTML from the 'help' Custom
     Field area (plan_reader::structural_help()), institution-editable via managefields.php.
+    hasmultiplestages is set the same way — the Stage select is a per-WEEK choice (every
+    activity in the week inherits it, no per-activity select anywhere), and only rendered at
+    all when the plan has more than one grading stage.
 
     The row is a native <details> element, open by default, with its own collapsible summary
     bar (title + a live "Xh · date range · N activities · Y pts" line kept up to date by
@@ -55,6 +58,11 @@
         "syncdate": 1749250000,
         "synclink": "https://meet.example.org/week1",
         "synctopic": "Kickoff session",
+        "hasmultiplestages": false,
+        "stage": 1,
+        "stageoptions": [
+            {"value": 1, "label": "Stage 1", "selected": true}
+        ],
         "structuralhelp": {
             "weekplanning": "<p>Set this class's duration and period...</p>",
             "syncmeeting": "<p>Date, time, link and topic of this week's live meeting...</p>"
@@ -85,7 +93,7 @@
     </summary>
     <div class="syllabus-week-body p-3">
         <div class="row g-2 align-items-end">
-            <div class="col-md-6">
+            <div class="col-md-4">
                 <label class="form-label small mb-1" for="syllabus-week-title-{{id}}">
                     {{#str}} weektitle, mod_syllabus {{/str}}
                 </label>
@@ -99,6 +107,18 @@
                 <input type="number" class="form-control syllabus-week-duration" id="syllabus-week-duration-{{id}}"
                     value="{{duration}}" placeholder="{{#str}} weekduration, mod_syllabus {{/str}}">
             </div>
+            {{#hasmultiplestages}}
+            <div class="col-md-2">
+                <label class="form-label small mb-1" for="syllabus-week-stage-{{id}}">
+                    {{#str}} stage, mod_syllabus {{/str}}
+                </label>
+                <select class="form-select syllabus-week-stage" id="syllabus-week-stage-{{id}}">
+                    {{#stageoptions}}
+                    <option value="{{value}}" {{#selected}}selected{{/selected}}>{{label}}</option>
+                    {{/stageoptions}}
+                </select>
+            </div>
+            {{/hasmultiplestages}}
             <div class="col-md-3 text-end">
                 <span class="syllabus-save-status syllabus-week-save-status d-none small text-muted me-2"
                     data-saving="{{#str}} saving, mod_syllabus {{/str}}"

@@ -22,11 +22,10 @@
     fields autosave on change (amd/src/weeks_manager.js) — there is no per-row "Save" button;
     only "Delete" remains.
 
-    structuralhelp (activitytype/finalassessment keys) is set once on tab_full_plan's own
-    context and read here via Mustache's normal context-stack fallback (same pattern as
-    tinyavailable in narrative_field.mustache) — each value is pre-rendered HTML from the
-    'help' Custom Field area (plan_reader::structural_help()), institution-editable via
-    managefields.php.
+    structuralhelp (activitytype key) is set once on tab_full_plan's own context and read here
+    via Mustache's normal context-stack fallback (same pattern as tinyavailable in
+    narrative_field.mustache) — each value is pre-rendered HTML from the 'help' Custom Field
+    area (plan_reader::structural_help()), institution-editable via managefields.php.
 
     Example context (json):
     {
@@ -36,7 +35,6 @@
         "type": "forum",
         "category": "asynchronous",
         "points": 10,
-        "isfinalassessment": false,
         "startdatefield": {
             "fieldid": "syllabus-activity-startdate-5",
             "fieldclass": "syllabus-activity-startdate",
@@ -58,8 +56,7 @@
             {"value": "online", "label": "Online", "selected": false}
         ],
         "structuralhelp": {
-            "activitytype": "<p>Choose the LMS tool used...</p>",
-            "finalassessment": "<p>Mark the activity that represents the Final assessment...</p>"
+            "activitytype": "<p>Choose the LMS tool used...</p>"
         },
         "fields": [
             {
@@ -127,21 +124,13 @@
     </div>
     <div class="mt-1">{{{structuralhelp.activitytype}}}</div>
     <div class="row g-2 align-items-center mt-2">
-        <div class="col-md-3">
+        <div class="col-md-6">
             {{#startdatefield}}{{> mod_syllabus/date_select }}{{/startdatefield}}
         </div>
-        <div class="col-md-3">
+        <div class="col-md-6">
             {{#enddatefield}}{{> mod_syllabus/date_select }}{{/enddatefield}}
         </div>
-        <div class="col-md-6 form-check pt-1">
-            <input type="checkbox" class="form-check-input syllabus-activity-isfinalassessment"
-                id="syllabus-activity-isfinalassessment-{{id}}" {{#isfinalassessment}}checked{{/isfinalassessment}}>
-            <label class="form-check-label" for="syllabus-activity-isfinalassessment-{{id}}">
-                {{#str}} finalassessment, mod_syllabus {{/str}}
-            </label>
-        </div>
     </div>
-    <div class="mt-1 mb-2">{{{structuralhelp.finalassessment}}}</div>
     {{#fields}}
         {{> mod_syllabus/narrative_field }}
     {{/fields}}

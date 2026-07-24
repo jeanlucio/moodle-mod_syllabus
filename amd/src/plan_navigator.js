@@ -102,8 +102,9 @@ const DURATION_MATCH_TOLERANCE_HOURS = 0.05;
 
 /**
  * Recomputes the totals bar: summed week duration against the plan's own total workload —
- * both in hours — and summed activity points against the fixed 100-point scale, matching or
- * not.
+ * both in hours — and, per grading stage, summed activity points against the fixed 100-point
+ * scale, matching or not. An activity's stage is its own week's stage (read once per week,
+ * applied to every activity inside it) — there is no per-activity stage selection anywhere.
  *
  * @param {HTMLElement} container
  */
@@ -115,16 +116,20 @@ const updateTotals = (container) => {
     const totaldurationInput = container.querySelector('.syllabus-plan-totalduration');
     const targetDuration = totaldurationInput ? (parseFloat(totaldurationInput.value) || 0) : 0;
 
-    let pointsSum = 0;
-    container.querySelectorAll('.syllabus-activity-points').forEach((el) => {
-        pointsSum += parseFloat(el.value) || 0;
+    const pointsByStage = {};
+    container.querySelectorAll('.syllabus-week-row').forEach((week) => {
+        const stageSelect = week.querySelector('.syllabus-week-stage');
+        const stage = stageSelect ? stageSelect.value : '1';
+        let weekPoints = 0;
+        week.querySelectorAll('.syllabus-activity-points').forEach((el) => {
+            weekPoints += parseFloat(el.value) || 0;
+        });
+        pointsByStage[stage] = (pointsByStage[stage] || 0) + weekPoints;
     });
 
     const durationBar = container.querySelector('.syllabus-totals-duration');
-    const pointsBar = container.querySelector('.syllabus-totals-points');
     const durationValue = container.querySelector('.syllabus-totals-duration-value');
     const durationTarget = container.querySelector('.syllabus-totals-duration-target');
-    const pointsValue = container.querySelector('.syllabus-totals-points-value');
 
     if (durationValue) {
         durationValue.textContent = Math.round(durationSum * 10) / 10;
@@ -132,12 +137,22 @@ const updateTotals = (container) => {
     if (durationTarget) {
         durationTarget.textContent = targetDuration;
     }
-    if (pointsValue) {
-        pointsValue.textContent = pointsSum;
-    }
-
     applyTotalsState(durationBar, Math.abs(durationSum - targetDuration) < DURATION_MATCH_TOLERANCE_HOURS);
-    applyTotalsState(pointsBar, pointsSum === 100);
+
+    container.querySelectorAll('.syllabus-totals-points[data-stage]').forEach((chip) => {
+        const pointsSum = pointsByStage[chip.dataset.stage] || 0;
+        const valueEl = chip.querySelector('.syllabus-totals-points-value');
+        if (valueEl) {
+            valueEl.textContent = pointsSum;
+        }
+        applyTotalsState(chip, pointsSum === 100);
+    });
+
+    const grademethodSelect = container.querySelector('.syllabus-plan-grademethod');
+    const grademethodValue = container.querySelector('.syllabus-totals-grademethod-value');
+    if (grademethodSelect && grademethodValue) {
+        grademethodValue.textContent = grademethodSelect.options[grademethodSelect.selectedIndex]?.text ?? '';
+    }
 };
 
 /**

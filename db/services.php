@@ -73,6 +73,14 @@ $functions = [
         'ajax'         => true,
         'capabilities' => 'mod/syllabus:submit',
     ],
+    'mod_syllabus_save_final_assessment' => [
+        'classname'    => 'mod_syllabus\external\save_final_assessment',
+        'methodname'   => 'execute',
+        'description'  => 'Autosave the plan-level Final assessment block.',
+        'type'         => 'write',
+        'ajax'         => true,
+        'capabilities' => 'mod/syllabus:submit',
+    ],
     'mod_syllabus_submit_plan' => [
         'classname'    => 'mod_syllabus\external\submit_plan',
         'methodname'   => 'execute',

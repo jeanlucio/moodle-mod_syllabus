@@ -73,26 +73,23 @@ final class plan_read_export {
     }
 
     /**
-     * Pulls out every activity flagged isfinalassessment across every week, in the shape
-     * plan_activity_read.mustache expects, each carrying the title of the week it belongs to
-     * for context. Operates on the already-exported/filtered result of weeks() rather than
-     * re-reading plan_reader — the tutor-field visibility filter was already applied there,
-     * so there is nothing left to re-check here.
+     * Exports the plan-level Final assessment block for the read-only views — a single object,
+     * never a per-week list: the source document treats it as its own standalone block,
+     * structurally paralleling Characterisation, not an activity inside any particular week.
      *
-     * @param stdClass[] $exportedweeks Result of weeks().
-     * @return stdClass[]
+     * @param stdClass $syllabus The syllabus record.
+     * @param stdClass $narrative Result of plan_reader::plan_narrative().
+     * @return stdClass
      */
-    public static function final_assessment_activities(array $exportedweeks): array {
-        $result = [];
-        foreach ($exportedweeks as $week) {
-            foreach ($week->activities as $activity) {
-                if ($activity->isfinalassessment) {
-                    $activity->weektitle = $week->title;
-                    $result[] = $activity;
-                }
-            }
-        }
-        return $result;
+    public static function final_assessment(stdClass $syllabus, stdClass $narrative): stdClass {
+        return (object) [
+            'title'        => $syllabus->finalassessmenttitle,
+            'type'         => $syllabus->finalassessmenttype,
+            'startdate'    => $syllabus->finalassessmentstartdate,
+            'enddate'      => $syllabus->finalassessmentenddate,
+            'points'       => $syllabus->finalassessmentpoints,
+            'instructions' => $narrative->finalassessmentinstructions ?? '',
+        ];
     }
 
     /**
@@ -115,7 +112,6 @@ final class plan_read_export {
                 'startdate'           => $activity->startdate,
                 'enddate'             => $activity->enddate,
                 'points'              => $activity->points,
-                'isfinalassessment'   => (bool) $activity->isfinalassessment,
                 'studentinstructions' => $fields['studentinstructions'] ?? '',
                 'showtutorfields'     => $showtutorfields,
             ];

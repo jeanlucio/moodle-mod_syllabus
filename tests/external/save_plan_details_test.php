@@ -77,7 +77,9 @@ final class save_plan_details_test extends advanced_testcase {
             1749000000,
             1751500000,
             30,
-            'https://youtu.be/8MZLYHxOdUo'
+            'https://youtu.be/8MZLYHxOdUo',
+            3,
+            'average'
         );
         $result = external_api::clean_returnvalue(save_plan_details::execute_returns(), $result);
 
@@ -88,6 +90,34 @@ final class save_plan_details_test extends advanced_testcase {
         $this->assertEquals(1751500000, $updated->courseenddate);
         $this->assertEquals(30, $updated->totalduration);
         $this->assertSame('https://youtu.be/8MZLYHxOdUo', $updated->presentationvideourl);
+        $this->assertEquals(3, $updated->stagecount);
+        $this->assertSame('average', $updated->grademethod);
+    }
+
+    /**
+     * stagecount below 1 is rejected.
+     *
+     * @return void
+     */
+    public function test_rejects_stagecount_below_one(): void {
+        [$syllabus, $teacher] = $this->create_syllabus_with_teacher();
+        $this->setUser($teacher);
+
+        $this->expectException(\invalid_parameter_exception::class);
+        save_plan_details::execute($syllabus->cmid, '2026.1', null, null, null, null, 0, 'sum');
+    }
+
+    /**
+     * An unrecognised grademethod value is rejected.
+     *
+     * @return void
+     */
+    public function test_rejects_unknown_grademethod(): void {
+        [$syllabus, $teacher] = $this->create_syllabus_with_teacher();
+        $this->setUser($teacher);
+
+        $this->expectException(\invalid_parameter_exception::class);
+        save_plan_details::execute($syllabus->cmid, '2026.1', null, null, null, null, 1, 'median');
     }
 
     /**
@@ -101,7 +131,7 @@ final class save_plan_details_test extends advanced_testcase {
         [$syllabus, $teacher] = $this->create_syllabus_with_teacher(plan_state_manager::STATUS_SUBMITTED);
         $this->setUser($teacher);
 
-        $result = save_plan_details::execute($syllabus->cmid, '2026.1', null, null, null, null);
+        $result = save_plan_details::execute($syllabus->cmid, '2026.1', null, null, null, null, 1, 'sum');
         $result = external_api::clean_returnvalue(save_plan_details::execute_returns(), $result);
 
         $this->assertTrue($result['success']);
@@ -119,7 +149,7 @@ final class save_plan_details_test extends advanced_testcase {
         [$syllabus, $teacher] = $this->create_syllabus_with_teacher(plan_state_manager::STATUS_APPROVED);
         $this->setUser($teacher);
 
-        save_plan_details::execute($syllabus->cmid, '2026.2', null, null, null, null);
+        save_plan_details::execute($syllabus->cmid, '2026.2', null, null, null, null, 1, 'sum');
 
         $status = $DB->get_field('syllabus', 'status', ['id' => $syllabus->id]);
         $this->assertSame(plan_state_manager::STATUS_APPROVED, $status);
@@ -142,6 +172,6 @@ final class save_plan_details_test extends advanced_testcase {
         $this->setUser($student);
 
         $this->expectException(\required_capability_exception::class);
-        save_plan_details::execute($syllabus->cmid, '2026.1', null, null, null, null);
+        save_plan_details::execute($syllabus->cmid, '2026.1', null, null, null, null, 1, 'sum');
     }
 }

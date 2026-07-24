@@ -15,8 +15,7 @@
 // along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 /**
- * Tests for plan_read_export::final_assessment_activities(), not exercised by
- * tab_visibility_test.php's fixtures (none of which ever flag an activity isfinalassessment).
+ * Tests for plan_read_export::final_assessment().
  *
  * @package    mod_syllabus
  * @category   test
@@ -27,9 +26,10 @@
 namespace mod_syllabus\output;
 
 use advanced_testcase;
+use mod_syllabus\customfield\plan_handler;
 
 /**
- * Tests for plan_read_export::final_assessment_activities().
+ * Tests for plan_read_export::final_assessment().
  *
  * @coversDefaultClass \mod_syllabus\output\plan_read_export
  */
@@ -41,73 +41,92 @@ final class plan_read_export_test extends advanced_testcase {
     }
 
     /**
-     * Only activities flagged isfinalassessment are pulled out, each carrying its own week's
-     * title for context; a regular activity in the same week is left out.
+     * Sets a Custom Field value directly, mirroring save_customfield_value::execute().
      *
-     * @covers ::final_assessment_activities
+     * @param \core_customfield\handler $handler
+     * @param int $instanceid
+     * @param string $shortname
+     * @param string $value
      * @return void
      */
-    public function test_final_assessment_activities_filters_and_tags_week_title(): void {
-        global $DB;
-
-        $course = $this->getDataGenerator()->create_course();
-        $syllabus = $this->getDataGenerator()->create_module('syllabus', ['course' => $course->id]);
-        $now = time();
-        $weekid = $DB->insert_record('syllabus_weeks', [
-            'syllabusid'   => $syllabus->id,
-            'title'        => 'Final week',
-            'sortorder'    => 0,
-            'timecreated'  => $now,
-            'timemodified' => $now,
-        ]);
-        $DB->insert_record('syllabus_activities', [
-            'weekid' => $weekid, 'title' => 'Regular quiz', 'isfinalassessment' => 0,
-            'sortorder' => 0, 'timecreated' => $now, 'timemodified' => $now,
-        ]);
-        $DB->insert_record('syllabus_activities', [
-            'weekid' => $weekid, 'title' => 'Final exam', 'isfinalassessment' => 1,
-            'sortorder' => 1, 'timecreated' => $now, 'timemodified' => $now,
-        ]);
-
-        $reader = new plan_reader($syllabus);
-        $weeks = $reader->weeks();
-        $exportedweeks = plan_read_export::weeks($reader, $weeks, true);
-        $finalassessments = plan_read_export::final_assessment_activities($exportedweeks);
-
-        $this->assertCount(1, $finalassessments);
-        $this->assertSame('Final exam', $finalassessments[0]->title);
-        $this->assertSame('Final week', $finalassessments[0]->weektitle);
+    private function set_customfield_value(
+        \core_customfield\handler $handler,
+        int $instanceid,
+        string $shortname,
+        string $value
+    ): void {
+        foreach ($handler->get_instance_data($instanceid, true) as $datacontroller) {
+            if ($datacontroller->get_field()->get('shortname') !== $shortname) {
+                continue;
+            }
+            if (!$datacontroller->get('id')) {
+                $datacontroller->set('contextid', $handler->get_instance_context($instanceid)->id);
+            }
+            $fakeform = new \stdClass();
+            $fakeform->{$datacontroller->get_form_element_name()} = [
+                'text' => $value, 'format' => FORMAT_HTML, 'itemid' => 0,
+            ];
+            $datacontroller->instance_form_save($fakeform);
+            return;
+        }
+        $this->fail("Seeded field '{$shortname}' not found.");
     }
 
     /**
-     * A week with no final-assessment activities contributes nothing to the result.
+     * The plan-level Final assessment fields (title/type/dates/points) and its narrative
+     * Custom Field value are exported as a single object, structurally paralleling
+     * Characterisation rather than an activity inside some week.
      *
-     * @covers ::final_assessment_activities
+     * @covers ::final_assessment
      * @return void
      */
-    public function test_final_assessment_activities_returns_empty_when_none_flagged(): void {
+    public function test_final_assessment_exports_plan_level_fields(): void {
         global $DB;
 
         $course = $this->getDataGenerator()->create_course();
-        $syllabus = $this->getDataGenerator()->create_module('syllabus', ['course' => $course->id]);
-        $now = time();
-        $weekid = $DB->insert_record('syllabus_weeks', [
-            'syllabusid'   => $syllabus->id,
-            'title'        => 'Week 1',
-            'sortorder'    => 0,
-            'timecreated'  => $now,
-            'timemodified' => $now,
+        $syllabus = $this->getDataGenerator()->create_module('syllabus', [
+            'course'                   => $course->id,
+            'finalassessmenttitle'     => 'Final exam',
+            'finalassessmenttype'      => 'quiz',
+            'finalassessmentstartdate' => 1749000000,
+            'finalassessmentenddate'   => 1749600000,
+            'finalassessmentpoints'    => 100,
         ]);
-        $DB->insert_record('syllabus_activities', [
-            'weekid' => $weekid, 'title' => 'Regular quiz', 'isfinalassessment' => 0,
-            'sortorder' => 0, 'timecreated' => $now, 'timemodified' => $now,
-        ]);
+        $syllabus = $DB->get_record('syllabus', ['id' => $syllabus->id], '*', MUST_EXIST);
+        $this->set_customfield_value(
+            plan_handler::create(),
+            $syllabus->id,
+            'finalassessmentinstructions',
+            'Exam covering the whole semester.'
+        );
 
         $reader = new plan_reader($syllabus);
-        $weeks = $reader->weeks();
-        $exportedweeks = plan_read_export::weeks($reader, $weeks, false);
+        $narrative = $reader->plan_narrative();
+        $exported = plan_read_export::final_assessment($syllabus, $narrative);
 
-        $this->assertSame([], plan_read_export::final_assessment_activities($exportedweeks));
-        $this->assertFalse(property_exists($exportedweeks[0]->activities[0], 'gradingcriteria'));
+        $this->assertSame('Final exam', $exported->title);
+        $this->assertSame('quiz', $exported->type);
+        $this->assertEquals(1749000000, $exported->startdate);
+        $this->assertEquals(1749600000, $exported->enddate);
+        $this->assertEquals(100, $exported->points);
+        $this->assertStringContainsString('Exam covering the whole semester.', $exported->instructions);
+    }
+
+    /**
+     * A plan that never had its Final assessment filled in exports an empty title, the signal
+     * the read-only templates use to decide whether to render the block at all.
+     *
+     * @covers ::final_assessment
+     * @return void
+     */
+    public function test_final_assessment_title_is_empty_when_never_filled_in(): void {
+        $course = $this->getDataGenerator()->create_course();
+        $syllabus = $this->getDataGenerator()->create_module('syllabus', ['course' => $course->id]);
+
+        $reader = new plan_reader($syllabus);
+        $narrative = $reader->plan_narrative();
+        $exported = plan_read_export::final_assessment($syllabus, $narrative);
+
+        $this->assertSame('', trim((string) $exported->title));
     }
 }

@@ -49,6 +49,7 @@ final class customfield_seeder {
                     'methodology' => 'methodology',
                     'presentationscript' => 'presentationscript',
                     'generalreferences' => 'generalreferences',
+                    'finalassessmentinstructions' => 'studentinstructions',
                 ],
             ],
             'week_handler' => [
@@ -109,5 +110,52 @@ final class customfield_seeder {
             $field = field_controller::create(0, $record, $category);
             api::save_field_configuration($field, $record);
         }
+    }
+
+    /**
+     * Adds one field to an area's already-existing category, for a site that installed the
+     * plugin (or last ran seed_area() for this area) before the field existed — never calls
+     * seed_area() again for the whole area, which would create a second category and duplicate
+     * every field already in it.
+     *
+     * @param string $handlerclass One of the array keys returned by areas().
+     * @param string $shortname
+     * @param string $namekey
+     * @return void
+     */
+    public static function ensure_field(string $handlerclass, string $shortname, string $namekey): void {
+        global $DB;
+
+        $classname = "mod_syllabus\\customfield\\{$handlerclass}";
+        $handler = $classname::create();
+        $area = $handler->get_area();
+        $exists = $DB->record_exists_sql(
+            "SELECT 1
+               FROM {customfield_field} f
+               JOIN {customfield_category} c ON c.id = f.categoryid
+              WHERE c.component = 'mod_syllabus' AND c.area = :area AND f.shortname = :shortname",
+            ['area' => $area, 'shortname' => $shortname]
+        );
+        if ($exists) {
+            return;
+        }
+
+        $categoryid = $DB->get_field_sql(
+            "SELECT c.id FROM {customfield_category} c WHERE c.component = 'mod_syllabus' AND c.area = :area",
+            ['area' => $area],
+            MUST_EXIST
+        );
+        $category = category_controller::create($categoryid);
+        $record = (object) [
+            'shortname' => $shortname,
+            'name' => get_string($namekey, 'mod_syllabus'),
+            'type' => 'textarea',
+            'categoryid' => $categoryid,
+            'configdata' => [],
+            'description' => help_text_builder::build($shortname),
+            'descriptionformat' => FORMAT_HTML,
+        ];
+        $field = field_controller::create(0, $record, $category);
+        api::save_field_configuration($field, $record);
     }
 }

@@ -67,11 +67,14 @@ final class tab_student_plan implements renderable, templatable {
         $weeks = $reader->weeks();
         $schedule = $reader->schedule($weeks);
         $weeksexport = plan_read_export::weeks($reader, $weeks, false);
-        $finalassessments = plan_read_export::final_assessment_activities($weeksexport);
+        $finalassessment = plan_read_export::final_assessment($this->syllabus, $narrative);
+        $stagecount = max(1, (int) $this->syllabus->stagecount);
 
         return (object) [
             'statuslabel'      => get_string(plan_state_manager::status_string_key($this->syllabus->status), 'mod_syllabus'),
             'statusbadgeclass' => plan_state_manager::status_badge_class($this->syllabus->status),
+            'hasmultiplestages' => $stagecount > 1,
+            'grademethodlabel' => get_string('grademethod' . $this->syllabus->grademethod, 'mod_syllabus'),
             'coursename'       => plan_programme_name::resolve((int) $this->course->category),
             'disciplinename'   => format_string($this->course->fullname),
             'teachername'      => plan_teacher_name::resolve($this->syllabus),
@@ -88,8 +91,8 @@ final class tab_student_plan implements renderable, templatable {
             'generalreferences'  => $narrative->generalreferences ?? '',
             'weeks'    => $weeksexport,
             'hasweeks' => !empty($weeks),
-            'finalassessments'    => $finalassessments,
-            'hasfinalassessments' => !empty($finalassessments),
+            'finalassessment'    => $finalassessment,
+            'hasfinalassessment' => trim((string) $finalassessment->title) !== '',
             'schedule'    => $schedule,
             'hasschedule' => !empty($schedule),
         ];

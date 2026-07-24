@@ -21,6 +21,7 @@ use core_external\external_api;
 use core_external\external_function_parameters;
 use core_external\external_single_structure;
 use core_external\external_value;
+use invalid_parameter_exception;
 use stdClass;
 
 /**
@@ -56,6 +57,8 @@ class save_plan_details extends external_api {
                 VALUE_DEFAULT,
                 null
             ),
+            'stagecount'  => new external_value(PARAM_INT, 'Number of grading stages', VALUE_DEFAULT, 1),
+            'grademethod' => new external_value(PARAM_ALPHA, 'How stage grades combine: sum|average', VALUE_DEFAULT, 'sum'),
         ]);
     }
 
@@ -68,6 +71,8 @@ class save_plan_details extends external_api {
      * @param int|null $courseenddate Course period end.
      * @param int|null $totalduration Declared total workload in hours.
      * @param string|null $presentationvideourl Presentation video link.
+     * @param int $stagecount Number of grading stages.
+     * @param string $grademethod How stage grades combine: sum|average.
      * @return array Result with success status.
      */
     public static function execute(
@@ -76,7 +81,9 @@ class save_plan_details extends external_api {
         ?int $coursestartdate,
         ?int $courseenddate,
         ?int $totalduration,
-        ?string $presentationvideourl
+        ?string $presentationvideourl,
+        int $stagecount,
+        string $grademethod
     ): array {
         global $DB;
 
@@ -87,7 +94,16 @@ class save_plan_details extends external_api {
             'courseenddate'        => $courseenddate,
             'totalduration'        => $totalduration,
             'presentationvideourl' => $presentationvideourl,
+            'stagecount'           => $stagecount,
+            'grademethod'          => $grademethod,
         ]);
+
+        if ($params['stagecount'] < 1) {
+            throw new invalid_parameter_exception('stagecount must be 1 or greater.');
+        }
+        if (!in_array($params['grademethod'], ['sum', 'average'], true)) {
+            throw new invalid_parameter_exception('grademethod must be "sum" or "average".');
+        }
 
         $cm = get_coursemodule_from_id('syllabus', $params['cmid'], 0, false, MUST_EXIST);
         $context = context_module::instance($cm->id);
@@ -101,6 +117,8 @@ class save_plan_details extends external_api {
         $record->courseenddate = $params['courseenddate'];
         $record->totalduration = $params['totalduration'];
         $record->presentationvideourl = $params['presentationvideourl'];
+        $record->stagecount = $params['stagecount'];
+        $record->grademethod = $params['grademethod'];
         $record->timemodified = time();
         $DB->update_record('syllabus', $record);
 

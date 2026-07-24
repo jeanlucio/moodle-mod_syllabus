@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<XMLDB PATH="mod/syllabus/db" VERSION="20260725" COMMENT="XMLDB file for mod_syllabus"
+<XMLDB PATH="mod/syllabus/db" VERSION="20260726" COMMENT="XMLDB file for mod_syllabus"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:noNamespaceSchemaLocation="../../../lib/xmldb/xmldb.xsd"
 >
@@ -24,6 +24,13 @@
         <FIELD NAME="courseenddate" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="Characterisation: course period end"/>
         <FIELD NAME="totalduration" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="Characterisation: declared total workload in hours, target for the totals bar"/>
         <FIELD NAME="presentationvideourl" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="Teacher and course presentation video link"/>
+        <FIELD NAME="stagecount" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="1" SEQUENCE="false" COMMENT="Number of independent 100-point grading stages this plan is divided into"/>
+        <FIELD NAME="grademethod" TYPE="char" LENGTH="20" NOTNULL="true" DEFAULT="sum" SEQUENCE="false" COMMENT="How stage grades are meant to be combined when stagecount &gt; 1: sum|average - informational only, never computes an actual grade"/>
+        <FIELD NAME="finalassessmenttitle" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="Final assessment: activity title"/>
+        <FIELD NAME="finalassessmenttype" TYPE="char" LENGTH="100" NOTNULL="false" SEQUENCE="false" COMMENT="Final assessment: activity type, e.g. forum, quiz, assignment"/>
+        <FIELD NAME="finalassessmentstartdate" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="Final assessment: start date"/>
+        <FIELD NAME="finalassessmentenddate" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="Final assessment: end date"/>
+        <FIELD NAME="finalassessmentpoints" TYPE="number" LENGTH="10" NOTNULL="false" SEQUENCE="false" DECIMALS="2" COMMENT="Final assessment: points, typically 100"/>
         <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
       </FIELDS>
@@ -46,6 +53,7 @@
         <FIELD NAME="syncdate" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="Synchronous meeting date and time"/>
         <FIELD NAME="synclink" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="Synchronous meeting access link"/>
         <FIELD NAME="synctopic" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="Synchronous meeting topic"/>
+        <FIELD NAME="stage" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="1" SEQUENCE="false" COMMENT="Which grading stage (1..syllabus.stagecount) this week's activities count toward"/>
         <FIELD NAME="sortorder" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
@@ -65,7 +73,6 @@
         <FIELD NAME="startdate" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false"/>
         <FIELD NAME="enddate" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false"/>
         <FIELD NAME="points" TYPE="number" LENGTH="10" NOTNULL="false" SEQUENCE="false" DECIMALS="2"/>
-        <FIELD NAME="isfinalassessment" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Marks this activity as the course's Avaliacao Final"/>
         <FIELD NAME="sortorder" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>

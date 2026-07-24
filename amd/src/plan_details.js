@@ -55,18 +55,38 @@ const save = async(container) => {
     const totaldurationInput = container.querySelector('.syllabus-plan-totalduration').value;
     const totalduration = totaldurationInput === '' ? null : parseInt(totaldurationInput, 10);
     const presentationvideourl = container.querySelector('.syllabus-plan-presentationvideourl').value.trim() || null;
+    const stagecountInput = container.querySelector('.syllabus-plan-stagecount').value;
+    const stagecount = stagecountInput === '' ? 1 : parseInt(stagecountInput, 10);
+    const grademethod = container.querySelector('.syllabus-plan-grademethod').value.trim() || 'sum';
 
     document.dispatchEvent(new CustomEvent('syllabus-autosave', {detail: {pending: true}}));
     try {
         await Ajax.call([{
             methodname: 'mod_syllabus_save_plan_details',
-            args: {cmid, academicperiod, coursestartdate, courseenddate, totalduration, presentationvideourl},
+            args: {
+                cmid, academicperiod, coursestartdate, courseenddate, totalduration, presentationvideourl,
+                stagecount, grademethod,
+            },
         }])[0];
     } catch (error) {
         showRejected(error);
     } finally {
         document.dispatchEvent(new CustomEvent('syllabus-autosave', {detail: {pending: false}}));
     }
+};
+
+/**
+ * Saves the current stagecount, then reloads the page — changing the number of stages
+ * reshapes the rest of the form (each week's Stage select options, the grading method
+ * control's visibility, the totals bar's per-stage chips), which a plain autosave cannot
+ * update live without duplicating server-side logic in JavaScript. Same reasoning as
+ * weeks_manager.js reloading after creating/deleting a week or activity.
+ *
+ * @param {HTMLElement} container The .syllabus-characterisation-edit element.
+ */
+const saveStagecountAndReload = async(container) => {
+    await save(container);
+    window.location.reload();
 };
 
 /**
@@ -83,6 +103,13 @@ export const init = (coursemoduleid) => {
     }
 
     container.querySelectorAll('input, select').forEach((field) => {
+        if (field.classList.contains('syllabus-plan-stagecount')) {
+            return;
+        }
         field.addEventListener('change', () => save(container));
     });
+    const stagecountField = container.querySelector('.syllabus-plan-stagecount');
+    if (stagecountField) {
+        stagecountField.addEventListener('change', () => saveStagecountAndReload(container));
+    }
 };

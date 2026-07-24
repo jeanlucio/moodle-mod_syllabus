@@ -53,7 +53,7 @@ final class delete_week_test extends advanced_testcase {
         $this->getDataGenerator()->enrol_user($teacher->id, $course->id, 'editingteacher');
         $this->setUser($teacher);
 
-        $week = save_week::execute($syllabus->cmid, 0, 'Week 1', null, null, null, null, null, null);
+        $week = save_week::execute($syllabus->cmid, 0, 'Week 1', null, null, null, null, null, null, 1);
         $activity = save_activity::execute(
             $syllabus->cmid,
             $week['weekid'],
@@ -63,8 +63,7 @@ final class delete_week_test extends advanced_testcase {
             null,
             null,
             null,
-            null,
-            false
+            null
         );
 
         $result = delete_week::execute($syllabus->cmid, $week['weekid']);
@@ -89,7 +88,7 @@ final class delete_week_test extends advanced_testcase {
         $this->getDataGenerator()->enrol_user($teacher->id, $course->id, 'editingteacher');
         $this->setUser($teacher);
 
-        $week = save_week::execute($syllabus->cmid, 0, 'Week 1', null, null, null, null, null, null);
+        $week = save_week::execute($syllabus->cmid, 0, 'Week 1', null, null, null, null, null, null, 1);
         $DB->set_field('syllabus', 'status', plan_state_manager::STATUS_APPROVED, ['id' => $syllabus->id]);
 
         delete_week::execute($syllabus->cmid, $week['weekid']);

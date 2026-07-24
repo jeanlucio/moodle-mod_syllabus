@@ -69,16 +69,15 @@ final class tab_full_plan_test extends advanced_testcase {
         ]);
         $weekid = $DB->get_field('syllabus_weeks', 'id', ['syllabusid' => $syllabus->id], MUST_EXIST);
         $DB->insert_record('syllabus_activities', [
-            'weekid'            => $weekid,
-            'title'             => 'Kickoff forum',
-            'type'              => 'forum',
-            'category'          => 'synchronous',
-            'startdate'         => $now,
-            'enddate'           => $now + WEEKSECS,
-            'isfinalassessment' => 0,
-            'sortorder'         => 0,
-            'timecreated'       => $now,
-            'timemodified'      => $now,
+            'weekid'       => $weekid,
+            'title'        => 'Kickoff forum',
+            'type'         => 'forum',
+            'category'     => 'synchronous',
+            'startdate'    => $now,
+            'enddate'      => $now + WEEKSECS,
+            'sortorder'    => 0,
+            'timecreated'  => $now,
+            'timemodified' => $now,
         ]);
         $cm = get_coursemodule_from_instance('syllabus', $syllabus->id, $course->id, false, MUST_EXIST);
 
@@ -150,6 +149,102 @@ final class tab_full_plan_test extends advanced_testcase {
         $selected = current(array_filter($activity->typeoptions, fn ($o) => $o->selected));
         $this->assertSame('legacy_custom_type', $selected->value);
         $this->assertSame('legacy_custom_type', $selected->label);
+    }
+
+    /**
+     * With the default single stage, hasmultiplestages is false and the totals bar's stages
+     * array has exactly one entry — the same single points chip the plan showed before this
+     * feature existed.
+     *
+     * @covers ::export_for_template
+     * @return void
+     */
+    public function test_single_stage_by_default(): void {
+        [$syllabus, $cm, $course, $teacher] = $this->seed_editable_plan();
+        $this->setUser($teacher);
+
+        $page = new tab_full_plan($syllabus, $cm, $course);
+        $data = $page->export_for_template($GLOBALS['PAGE']->get_renderer('mod_syllabus'));
+
+        $this->assertSame(1, $data->stagecount);
+        $this->assertFalse($data->hasmultiplestages);
+        $this->assertCount(1, $data->stages);
+        $this->assertSame(1, $data->weeks[0]->stage);
+    }
+
+    /**
+     * With more than one stage, hasmultiplestages is true, the totals bar's stages array has
+     * one entry per stage, and a week's stage select is built from that range. A week whose
+     * stored stage is now higher than stagecount (lowered after the week was assigned) gets
+     * that value appended as an extra selected option instead of being silently reassigned.
+     *
+     * @covers ::export_for_template
+     * @covers ::build_stage_options
+     * @return void
+     */
+    public function test_multiple_stages_and_orphaned_week_stage(): void {
+        global $DB;
+
+        [$syllabus, $cm, $course, $teacher] = $this->seed_editable_plan();
+        $DB->set_field('syllabus', 'stagecount', 2, ['id' => $syllabus->id]);
+        $DB->set_field('syllabus', 'grademethod', 'average', ['id' => $syllabus->id]);
+        $DB->set_field('syllabus_weeks', 'stage', 5, ['syllabusid' => $syllabus->id]);
+        $syllabus = $this->refresh($syllabus);
+        $this->setUser($teacher);
+
+        $page = new tab_full_plan($syllabus, $cm, $course);
+        $data = $page->export_for_template($GLOBALS['PAGE']->get_renderer('mod_syllabus'));
+
+        $this->assertSame(2, $data->stagecount);
+        $this->assertTrue($data->hasmultiplestages);
+        $this->assertCount(2, $data->stages);
+
+        $week = $data->weeks[0];
+        $this->assertSame(5, $week->stage);
+        $orphaned = current(array_filter($week->stageoptions, fn ($o) => $o->selected));
+        $this->assertSame(5, $orphaned->value);
+
+        $grademethodselected = current(array_filter($data->grademethodoptions, fn ($o) => $o->selected));
+        $this->assertSame('average', $grademethodselected->value);
+    }
+
+    /**
+     * The Final assessment's structured fields (title/type/dates/points) and its narrative
+     * Custom Field are exported alongside the rest of the editable form.
+     *
+     * @covers ::export_for_template
+     * @return void
+     */
+    public function test_exports_final_assessment_fields(): void {
+        global $DB;
+
+        [$syllabus, $cm, $course, $teacher] = $this->seed_editable_plan();
+        $DB->update_record('syllabus', (object) [
+            'id'                       => $syllabus->id,
+            'finalassessmenttitle'     => 'Final exam',
+            'finalassessmenttype'      => 'quiz',
+            'finalassessmentpoints'    => 100,
+        ]);
+        $syllabus = $this->refresh($syllabus);
+        $this->setUser($teacher);
+
+        $page = new tab_full_plan($syllabus, $cm, $course);
+        $data = $page->export_for_template($GLOBALS['PAGE']->get_renderer('mod_syllabus'));
+
+        $this->assertSame('Final exam', $data->finalassessmenttitle);
+        $this->assertEquals(100, $data->finalassessmentpoints);
+        $typeselected = current(array_filter($data->finalassessmenttypeoptions, fn ($o) => $o->selected));
+        $this->assertSame('quiz', $typeselected->value);
+        $this->assertNotNull($data->finalassessmentfield);
+        $this->assertSame(get_string('studentinstructions', 'mod_syllabus'), $data->finalassessmentfield->name ?? null);
+        $this->assertSame('plan', $data->finalassessmentfield->area ?? null);
+        // The generic planfields loop must never also render this field — it lives in its own
+        // section, not intermixed with Ementa/Objectives/etc.
+        $shortnames = array_map(
+            fn ($f) => $f->name,
+            $data->planfields
+        );
+        $this->assertNotContains(get_string('studentinstructions', 'mod_syllabus'), $shortnames);
     }
 
     /**

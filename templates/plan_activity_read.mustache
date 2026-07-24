@@ -30,8 +30,6 @@
         "startdate": 1749000000,
         "enddate": 1749600000,
         "points": 15,
-        "isfinalassessment": false,
-        "weektitle": null,
         "studentinstructions": "<p>Read the chapter and reply in the forum.</p>",
         "showtutorfields": true,
         "gradingcriteria": "<p>4 pts clarity, 4 pts argumentation...</p>",
@@ -39,14 +37,8 @@
     }
 }}
 <div class="syllabus-activity-read border rounded p-2 mb-2">
-    <h5 class="mb-1">
-        {{title}}
-        {{#isfinalassessment}}
-        <span class="badge bg-danger">{{#str}} finalassessment, mod_syllabus {{/str}}</span>
-        {{/isfinalassessment}}
-    </h5>
+    <h5 class="mb-1">{{title}}</h5>
     <p class="small text-muted mb-2">
-        {{#weektitle}}{{weektitle}} · {{/weektitle}}
         {{#type}}{{type}}{{/type}}{{#category}} · {{category}}{{/category}}
         {{#startdate}}
             · {{#userdate}} {{startdate}}, {{#str}} strftimedatefullshort, core_langconfig {{/str}} {{/userdate}}

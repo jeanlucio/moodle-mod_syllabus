@@ -52,7 +52,7 @@ final class delete_activity_test extends advanced_testcase {
         $this->getDataGenerator()->enrol_user($teacher->id, $course->id, 'editingteacher');
         $this->setUser($teacher);
 
-        $week = save_week::execute($syllabus->cmid, 0, 'Week 1', null, null, null, null, null, null);
+        $week = save_week::execute($syllabus->cmid, 0, 'Week 1', null, null, null, null, null, null, 1);
         $activity = save_activity::execute(
             $syllabus->cmid,
             $week['weekid'],
@@ -62,8 +62,7 @@ final class delete_activity_test extends advanced_testcase {
             null,
             null,
             null,
-            null,
-            false
+            null
         );
 
         $result = delete_activity::execute($syllabus->cmid, $activity['activityid']);
@@ -90,7 +89,7 @@ final class delete_activity_test extends advanced_testcase {
         $this->getDataGenerator()->enrol_user($teacherb->id, $courseb->id, 'editingteacher');
 
         $this->setUser($teacherb);
-        $weekb = save_week::execute($syllabusb->cmid, 0, 'Week B', null, null, null, null, null, null);
+        $weekb = save_week::execute($syllabusb->cmid, 0, 'Week B', null, null, null, null, null, null, 1);
         $activityb = save_activity::execute(
             $syllabusb->cmid,
             $weekb['weekid'],
@@ -100,8 +99,7 @@ final class delete_activity_test extends advanced_testcase {
             null,
             null,
             null,
-            null,
-            false
+            null
         );
 
         $this->setUser($teachera);

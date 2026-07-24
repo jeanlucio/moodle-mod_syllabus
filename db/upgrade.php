@@ -214,5 +214,73 @@ function xmldb_syllabus_upgrade(int $oldversion): bool {
         upgrade_mod_savepoint(true, 2026072514, 'syllabus');
     }
 
+    if ($oldversion < 2026072515) {
+        $dbman = $DB->get_manager();
+
+        $syllabustable = new xmldb_table('syllabus');
+        $newsyllabusfields = [
+            new xmldb_field('stagecount', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, 1),
+            new xmldb_field('grademethod', XMLDB_TYPE_CHAR, '20', null, XMLDB_NOTNULL, null, 'sum'),
+            new xmldb_field('finalassessmenttitle', XMLDB_TYPE_CHAR, '255'),
+            new xmldb_field('finalassessmenttype', XMLDB_TYPE_CHAR, '100'),
+            new xmldb_field('finalassessmentstartdate', XMLDB_TYPE_INTEGER, '10'),
+            new xmldb_field('finalassessmentenddate', XMLDB_TYPE_INTEGER, '10'),
+            new xmldb_field('finalassessmentpoints', XMLDB_TYPE_NUMBER, '10, 2'),
+        ];
+        foreach ($newsyllabusfields as $field) {
+            if (!$dbman->field_exists($syllabustable, $field)) {
+                $dbman->add_field($syllabustable, $field);
+            }
+        }
+
+        $weektable = new xmldb_table('syllabus_weeks');
+        $stagefield = new xmldb_field('stage', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, 1);
+        if (!$dbman->field_exists($weektable, $stagefield)) {
+            $dbman->add_field($weektable, $stagefield);
+        }
+
+        // Avaliação Final was originally modelled as a flag on a regular week activity
+        // (isfinalassessment) — the source document instead treats it as its own standalone
+        // block, independent of any week. Migrate any such flagged activity's structural
+        // fields into the new plan-level columns before dropping the column; when more than
+        // one activity was flagged for the same plan, the last one processed wins (this
+        // plugin has never been released, so this is dev-only data). The activity's own
+        // narrative "Student instructions" Custom Field value is not carried over
+        // automatically — re-enter it manually in the new Final assessment section if needed.
+        $activitytable = new xmldb_table('syllabus_activities');
+        $isfinalassessmentfield = new xmldb_field('isfinalassessment');
+        if ($dbman->field_exists($activitytable, $isfinalassessmentfield)) {
+            $flagged = $DB->get_records_sql(
+                "SELECT a.id, a.title, a.type, a.startdate, a.enddate, a.points, w.syllabusid
+                   FROM {syllabus_activities} a
+                   JOIN {syllabus_weeks} w ON w.id = a.weekid
+                  WHERE a.isfinalassessment = 1"
+            );
+            foreach ($flagged as $activity) {
+                $DB->update_record('syllabus', (object) [
+                    'id'                       => $activity->syllabusid,
+                    'finalassessmenttitle'     => $activity->title,
+                    'finalassessmenttype'      => $activity->type,
+                    'finalassessmentstartdate' => $activity->startdate,
+                    'finalassessmentenddate'   => $activity->enddate,
+                    'finalassessmentpoints'    => $activity->points,
+                ]);
+                $DB->delete_records('syllabus_activities', ['id' => $activity->id]);
+            }
+            $dbman->drop_field($activitytable, $isfinalassessmentfield);
+        }
+
+        // A site that installed the plugin before this field existed never got it — add it to
+        // the existing 'plan' Custom Field category, exactly as a fresh install would (same
+        // seeding logic as db/install.php, via customfield_seeder).
+        \mod_syllabus\local\customfield_seeder::ensure_field(
+            'plan_handler',
+            'finalassessmentinstructions',
+            'studentinstructions'
+        );
+
+        upgrade_mod_savepoint(true, 2026072515, 'syllabus');
+    }
+
     return true;
 }

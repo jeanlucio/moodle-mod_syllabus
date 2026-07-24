@@ -70,6 +70,15 @@ final class tab_full_plan implements renderable, templatable {
         'online'       => 'categoryonline',
     ];
 
+    /**
+     * Fixed set of grading methods, token => lang string key. Purely informational — this
+     * plan never computes an actual grade from either method.
+     */
+    private const GRADEMETHOD_OPTIONS = [
+        'sum'     => 'grademethodsum',
+        'average' => 'grademethodaverage',
+    ];
+
     /** @var stdClass The syllabus record. */
     private stdClass $syllabus;
 
@@ -127,11 +136,16 @@ final class tab_full_plan implements renderable, templatable {
             $datesweredefaulted = true;
         }
 
+        $stagecount = max(1, (int) $this->syllabus->stagecount);
+
         $data = (object) [
             'cmid'              => $this->cm->id,
             'statuslabel'       => get_string(plan_state_manager::status_string_key($status), 'mod_syllabus'),
             'statusbadgeclass'  => plan_state_manager::status_badge_class($status),
             'caneditcontent'    => $caneditcontent,
+            'stagecount'        => $stagecount,
+            'hasmultiplestages' => $stagecount > 1,
+            'grademethodlabel'  => get_string('grademethod' . $this->syllabus->grademethod, 'mod_syllabus'),
             'coursename'        => plan_programme_name::resolve((int) $this->course->category),
             'disciplinename'    => format_string($this->course->fullname),
             'teachername'       => plan_teacher_name::resolve($this->syllabus),
@@ -173,13 +187,52 @@ final class tab_full_plan implements renderable, templatable {
 
         if ($caneditcontent) {
             $planfielddata = plan_handler::create()->get_instance_data($this->syllabus->id, true);
+            // The Final assessment's narrative field lives in the same 'plan' Custom Field
+            // area as the others, but is rendered in its own section below, not intermixed
+            // with Ementa/Objectives/etc. in the generic planfields loop.
+            $finalassessmentfielddata = [];
+            foreach ($planfielddata as $fieldid => $datacontroller) {
+                if ($datacontroller->get_field()->get('shortname') === 'finalassessmentinstructions') {
+                    $finalassessmentfielddata = [$fieldid => $datacontroller];
+                    unset($planfielddata[$fieldid]);
+                    break;
+                }
+            }
             $data->planfields = $reader->export_editable_fields($planfielddata, 'plan');
+            $exportedfinalassessmentfield = $reader->export_editable_fields($finalassessmentfielddata, 'plan');
+            $data->finalassessmentfield = $exportedfinalassessmentfield[0] ?? null;
             $data->structuralhelp = (object) $reader->structural_help();
+            $data->finalassessmenttitle = $this->syllabus->finalassessmenttitle;
+            $data->finalassessmenttypeoptions = $this->build_select_options(
+                self::TYPE_OPTIONS,
+                $this->syllabus->finalassessmenttype
+            );
+            $data->finalassessmentstartdatefield = $this->date_select_field(
+                'syllabus-plan-finalassessmentstartdate',
+                'syllabus-plan-finalassessmentstartdate',
+                'finalassessmentstartdate',
+                $this->syllabus->finalassessmentstartdate
+            );
+            $data->finalassessmentenddatefield = $this->date_select_field(
+                'syllabus-plan-finalassessmentenddate',
+                'syllabus-plan-finalassessmentenddate',
+                'finalassessmentenddate',
+                $this->syllabus->finalassessmentenddate
+            );
+            $data->finalassessmentpoints = $this->syllabus->finalassessmentpoints;
+            $data->grademethodoptions = $this->build_select_options(
+                self::GRADEMETHOD_OPTIONS,
+                $this->syllabus->grademethod
+            );
+            $data->stages = array_map(
+                fn (int $stagenum): stdClass => (object) ['stagenum' => $stagenum],
+                range(1, $stagecount)
+            );
             // Adding a week/activity creates the row on the server immediately and reloads
             // with the full fieldset open, so an empty plan needs no client-built placeholder
             // row — the button itself is the only affordance required.
             $data->hasweeks = !empty($weeks);
-            $data->weeks = $this->export_editable_weeks($reader, $weeks);
+            $data->weeks = $this->export_editable_weeks($reader, $weeks, $stagecount);
             $data->tinyavailable = narrative_editor::is_tiny_available();
             if ($data->tinyavailable) {
                 $data->tinyconfig = json_encode(narrative_editor::base_config($context));
@@ -187,9 +240,9 @@ final class tab_full_plan implements renderable, templatable {
         } else {
             $data->readweeks = plan_read_export::weeks($reader, $weeks, true);
             $data->hasweeks = !empty($data->readweeks);
-            $finalassessments = plan_read_export::final_assessment_activities($data->readweeks);
-            $data->finalassessments = $finalassessments;
-            $data->hasfinalassessments = !empty($finalassessments);
+            $finalassessment = plan_read_export::final_assessment($this->syllabus, $narrative);
+            $data->finalassessment = $finalassessment;
+            $data->hasfinalassessment = trim((string) $finalassessment->title) !== '';
             $schedule = $reader->schedule($weeks);
             $data->schedule = $schedule;
             $data->hasschedule = !empty($schedule);
@@ -204,9 +257,10 @@ final class tab_full_plan implements renderable, templatable {
      *
      * @param plan_reader $reader Used to build each field's editable-box representation.
      * @param array $weeks Result of plan_reader::weeks().
+     * @param int $stagecount The plan's current number of grading stages.
      * @return array
      */
-    private function export_editable_weeks(plan_reader $reader, array $weeks): array {
+    private function export_editable_weeks(plan_reader $reader, array $weeks, int $stagecount): array {
         $result = [];
         foreach ($weeks as $week) {
             $weekactivities = [];
@@ -232,7 +286,6 @@ final class tab_full_plan implements renderable, templatable {
                         $activity->enddate
                     ),
                     'points'            => $activity->points,
-                    'isfinalassessment' => (bool) $activity->isfinalassessment,
                     'typeoptions'       => $this->build_select_options(self::TYPE_OPTIONS, $activity->type),
                     'categoryoptions'   => $this->build_select_options(self::CATEGORY_OPTIONS, $activity->category),
                     'fields'            => $reader->export_editable_fields($activity->fields, 'activity'),
@@ -259,6 +312,8 @@ final class tab_full_plan implements renderable, templatable {
                 'syncdate'      => $week->syncdate,
                 'synclink'      => $week->synclink,
                 'synctopic'     => $week->synctopic,
+                'stage'         => (int) $week->stage,
+                'stageoptions'  => $this->build_stage_options($stagecount, (int) $week->stage),
                 'fields'        => $reader->export_editable_fields($week->fields, 'week'),
                 'activities'    => $weekactivities,
                 'hasactivities' => !empty($weekactivities),
@@ -294,6 +349,41 @@ final class tab_full_plan implements renderable, templatable {
             $options[] = (object) [
                 'value'    => $current,
                 'label'    => $current,
+                'selected' => true,
+            ];
+        }
+        return $options;
+    }
+
+    /**
+     * Builds the option list for the Stage `<select>` on a week, 1..$stagecount. If the
+     * week's currently stored stage is now out of range (the plan's stagecount was lowered
+     * after the week was assigned to a higher stage), it is appended as an extra selected
+     * option instead of being silently reassigned — same never-lose-data idea as
+     * build_select_options()'s legacy-value fallback, just for a numeric range instead of a
+     * fixed token map.
+     *
+     * @param int $stagecount The plan's current number of grading stages.
+     * @param int $current The stage currently stored on the week.
+     * @return stdClass[]
+     */
+    private function build_stage_options(int $stagecount, int $current): array {
+        $options = [];
+        $matched = false;
+        for ($stagenum = 1; $stagenum <= $stagecount; $stagenum++) {
+            $selected = $stagenum === $current;
+            $matched = $matched || $selected;
+            $options[] = (object) [
+                'value'    => $stagenum,
+                'label'    => get_string('stagen', 'mod_syllabus', $stagenum),
+                'selected' => $selected,
+            ];
+        }
+        if (!$matched) {
+            $options[] = (object) [
+                'value'    => $current,
+                'label'    => get_string('stagen', 'mod_syllabus', $current)
+                    . ' ' . get_string('stageoutofrange', 'mod_syllabus'),
                 'selected' => true,
             ];
         }

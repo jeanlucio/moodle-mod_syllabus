@@ -48,12 +48,6 @@ class save_activity extends external_api {
             'startdate'  => new external_value(PARAM_INT, 'Start date (timestamp)', VALUE_DEFAULT, null),
             'enddate'    => new external_value(PARAM_INT, 'End date (timestamp)', VALUE_DEFAULT, null),
             'points'     => new external_value(PARAM_FLOAT, 'Points', VALUE_DEFAULT, null),
-            'isfinalassessment' => new external_value(
-                PARAM_BOOL,
-                'Marks this as the course final assessment',
-                VALUE_DEFAULT,
-                false
-            ),
         ]);
     }
 
@@ -69,7 +63,6 @@ class save_activity extends external_api {
      * @param int|null $startdate Start date.
      * @param int|null $enddate End date.
      * @param float|null $points Points.
-     * @param bool $isfinalassessment Marks this as the course final assessment.
      * @return array Result with activityid and success status.
      */
     public static function execute(
@@ -81,8 +74,7 @@ class save_activity extends external_api {
         ?string $category,
         ?int $startdate,
         ?int $enddate,
-        ?float $points,
-        bool $isfinalassessment
+        ?float $points
     ): array {
         global $DB;
 
@@ -96,7 +88,6 @@ class save_activity extends external_api {
             'startdate'  => $startdate,
             'enddate'    => $enddate,
             'points'     => $points,
-            'isfinalassessment' => $isfinalassessment,
         ]);
 
         $cm = get_coursemodule_from_id('syllabus', $params['cmid'], 0, false, MUST_EXIST);
@@ -114,12 +105,8 @@ class save_activity extends external_api {
             MUST_EXIST
         );
 
-        $fields = ['title', 'type', 'category', 'startdate', 'enddate', 'points', 'isfinalassessment'];
+        $fields = ['title', 'type', 'category', 'startdate', 'enddate', 'points'];
         $submitted = array_intersect_key($params, array_flip($fields));
-        // Normalise to the same 0/1 shape the DB stores before comparing: PARAM_BOOL gives a
-        // PHP bool, and (string) false is '' while a stored 0 casts to '0' — structural_change_
-        // detector::changed() would otherwise report a spurious change on every save.
-        $submitted['isfinalassessment'] = $submitted['isfinalassessment'] ? 1 : 0;
 
         $existing = null;
         if ($params['activityid'] > 0) {
@@ -141,7 +128,6 @@ class save_activity extends external_api {
             $record->startdate = $submitted['startdate'];
             $record->enddate = $submitted['enddate'];
             $record->points = $submitted['points'];
-            $record->isfinalassessment = $submitted['isfinalassessment'];
             $record->timemodified = $now;
             $DB->update_record('syllabus_activities', $record);
             $resultid = $record->id;
@@ -158,7 +144,6 @@ class save_activity extends external_api {
                 'startdate'         => $submitted['startdate'],
                 'enddate'           => $submitted['enddate'],
                 'points'            => $submitted['points'],
-                'isfinalassessment' => $submitted['isfinalassessment'],
                 'sortorder'         => $maxsort + 1,
                 'timecreated'       => $now,
                 'timemodified'      => $now,

@@ -249,4 +249,93 @@ final class db_upgrade_test extends advanced_testcase {
         $updated = $DB->get_record('customfield_field', ['id' => $field->id], '*', MUST_EXIST);
         $this->assertSame($custom, $updated->description);
     }
+
+    /**
+     * A site that installed the plugin before this correction had Avaliação Final modelled as
+     * a flag on a regular week activity (isfinalassessment) — the upgrade step migrates that
+     * activity's structural fields into the new plan-level columns and removes both the
+     * activity and the now-unused column. Simulates a pre-existing site by adding the old
+     * column back by hand before running the step (a fresh install never has it).
+     *
+     * @return void
+     */
+    public function test_upgrade_migrates_flagged_activity_into_final_assessment_fields(): void {
+        global $DB;
+
+        $dbman = $DB->get_manager();
+        $activitytable = new \xmldb_table('syllabus_activities');
+        $isfinalassessmentfield = new \xmldb_field(
+            'isfinalassessment',
+            XMLDB_TYPE_INTEGER,
+            '1',
+            null,
+            XMLDB_NOTNULL,
+            null,
+            0
+        );
+        $dbman->add_field($activitytable, $isfinalassessmentfield);
+
+        $course = $this->getDataGenerator()->create_course();
+        $syllabus = $this->getDataGenerator()->create_module('syllabus', ['course' => $course->id]);
+        $now = time();
+        $weekid = $DB->insert_record('syllabus_weeks', [
+            'syllabusid' => $syllabus->id, 'title' => 'Week 1', 'sortorder' => 0,
+            'timecreated' => $now, 'timemodified' => $now,
+        ]);
+        $activityid = $DB->insert_record('syllabus_activities', [
+            'weekid' => $weekid, 'title' => 'Final exam', 'type' => 'quiz',
+            'startdate' => $now, 'enddate' => $now + WEEKSECS, 'points' => 100,
+            'isfinalassessment' => 1, 'sortorder' => 0, 'timecreated' => $now, 'timemodified' => $now,
+        ]);
+
+        set_config('version', 2026072514, 'mod_syllabus');
+        xmldb_syllabus_upgrade(2026072514);
+
+        $updatedsyllabus = $DB->get_record('syllabus', ['id' => $syllabus->id], '*', MUST_EXIST);
+        $this->assertSame('Final exam', $updatedsyllabus->finalassessmenttitle);
+        $this->assertSame('quiz', $updatedsyllabus->finalassessmenttype);
+        $this->assertEquals($now, $updatedsyllabus->finalassessmentstartdate);
+        $this->assertEquals(100, $updatedsyllabus->finalassessmentpoints);
+        $this->assertFalse($DB->record_exists('syllabus_activities', ['id' => $activityid]));
+        $this->assertFalse($dbman->field_exists($activitytable, $isfinalassessmentfield));
+    }
+
+    /**
+     * A site that installed the plugin before the finalassessmentinstructions Custom Field
+     * existed never got it — the upgrade step adds it to the existing 'plan' category, without
+     * duplicating the category or any of its other fields.
+     *
+     * @return void
+     */
+    public function test_upgrade_seeds_missing_final_assessment_instructions_field(): void {
+        global $DB;
+
+        $existing = $DB->get_record_sql(
+            "SELECT f.id, c.id AS categoryid
+               FROM {customfield_field} f
+               JOIN {customfield_category} c ON c.id = f.categoryid
+              WHERE c.component = 'mod_syllabus' AND c.area = 'plan' AND f.shortname = 'finalassessmentinstructions'",
+            [],
+            MUST_EXIST
+        );
+        $fieldcountbefore = $DB->count_records('customfield_field', ['categoryid' => $existing->categoryid]);
+        $DB->delete_records('customfield_field', ['id' => $existing->id]);
+
+        set_config('version', 2026072514, 'mod_syllabus');
+        xmldb_syllabus_upgrade(2026072514);
+
+        $readded = $DB->get_record_sql(
+            "SELECT f.id, c.id AS categoryid
+               FROM {customfield_field} f
+               JOIN {customfield_category} c ON c.id = f.categoryid
+              WHERE c.component = 'mod_syllabus' AND c.area = 'plan' AND f.shortname = 'finalassessmentinstructions'",
+            [],
+            MUST_EXIST
+        );
+        $this->assertSame($existing->categoryid, $readded->categoryid);
+        $this->assertEquals(
+            $fieldcountbefore,
+            $DB->count_records('customfield_field', ['categoryid' => $readded->categoryid])
+        );
+    }
 }

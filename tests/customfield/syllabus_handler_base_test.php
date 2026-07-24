@@ -66,12 +66,11 @@ final class syllabus_handler_base_test extends advanced_testcase {
             'timemodified' => $now,
         ]);
         $activityid = $DB->insert_record('syllabus_activities', [
-            'weekid'            => $weekid,
-            'title'             => 'Kickoff',
-            'isfinalassessment' => 0,
-            'sortorder'         => 0,
-            'timecreated'       => $now,
-            'timemodified'      => $now,
+            'weekid'       => $weekid,
+            'title'        => 'Kickoff',
+            'sortorder'    => 0,
+            'timecreated'  => $now,
+            'timemodified' => $now,
         ]);
         $cm = get_coursemodule_from_instance('syllabus', $syllabus->id, $course->id, false, MUST_EXIST);
 

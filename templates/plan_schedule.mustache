@@ -20,16 +20,28 @@
     The activity and grading schedule table — computed fresh from the activities each time,
     never persisted. Shared by all 3 tabs.
 
+    hasmultiplestages/grademethodlabel are set once on the including tab's own context and
+    read here via Mustache's normal context-stack fallback (same pattern as structuralhelp in
+    activity_row.mustache) — the Stage column and grading method line only make sense, and
+    only render, when the plan has more than one grading stage.
+
     Example context (json):
     {
         "hasschedule": true,
+        "hasmultiplestages": false,
+        "grademethodlabel": "Sum of points per stage",
         "schedule": [
-            {"weektitle": "Week 1", "type": "forum", "category": "online", "title": "Forum 1", "points": 15, "enddate": 1749600000}
+            {"weektitle": "Week 1", "type": "forum", "category": "online", "title": "Forum 1", "points": 15, "enddate": 1749600000, "stage": 1}
         ]
     }
 }}
 {{#hasschedule}}
 <h4 class="syllabus-heading-band mt-4">{{#str}} schedule, mod_syllabus {{/str}}</h4>
+{{#hasmultiplestages}}
+<p class="small text-muted mb-2">
+    <strong>{{#str}} grademethod, mod_syllabus {{/str}}:</strong> {{grademethodlabel}}
+</p>
+{{/hasmultiplestages}}
 <div class="table-responsive">
     <table class="table table-sm syllabus-schedule">
         <thead>
@@ -40,6 +52,9 @@
                 <th scope="col">{{#str}} activitytitle, mod_syllabus {{/str}}</th>
                 <th scope="col">{{#str}} activitypoints, mod_syllabus {{/str}}</th>
                 <th scope="col">{{#str}} deadline, mod_syllabus {{/str}}</th>
+                {{#hasmultiplestages}}
+                <th scope="col">{{#str}} stage, mod_syllabus {{/str}}</th>
+                {{/hasmultiplestages}}
             </tr>
         </thead>
         <tbody>
@@ -53,6 +68,9 @@
                 <td>
                     {{#enddate}}{{#userdate}} {{enddate}}, {{#str}} strftimedatefullshort, core_langconfig {{/str}} {{/userdate}}{{/enddate}}
                 </td>
+                {{#hasmultiplestages}}
+                <td>{{stage}}</td>
+                {{/hasmultiplestages}}
             </tr>
             {{/schedule}}
         </tbody>

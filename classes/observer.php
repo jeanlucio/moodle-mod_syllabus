@@ -95,19 +95,66 @@ final class observer {
         }
 
         $context = context_module::instance($cm->id);
+        $subject = get_string('messagesubjectsubmitted', 'mod_syllabus', format_string($plan->name));
+        $body = self::build_submitted_body($plan, $cm);
+
         foreach (get_users_by_capability($context, 'mod/syllabus:review') as $recipient) {
             if ((int) $recipient->id === (int) $event->userid) {
                 continue;
             }
-            self::send_message(
-                $plan,
-                $cm,
-                $recipient,
-                'plan_submitted',
-                get_string('messagesubjectsubmitted', 'mod_syllabus', format_string($plan->name)),
-                get_string('messagebodysubmitted', 'mod_syllabus', format_string($plan->name))
-            );
+            self::send_message($plan, $cm, $recipient, 'plan_submitted', $subject, $body);
         }
+    }
+
+    /**
+     * Builds the "plan submitted" notification body: author, submission time, the course's own
+     * expected start date (so the reviewer can judge how much turnaround time they have), and
+     * whether this is a resubmission after changes were requested.
+     *
+     * @param stdClass $plan Syllabus record.
+     * @param stdClass $cm Course module record.
+     * @return string
+     */
+    private static function build_submitted_body(stdClass $plan, stdClass $cm): string {
+        global $DB;
+
+        $course = $DB->get_record('course', ['id' => $plan->course], 'id, fullname, startdate', IGNORE_MISSING);
+
+        $lines = [
+            get_string('messagebodysubmitted', 'mod_syllabus', (object) [
+                'planname' => format_string($plan->name),
+                'coursename' => $course ? format_string($course->fullname) : '',
+            ]),
+            '',
+        ];
+
+        if ($plan->submittedby) {
+            $author = core_user::get_user($plan->submittedby);
+            if ($author) {
+                $lines[] = get_string('messagedetailauthor', 'mod_syllabus', fullname($author));
+            }
+        }
+        if ($plan->timesubmitted) {
+            $lines[] = get_string('messagedetailsubmitted', 'mod_syllabus', userdate($plan->timesubmitted));
+        }
+        if ($course) {
+            $coursestart = $course->startdate
+                ? userdate($course->startdate, get_string('strftimedate', 'langconfig'))
+                : get_string('messagestartdatenotset', 'mod_syllabus');
+            $lines[] = get_string('messagedetailcoursestart', 'mod_syllabus', $coursestart);
+        }
+        if ($plan->timereviewed) {
+            $lines[] = get_string('messagedetailresubmission', 'mod_syllabus');
+        }
+
+        $lines[] = '';
+        $lines[] = get_string(
+            'messagedetaillink',
+            'mod_syllabus',
+            (new moodle_url('/mod/syllabus/view.php', ['id' => $cm->id]))->out(false)
+        );
+
+        return implode("\n", $lines);
     }
 
     /**

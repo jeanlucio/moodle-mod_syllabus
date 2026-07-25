@@ -149,6 +149,7 @@ $string['presentationscript'] = 'Teacher and course presentation';
 $string['presentationscripthelp'] = 'Introduce yourself and the course to the student, as a welcome message.';
 $string['presentationscripthelpfull'] = 'Write the full transcript (the script) of the presentation video mentioned in Characterisation, up to 5 minutes long, split into 5 blocks: (1) Opening and welcome, a warm environment, with a brief introduction of yourself; (2) The heart of the discipline, the general objective and relevance of the discipline, and the main skills the student will develop; (3) Our learning journey, the methodology, explaining how synchronous and asynchronous moments connect, with a concrete example from the discipline; (4) Follow-up and assessment, how the student\'s progress will be assessed, emphasising its formative nature rather than just grades; (5) Closing and next steps, a motivating message and a clear call to the student\'s first action in the LMS (e.g. taking part in the Introduction forum).';
 $string['presentationvideo'] = 'Presentation video';
+$string['printplan'] = 'Print / Export PDF';
 $string['privacy:metadata:syllabus'] = 'Records who submitted, reviewed and unpublished each syllabus plan.';
 $string['privacy:metadata:syllabus:reviewedby'] = 'The ID of the user who last reviewed the plan.';
 $string['privacy:metadata:syllabus:submittedby'] = 'The ID of the user who last submitted the plan.';

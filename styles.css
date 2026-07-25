@@ -451,3 +451,32 @@
     white-space: nowrap;
     border: 0;
 }
+
+/*
+ * Print mode ("Print / Export PDF" button, mod_syllabus/print_plan): keeps only the plan's own
+ * content, dropping every editing/navigation affordance that means nothing on paper. The
+ * band/badge background colours (blue section headers, week summaries, status pill) are real
+ * content, not decoration here, so print-color-adjust is forced on rather than left to the
+ * browser's ink-saving default of stripping backgrounds.
+ */
+@media print {
+    body.path-mod-syllabus {
+        print-color-adjust: exact;
+        -webkit-print-color-adjust: exact;
+    }
+
+    body.path-mod-syllabus .syllabus-print-bar,
+    body.path-mod-syllabus .syllabus-tab-nav,
+    body.path-mod-syllabus .syllabus-nav-rail,
+    body.path-mod-syllabus .syllabus-totals-bar,
+    body.path-mod-syllabus .syllabus-field-help,
+    body.path-mod-syllabus .syllabus-workflow-actions,
+    body.path-mod-syllabus .syllabus-review-panel,
+    body.path-mod-syllabus .btn-footer-popover {
+        display: none;
+    }
+
+    body.path-mod-syllabus .syllabus-edit-layout {
+        display: block;
+    }
+}

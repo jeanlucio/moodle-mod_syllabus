@@ -137,5 +137,13 @@ if (count($availabletabs) > 1) {
     echo html_writer::end_tag('nav');
 }
 
+echo html_writer::start_tag('div', ['class' => 'syllabus-print-bar mb-2 text-end']);
+echo html_writer::tag('button', get_string('printplan', 'mod_syllabus'), [
+    'type' => 'button',
+    'class' => 'btn btn-outline-secondary btn-sm syllabus-print-button',
+]);
+echo html_writer::end_tag('div');
+$PAGE->requires->js_call_amd('mod_syllabus/print_plan', 'init');
+
 echo $html;
 echo $OUTPUT->footer();

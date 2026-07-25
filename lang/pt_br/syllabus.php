@@ -149,6 +149,7 @@ $string['presentationscript'] = 'Apresentação do Professor e da Disciplina';
 $string['presentationscripthelp'] = 'Apresente-se e apresente a disciplina ao estudante, como uma mensagem de boas-vindas.';
 $string['presentationscripthelpfull'] = 'Escreva aqui a transcrição completa (o roteiro) do vídeo de apresentação mencionado na Caracterização, com até 5 minutos, dividido em 5 blocos: (1) Abertura e boas-vindas, um ambiente acolhedor, com uma breve apresentação sua; (2) O coração da disciplina, o objetivo geral e a relevância da disciplina, e as principais habilidades que o estudante desenvolverá; (3) Nossa jornada de aprendizagem, a metodologia, explicando como os momentos síncronos e assíncronos se articulam, com um exemplo concreto de um tema da disciplina; (4) Acompanhamento e avaliação, como o progresso do estudante será avaliado, com ênfase no caráter formativo, não apenas em notas; (5) Encerramento e próximos passos, uma mensagem motivadora e um convite claro para a primeira ação do estudante no AVA (ex.: participar do Fórum de Apresentação).';
 $string['presentationvideo'] = 'Vídeo de apresentação';
+$string['printplan'] = 'Imprimir / Exportar PDF';
 $string['privacy:metadata:syllabus'] = 'Registra quem submeteu, revisou e despublicou cada plano de disciplina.';
 $string['privacy:metadata:syllabus:reviewedby'] = 'O ID do usuário que revisou o plano pela última vez.';
 $string['privacy:metadata:syllabus:submittedby'] = 'O ID do usuário que submeteu o plano pela última vez.';

@@ -26,6 +26,7 @@
 
 import Ajax from 'core/ajax';
 import Notification from 'core/notification';
+import Templates from 'core/templates';
 import {getString, getStrings} from 'core/str';
 
 /**
@@ -62,7 +63,9 @@ const resetField = async(fieldid, button) => {
 /**
  * Finds every field row the core Custom Fields UI already rendered and injects a "Restore
  * default text" button next to its delete button — only where the core UI itself decided to
- * show edit/delete (canedit), so this never appears for a user without edit rights.
+ * show edit/delete (canedit), so this never appears for a user without edit rights. Built as an
+ * icon-only button (title/aria-label carry the text) to match the core edit/delete buttons it
+ * sits beside, since the action column they share is sized for icons, not text labels.
  */
 export const init = async() => {
     const rows = document.querySelectorAll('tr.field[data-field-id]');
@@ -74,6 +77,7 @@ export const init = async() => {
         {key: 'resetfielddescription', component: 'mod_syllabus'},
         {key: 'confirmresetfielddescription', component: 'mod_syllabus'},
     ]);
+    const icon = await Templates.renderPix('t/reset', 'core', label);
 
     rows.forEach((row) => {
         const fieldid = parseInt(row.dataset.fieldId, 10);
@@ -84,7 +88,9 @@ export const init = async() => {
         const button = document.createElement('button');
         button.type = 'button';
         button.className = 'btn btn-link btn-icon syllabus-reset-field-description';
-        button.textContent = label;
+        button.title = label;
+        button.setAttribute('aria-label', label);
+        button.innerHTML = icon;
         button.dataset.confirm = confirmMessage;
         button.addEventListener('click', () => resetField(fieldid, button));
         deleteButton.insertAdjacentElement('afterend', button);

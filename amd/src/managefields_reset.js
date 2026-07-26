@@ -61,25 +61,23 @@ const resetField = async(fieldid, button) => {
 };
 
 /**
- * Finds every field row the core Custom Fields UI already rendered and injects a "Restore
- * default text" button next to its delete button — only where the core UI itself decided to
- * show edit/delete (canedit), so this never appears for a user without edit rights. Built as an
- * icon-only button (title/aria-label carry the text) to match the core edit/delete buttons it
- * sits beside, since the action column they share is sized for icons, not text labels.
+ * Injects a "Restore default text" button into every field row that does not already have
+ * one, next to the core UI's own delete button — only where the core UI itself decided to
+ * show edit/delete (canedit), so this never appears for a user without edit rights. Built as
+ * an icon-only button (title/aria-label carry the text) to match the core edit/delete buttons
+ * it sits beside, since the action column they share is sized for icons, not text labels.
+ * Idempotent: rows that already carry the button are skipped, safe to call repeatedly.
+ *
+ * @param {HTMLElement} container
+ * @param {string} label
+ * @param {string} confirmMessage
+ * @param {string} icon
  */
-export const init = async() => {
-    const rows = document.querySelectorAll('tr.field[data-field-id]');
-    if (!rows.length) {
-        return;
-    }
-
-    const [label, confirmMessage] = await getStrings([
-        {key: 'resetfielddescription', component: 'mod_syllabus'},
-        {key: 'confirmresetfielddescription', component: 'mod_syllabus'},
-    ]);
-    const icon = await Templates.renderPix('t/reset', 'core', label);
-
-    rows.forEach((row) => {
+const injectButtons = (container, label, confirmMessage, icon) => {
+    container.querySelectorAll('tr.field[data-field-id]').forEach((row) => {
+        if (row.querySelector('.syllabus-reset-field-description')) {
+            return;
+        }
         const fieldid = parseInt(row.dataset.fieldId, 10);
         const deleteButton = row.querySelector('[data-role="deletefield"]');
         if (!fieldid || !deleteButton) {
@@ -95,4 +93,37 @@ export const init = async() => {
         button.addEventListener('click', () => resetField(fieldid, button));
         deleteButton.insertAdjacentElement('afterend', button);
     });
+};
+
+/**
+ * Sets up the "Restore default text" button and keeps it present across the core Custom
+ * Fields UI's own re-renders. Editing, deleting or adding a field/category (core_customfield/
+ * form.js) calls Templates.replaceNode() on "[data-region=list-page]", which replaces that
+ * whole element with a freshly rendered one via jQuery replaceWith() — not just its contents
+ * — so any button injected only once at page load, and any observer watching that specific
+ * (now detached) node, is lost. A MutationObserver on the stable document body, re-querying
+ * the container on every firing, survives the node itself being swapped out.
+ */
+export const init = async() => {
+    if (!document.querySelector('[data-region="list-page"]')) {
+        return;
+    }
+
+    const [label, confirmMessage] = await getStrings([
+        {key: 'resetfielddescription', component: 'mod_syllabus'},
+        {key: 'confirmresetfielddescription', component: 'mod_syllabus'},
+    ]);
+    const icon = await Templates.renderPix('t/reset', 'core', label);
+
+    const sync = () => {
+        const container = document.querySelector('[data-region="list-page"]');
+        if (container) {
+            injectButtons(container, label, confirmMessage, icon);
+        }
+    };
+
+    sync();
+
+    const observer = new MutationObserver(sync);
+    observer.observe(document.body, {childList: true, subtree: true});
 };

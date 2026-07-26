@@ -472,7 +472,8 @@
     body.path-mod-syllabus .syllabus-field-help,
     body.path-mod-syllabus .syllabus-workflow-actions,
     body.path-mod-syllabus .syllabus-review-panel,
-    body.path-mod-syllabus .btn-footer-popover {
+    body.path-mod-syllabus .btn-footer-popover,
+    body.path-mod-syllabus .footer-content-debugging {
         display: none;
     }
 

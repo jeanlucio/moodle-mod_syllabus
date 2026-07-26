@@ -25,12 +25,44 @@
 /**
  * Syllabus module data generator class.
  *
- * No overrides needed: testing_module_generator's base create_instance() already fills in
- * sane defaults for name/intro/introformat, the only fields syllabus_add_instance() needs.
- *
  * @package    mod_syllabus
  * @copyright  2026 Jean Lúcio
  * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 final class mod_syllabus_generator extends testing_module_generator {
+    /**
+     * Defaults the Characterisation and Final assessment structural fields
+     * plan_completeness_checker requires by default, whenever a caller does not explicitly
+     * pass them. Without this, every test that generates a plan via create_module() and later
+     * submits it for review (most of the plugin's test suite) would need to fill in these
+     * fields itself just to get past submit()'s new required-content check.
+     *
+     * @param \stdClass|array|null $record
+     * @param array|null $options
+     * @return \stdClass Module info.
+     */
+    #[\Override]
+    public function create_instance($record = null, ?array $options = null) {
+        $record = (object) (array) $record;
+
+        $now = time();
+        $defaults = [
+            'academicperiod'           => '2026.1',
+            'coursestartdate'          => $now,
+            'courseenddate'            => $now + WEEKSECS,
+            'totalduration'            => 30,
+            'finalassessmenttitle'     => 'Final assessment',
+            'finalassessmenttype'      => 'quiz',
+            'finalassessmentstartdate' => $now,
+            'finalassessmentenddate'   => $now + WEEKSECS,
+            'finalassessmentpoints'    => 100,
+        ];
+        foreach ($defaults as $name => $value) {
+            if (!property_exists($record, $name)) {
+                $record->$name = $value;
+            }
+        }
+
+        return parent::create_instance($record, $options);
+    }
 }

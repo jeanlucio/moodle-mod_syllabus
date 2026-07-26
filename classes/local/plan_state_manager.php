@@ -42,12 +42,13 @@ final class plan_state_manager {
     /**
      * Submits a plan for coordination review.
      *
-     * Valid from `draft` (first submission) or `changes_requested` (resubmission).
+     * Valid from `draft` (first submission) or `changes_requested` (resubmission). Blocked if
+     * any field the institution marked required (see plan_completeness_checker) is still empty.
      *
      * @param int $syllabusid ID of the syllabus record.
      * @param int $userid ID of the author submitting the plan.
      * @return void
-     * @throws moodle_exception If the plan is not in a submittable status.
+     * @throws moodle_exception If the plan is not in a submittable status, or required content is missing.
      */
     public static function submit(int $syllabusid, int $userid): void {
         global $DB;
@@ -56,6 +57,11 @@ final class plan_state_manager {
         $submittablefrom = [self::STATUS_DRAFT, self::STATUS_CHANGES_REQUESTED];
         if (!in_array($plan->status, $submittablefrom, true)) {
             throw new moodle_exception('cannotsubmitstatus', 'mod_syllabus');
+        }
+
+        $missing = plan_completeness_checker::missing_required_fields($plan);
+        if ($missing) {
+            throw new moodle_exception('missingrequiredfields', 'mod_syllabus', '', implode('; ', $missing));
         }
 
         $now = time();

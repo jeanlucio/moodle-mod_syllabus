@@ -15,10 +15,12 @@
 // along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 /**
- * Admin settings for mod_syllabus: links to the four Custom Fields template pages.
+ * Admin settings for mod_syllabus: links to the four Custom Fields template pages, plus a
+ * settings page toggling which structural fields (native columns with no core_customfield
+ * "required" flag of their own) block submitting a plan for review when left empty.
  *
- * No plugin-wide configuration value exists, so $settings itself is discarded — only the
- * category and the four external pages below are added to the admin tree.
+ * $settings itself is discarded — the category and every page below are added to the admin
+ * tree explicitly instead, so nothing is registered under the default single settings page.
  *
  * @package    mod_syllabus
  * @copyright  2026 Jean Lúcio
@@ -59,6 +61,60 @@ if ($hassiteconfig) {
         new moodle_url('/mod/syllabus/managefields.php', ['area' => 'help']),
         'mod/syllabus:review'
     ));
+
+    $requiredfieldssettings = new admin_settingpage(
+        'syllabus_requiredfields',
+        get_string('requiredfieldssettings', 'mod_syllabus'),
+        'mod/syllabus:review'
+    );
+    $requiredfieldssettings->add(new admin_setting_heading(
+        'mod_syllabus/requiredfieldsheading',
+        '',
+        get_string('requiredfieldssettingsinfo', 'mod_syllabus')
+    ));
+    $requiredfieldssettings->add(new admin_setting_configcheckbox(
+        'mod_syllabus/requireacademicperiod',
+        get_string('academicperiod', 'mod_syllabus'),
+        get_string('requiredfielddesc', 'mod_syllabus'),
+        1
+    ));
+    $requiredfieldssettings->add(new admin_setting_configcheckbox(
+        'mod_syllabus/requirecourseperiod',
+        get_string('courseperiod', 'mod_syllabus'),
+        get_string('requiredfielddesc', 'mod_syllabus'),
+        1
+    ));
+    $requiredfieldssettings->add(new admin_setting_configcheckbox(
+        'mod_syllabus/requiretotalworkload',
+        get_string('totalworkload', 'mod_syllabus'),
+        get_string('requiredfielddesc', 'mod_syllabus'),
+        1
+    ));
+    $requiredfieldssettings->add(new admin_setting_configcheckbox(
+        'mod_syllabus/requirefinalassessment',
+        get_string('finalassessment', 'mod_syllabus'),
+        get_string('requiredfielddesc', 'mod_syllabus'),
+        1
+    ));
+    $requiredfieldssettings->add(new admin_setting_configcheckbox(
+        'mod_syllabus/requireweekplanning',
+        get_string('weekplanning', 'mod_syllabus'),
+        get_string('requiredfielddesc', 'mod_syllabus'),
+        1
+    ));
+    $requiredfieldssettings->add(new admin_setting_configcheckbox(
+        'mod_syllabus/requireactivitytype',
+        get_string('activitytype', 'mod_syllabus'),
+        get_string('requiredfielddesc', 'mod_syllabus'),
+        1
+    ));
+    $requiredfieldssettings->add(new admin_setting_configcheckbox(
+        'mod_syllabus/requireactivityperiod',
+        get_string('activityperiod', 'mod_syllabus'),
+        get_string('requiredfielddesc', 'mod_syllabus'),
+        1
+    ));
+    $ADMIN->add('modsyllabusfolder', $requiredfieldssettings);
 
     $settings = null;
 }

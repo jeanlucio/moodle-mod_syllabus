@@ -61,6 +61,7 @@ final class tab_full_plan_test extends advanced_testcase {
         $DB->insert_record('syllabus_weeks', [
             'syllabusid'   => $syllabus->id,
             'title'        => 'Week 1',
+            'duration'     => 8,
             'startdate'    => $now,
             'enddate'      => $now + WEEKSECS,
             'sortorder'    => 0,
@@ -256,7 +257,11 @@ final class tab_full_plan_test extends advanced_testcase {
      */
     public function test_empty_course_dates_are_defaulted_for_the_author(): void {
         $course = $this->getDataGenerator()->create_course();
-        $syllabus = $this->getDataGenerator()->create_module('syllabus', ['course' => $course->id]);
+        $syllabus = $this->getDataGenerator()->create_module('syllabus', [
+            'course' => $course->id,
+            'coursestartdate' => null,
+            'courseenddate' => null,
+        ]);
         $teacher = $this->getDataGenerator()->create_user();
         $this->getDataGenerator()->enrol_user($teacher->id, $course->id, 'editingteacher');
         $this->setUser($teacher);

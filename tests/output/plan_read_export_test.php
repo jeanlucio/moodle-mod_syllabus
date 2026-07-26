@@ -121,7 +121,10 @@ final class plan_read_export_test extends advanced_testcase {
      */
     public function test_final_assessment_title_is_empty_when_never_filled_in(): void {
         $course = $this->getDataGenerator()->create_course();
-        $syllabus = $this->getDataGenerator()->create_module('syllabus', ['course' => $course->id]);
+        $syllabus = $this->getDataGenerator()->create_module('syllabus', [
+            'course' => $course->id,
+            'finalassessmenttitle' => '',
+        ]);
 
         $reader = new plan_reader($syllabus);
         $narrative = $reader->plan_narrative();

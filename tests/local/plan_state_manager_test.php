@@ -39,7 +39,12 @@ final class plan_state_manager_test extends advanced_testcase {
     }
 
     /**
-     * Inserts a bare syllabus record directly, without going through the module framework.
+     * Inserts a syllabus record directly, without going through the module framework.
+     *
+     * Fills in every plan-level structural field plan_completeness_checker checks by default
+     * (Characterisation + Final assessment), since submit() now enforces them — these tests
+     * exercise the workflow state machine, not field completeness, so the fixture stays
+     * "complete enough to submit" regardless of the required-fields settings' defaults.
      *
      * @param string $status Initial status of the plan.
      * @param int|null $submittedby Author who last submitted the plan, if any.
@@ -52,14 +57,49 @@ final class plan_state_manager_test extends advanced_testcase {
         $now = time();
 
         return (int) $DB->insert_record('syllabus', [
-            'course'       => $course->id,
-            'name'         => 'Test syllabus',
-            'intro'        => '',
-            'introformat'  => FORMAT_HTML,
-            'status'       => $status,
-            'submittedby'  => $submittedby,
-            'timecreated'  => $now,
-            'timemodified' => $now,
+            'course'                   => $course->id,
+            'name'                     => 'Test syllabus',
+            'intro'                    => '',
+            'introformat'              => FORMAT_HTML,
+            'status'                   => $status,
+            'submittedby'              => $submittedby,
+            'academicperiod'           => '2026.1',
+            'coursestartdate'          => $now,
+            'courseenddate'            => $now + WEEKSECS,
+            'totalduration'            => 30,
+            'finalassessmenttitle'     => 'Final assessment',
+            'finalassessmenttype'      => 'quiz',
+            'finalassessmentstartdate' => $now,
+            'finalassessmentenddate'   => $now + WEEKSECS,
+            'finalassessmentpoints'    => 100,
+            'timecreated'              => $now,
+            'timemodified'             => $now,
+        ]);
+    }
+
+    /**
+     * Fills in the plan-level structural fields plan_completeness_checker requires by default,
+     * for tests that build their syllabus via the module generator (create_module()) rather
+     * than create_plan(), which already includes them.
+     *
+     * @param int $syllabusid ID of the syllabus record.
+     * @return void
+     */
+    private function fill_required_structural_fields(int $syllabusid): void {
+        global $DB;
+
+        $now = time();
+        $DB->update_record('syllabus', (object) [
+            'id'                       => $syllabusid,
+            'academicperiod'           => '2026.1',
+            'coursestartdate'          => $now,
+            'courseenddate'            => $now + WEEKSECS,
+            'totalduration'            => 30,
+            'finalassessmenttitle'     => 'Final assessment',
+            'finalassessmenttype'      => 'quiz',
+            'finalassessmentstartdate' => $now,
+            'finalassessmentenddate'   => $now + WEEKSECS,
+            'finalassessmentpoints'    => 100,
         ]);
     }
 
@@ -122,6 +162,26 @@ final class plan_state_manager_test extends advanced_testcase {
     }
 
     /**
+     * submit() delegates to plan_completeness_checker and blocks on missing required content —
+     * exhaustive field-by-field coverage lives in plan_completeness_checker_test, this only
+     * proves the two classes are actually wired together.
+     *
+     * @return void
+     */
+    public function test_submit_blocked_when_required_structural_field_missing(): void {
+        global $DB;
+
+        set_config('requireacademicperiod', 1, 'mod_syllabus');
+
+        $author = $this->getDataGenerator()->create_user();
+        $syllabusid = $this->create_plan(plan_state_manager::STATUS_DRAFT);
+        $DB->set_field('syllabus', 'academicperiod', '', ['id' => $syllabusid]);
+
+        $this->expectException(moodle_exception::class);
+        plan_state_manager::submit($syllabusid, (int) $author->id);
+    }
+
+    /**
      * A submitted plan is approved by a different user, recording reviewer and time.
      *
      * @return void
@@ -154,6 +214,7 @@ final class plan_state_manager_test extends advanced_testcase {
 
         $course = $this->getDataGenerator()->create_course();
         $syllabus = $this->getDataGenerator()->create_module('syllabus', ['course' => $course->id]);
+        $this->fill_required_structural_fields($syllabus->id);
         $cm = get_coursemodule_from_instance('syllabus', $syllabus->id, $course->id, false, MUST_EXIST);
         $this->assertEquals(0, $cm->visible, 'A newly created plan must start hidden.');
 
@@ -295,6 +356,7 @@ final class plan_state_manager_test extends advanced_testcase {
 
         $course = $this->getDataGenerator()->create_course();
         $syllabus = $this->getDataGenerator()->create_module('syllabus', ['course' => $course->id]);
+        $this->fill_required_structural_fields($syllabus->id);
         $cm = get_coursemodule_from_instance('syllabus', $syllabus->id, $course->id, false, MUST_EXIST);
 
         $author = $this->getDataGenerator()->create_user();

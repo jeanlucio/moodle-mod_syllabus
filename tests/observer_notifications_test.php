@@ -37,7 +37,7 @@ use mod_syllabus\local\plan_state_manager;
  * notification methods (plan_submitted/plan_approved/plan_changes_requested) are covered here
  * instead, using the message redirect sink to assert on what was actually sent.
  *
- * @coversDefaultClass \mod_syllabus\observer
+ * @covers \mod_syllabus\observer
  */
 final class observer_notifications_test extends advanced_testcase {
     #[\Override]
@@ -48,9 +48,10 @@ final class observer_notifications_test extends advanced_testcase {
 
     /**
      * Every user with mod/syllabus:review in the module context is notified, except the
-     * submitter themself, even when the submitter also happens to hold that capability.
+     * submitter themself, even when the submitter also happens to hold that capability. The
+     * body carries the submitting teacher, the course, the submission time and a direct link,
+     * but never the "resubmission" note on a plan's first submission.
      *
-     * @covers ::plan_submitted
      * @return void
      */
     public function test_plan_submitted_notifies_reviewers_but_not_the_submitter(): void {
@@ -77,14 +78,52 @@ final class observer_notifications_test extends advanced_testcase {
         foreach ($messages as $message) {
             $this->assertSame('mod_syllabus', $message->component);
             $this->assertSame('plan_submitted', $message->eventtype);
+            $this->assertStringContainsString(fullname($submitter), $message->fullmessage);
+            $this->assertStringContainsString($course->fullname, $message->fullmessage);
+            $this->assertStringContainsString("id={$cm->id}", $message->fullmessage);
+            $this->assertStringNotContainsString(
+                get_string('messagedetailresubmission', 'mod_syllabus'),
+                $message->fullmessage
+            );
         }
+    }
+
+    /**
+     * A submission that follows a "changes requested" round tells the reviewer it is a
+     * resubmission, so they know a previous version was already reviewed once.
+     *
+     * @return void
+     */
+    public function test_plan_submitted_body_mentions_resubmission_after_changes_requested(): void {
+        $course = $this->getDataGenerator()->create_course();
+        $syllabus = $this->getDataGenerator()->create_module('syllabus', ['course' => $course->id]);
+        $cm = get_coursemodule_from_instance('syllabus', $syllabus->id, $course->id, false, MUST_EXIST);
+        $context = context_module::instance($cm->id);
+
+        $submitter = $this->getDataGenerator()->create_user();
+        $reviewer = $this->getDataGenerator()->create_user();
+        $this->getDataGenerator()->enrol_user($reviewer->id, $course->id, 'manager');
+
+        plan_state_manager::submit($syllabus->id, (int) $submitter->id);
+        plan_state_manager::request_changes($syllabus->id, (int) $reviewer->id, 'Please fix the grading criteria.');
+        plan_state_manager::submit($syllabus->id, (int) $submitter->id);
+
+        $sink = $this->redirectMessages();
+        plan_submitted::create(['objectid' => $syllabus->id, 'context' => $context, 'userid' => $submitter->id])->trigger();
+        $messages = $sink->get_messages();
+        $sink->close();
+
+        $this->assertCount(1, $messages);
+        $this->assertStringContainsString(
+            get_string('messagedetailresubmission', 'mod_syllabus'),
+            $messages[0]->fullmessage
+        );
     }
 
     /**
      * A plan that no longer exists by the time the event is handled (deleted between trigger
      * and dispatch) is a silent no-op, never an exception.
      *
-     * @covers ::plan_submitted
      * @return void
      */
     public function test_plan_submitted_is_a_noop_for_a_deleted_plan(): void {
@@ -109,7 +148,6 @@ final class observer_notifications_test extends advanced_testcase {
     /**
      * The plan's author is notified when their submission is approved.
      *
-     * @covers ::plan_approved
      * @return void
      */
     public function test_plan_approved_notifies_the_author(): void {
@@ -136,7 +174,6 @@ final class observer_notifications_test extends advanced_testcase {
      * The plan's author is notified when changes are requested, and the message carries the
      * coordinator's justification text.
      *
-     * @covers ::plan_changes_requested
      * @return void
      */
     public function test_plan_changes_requested_notifies_the_author_with_the_reason(): void {

@@ -143,22 +143,9 @@ vendor/bin/phpunit --bootstrap lib/phpunit/bootstrap.php mod/syllabus
 | `customfield\help_handler` | 50% |
 | **Geral** | **98%** |
 
-> **Uma nota sobre como esses números foram alcançados.** Durante a maior parte do
-> desenvolvimento deste plugin, as anotações `@covers` em doc-comment eram escritas por método
-> de teste (`@coversDefaultClass \classecompleta` mais `@covers ::metodo` em cada teste, ou um
-> `@covers \classecompleta::metodo` repetido) — sintaxe válida do PHPUnit, que lida como
-> razoável isoladamente. Esse estilo descarta silenciosamente o crédito de cobertura de
-> qualquer coisa que o teste exercite *além* do único método anotado na mesma execução — um
-> helper privado, um método irmão, uma classe alcançada só por despacho. Em certo ponto isso
-> parecia um limite de medição intrínseco ao PHPUnit para métodos de override curtos
-> compartilhados entre classes irmãs; não era. Trocar toda classe de teste para um único
-> `@covers \classecompleta` de nível de classe (sem `::metodo`, um ou mais alvos por classe)
-> recuperou cobertura real, já validada por testes que passavam, que simplesmente nunca tinha
-> sido atribuída: a cobertura geral de linhas foi de cerca de 75% para 98% só com essa troca de
-> anotação, sem nenhuma lógica de teste nova envolvida. O punhado de classes ainda abaixo de
-> 100% aqui são lacunas genuínas e estreitas — wrappers triviais de `create()` nos quatro
-> handlers de Custom Field, um ramo de `save_customfield_value::execute()`, alguns guards de
-> retorno antecipado em `observer`/`privacy\provider`, e
-> `help_handler::resolve_syllabus_id()` (a área `help` não tem valores por instância, então
-> esse método de uma linha nunca é chamado de verdade) — revisadas individualmente e deixadas
-> sem teste por serem de baixo valor, não por terem passado despercebidas.
+> O punhado de classes ainda abaixo de 100% cobre lacunas genuínas e estreitas, revisadas
+> individualmente e deixadas sem teste por serem de baixo valor, não por terem passado
+> despercebidas — wrappers triviais de `create()` nos quatro handlers de Custom Field, um ramo
+> de `save_customfield_value::execute()`, alguns guards de retorno antecipado em
+> `observer`/`privacy\provider`, e `help_handler::resolve_syllabus_id()` (a área `help` não tem
+> valores por instância, então esse método de uma linha nunca é chamado de verdade).

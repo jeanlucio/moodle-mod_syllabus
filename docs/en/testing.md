@@ -142,20 +142,9 @@ vendor/bin/phpunit --bootstrap lib/phpunit/bootstrap.php mod/syllabus
 | `customfield\help_handler` | 50% |
 | **Overall** | **98%** |
 
-> **A note on how these numbers were reached.** For most of this plugin's development, doc-
-> comment `@covers` annotations were written per test method (`@coversDefaultClass \fullclass`
-> plus `@covers ::method` on each test, or a repeated `@covers \fullclass::method`) — valid
-> PHPUnit syntax that reads as reasonable on its own. That style silently discards coverage
-> credit for anything a test exercises *besides* the one annotated method in the same run — a
-> private helper, a sibling method, a class reached only through dispatch. At one point this
-> looked like a measurement limit intrinsic to PHPUnit for short override methods shared
-> across sibling classes; it was not. Switching every test class to a single class-level
-> `@covers \fullclass` (no `::method`, one or more targets per class) recovered real,
-> already-passing coverage that had simply never been attributed: overall line coverage moved
-> from roughly 75% to 98% purely from that annotation change, with no new test logic involved.
-> The handful of classes still below 100% here are genuine, narrow gaps — trivial `create()`
-> wrappers on the four Custom Field handlers, one branch of `save_customfield_value::execute()`,
-> a couple of early-return guards in `observer`/`privacy\provider`, and
+> The handful of classes still below 100% cover genuine, narrow gaps that were reviewed
+> individually and left untested as low-value, not overlooked — trivial `create()` wrappers
+> on the four Custom Field handlers, one branch of `save_customfield_value::execute()`, a
+> couple of early-return guards in `observer`/`privacy\provider`, and
 > `help_handler::resolve_syllabus_id()` (the `help` area has no per-instance values, so that
-> one-line method is never actually called) — reviewed individually and left untested as
-> low-value, not overlooked.
+> one-line method is never actually called).

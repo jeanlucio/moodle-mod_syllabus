@@ -3,11 +3,21 @@
 Syllabus ships with a PHPUnit test suite covering the approval workflow, submission
 completeness rules, web services, backup/restore, cross-instance isolation, Custom Fields
 handling and the upgrade steps that seed/repair them, workflow events and notifications,
-output rendering, and Privacy API compliance. Every CI push runs against the full matrix
-(Moodle 4.5 → 5.2, PHP 8.2 → 8.4, PostgreSQL & MariaDB).
+output rendering, and Privacy API compliance — plus a Behat suite proving the same workflow
+end to end, across a real teacher, coordinator, tutor and student session. Every CI push runs
+against the full matrix (Moodle 4.5 → 5.2, PHP 8.2 → 8.4, PostgreSQL & MariaDB).
 
-> No Behat suite exists yet — end-to-end browser coverage (the edit form, autosave, the
-> review workflow, the three role-based tabs) is on the roadmap but not implemented today.
+### Behat (`tests/behat/mod_syllabus_workflow.feature`)
+
+Three scenarios share a Background that takes a plan from draft through submitted to
+approved, then verify what only a real, multi-user browser session can prove:
+
+* a student reaches the approved plan on their own tab, with no tab bar at all;
+* a tutor reaches it with a tab bar and opens directly on the Tutor plan tab;
+* a structural edit after approval regresses the plan to submitted without hiding it from
+  tutors and students, and with Unpublish still reachable — the plan's own status is never
+  the same thing as "is this currently visible", and only a real page load through
+  `view.php` as each role actually proves the two stay in sync.
 
 ### Activity Library Tests (`tests/lib_test.php`)
 
@@ -36,10 +46,10 @@ output rendering, and Privacy API compliance. Every CI push runs against the ful
 
 | Test file | Cases |
 |-----------|------:|
-| `plan_state_manager_test.php` | 18 |
+| `plan_state_manager_test.php` | 19 |
 | `plan_completeness_checker_test.php` | 12 |
 | `structural_change_detector_test.php` | 4 |
-| **Subtotal** | **34** |
+| **Subtotal** | **35** |
 
 ### Web Services Tests (`tests/external/`)
 
@@ -85,7 +95,7 @@ output rendering, and Privacy API compliance. Every CI push runs against the ful
 | `db_uninstall_test.php` | 1 |
 | **Subtotal** | **25** |
 
-| **Grand Total** | **163** |
+| **Grand Total** | **164** |
 
 ```bash
 vendor/bin/phpunit --bootstrap lib/phpunit/bootstrap.php mod/syllabus

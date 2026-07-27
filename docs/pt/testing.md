@@ -3,13 +3,22 @@
 O Syllabus vem com uma suíte de testes PHPUnit cobrindo o workflow de aprovação, as regras de
 completude de submissão, web services, backup/restore, isolamento entre instâncias,
 tratamento de Custom Fields e os passos de upgrade que os semeiam/reparam, eventos e
-notificações do workflow, renderização de output, e conformidade com a API de Privacidade.
-Todo push no CI roda contra a matriz completa (Moodle 4.5 → 5.2, PHP 8.2 → 8.4, PostgreSQL e
-MariaDB).
+notificações do workflow, renderização de output, e conformidade com a API de Privacidade —
+mais uma suíte Behat provando o mesmo workflow de ponta a ponta, com sessão real de professor,
+coordenação, tutor e estudante. Todo push no CI roda contra a matriz completa (Moodle 4.5 →
+5.2, PHP 8.2 → 8.4, PostgreSQL e MariaDB).
 
-> Ainda não existe suíte Behat — cobertura de ponta a ponta no navegador (o formulário de
-> edição, o autosave, o workflow de revisão, as três abas por papel) está no roadmap, mas não
-> foi implementada ainda.
+### Behat (`tests/behat/mod_syllabus_workflow.feature`)
+
+Três cenários compartilham um Background que leva um plano de rascunho a aprovado, e então
+verificam o que só uma sessão de navegador real, com múltiplos usuários, consegue provar:
+
+* um estudante alcança o plano aprovado na sua própria aba, sem nenhuma barra de abas;
+* um tutor alcança com barra de abas, abrindo direto na aba "Tutor plan";
+* uma edição estrutural pós-aprovação regride o plano para submetido sem escondê-lo de
+  tutores e estudantes, e com Despublicar continuando alcançável — o status do plano nunca é
+  a mesma coisa que "isso está visível agora", e só um carregamento de página real via
+  `view.php`, como cada papel, realmente prova que os dois ficam sincronizados.
 
 ### Testes da Biblioteca da Atividade (`tests/lib_test.php`)
 
@@ -38,10 +47,10 @@ MariaDB).
 
 | Arquivo de teste | Casos |
 |-------------------|------:|
-| `plan_state_manager_test.php` | 18 |
+| `plan_state_manager_test.php` | 19 |
 | `plan_completeness_checker_test.php` | 12 |
 | `structural_change_detector_test.php` | 4 |
-| **Subtotal** | **34** |
+| **Subtotal** | **35** |
 
 ### Testes de Web Services (`tests/external/`)
 
@@ -87,7 +96,7 @@ MariaDB).
 | `db_uninstall_test.php` | 1 |
 | **Subtotal** | **25** |
 
-| **Total geral** | **163** |
+| **Total geral** | **164** |
 
 ```bash
 vendor/bin/phpunit --bootstrap lib/phpunit/bootstrap.php mod/syllabus

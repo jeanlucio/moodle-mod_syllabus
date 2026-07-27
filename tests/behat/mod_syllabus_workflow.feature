@@ -36,7 +36,7 @@ Feature: Syllabus approval workflow and role-based views
     And I follow "My Syllabus"
     And I should see "Week 1"
     And I click on "Add activity" "button"
-    And I should see "Activity 1"
+    And the field "Activity title" matches value "Activity 1"
     And I click on "Submit for review" "button"
     And I should see "Submitted for review" in the ".syllabus-status-badge" "css_element"
     And I log out
@@ -60,7 +60,7 @@ Feature: Syllabus approval workflow and role-based views
     And I am on "Course 1" course homepage
     When I follow "My Syllabus"
     Then ".syllabus-tab-nav" "css_element" should exist
-    And I should see "Tutor plan" in the ".nav-link.active" "css_element"
+    And I should see "Tutor plan" in the ".syllabus-tab-nav .nav-link.active" "css_element"
     And I should see "Approved" in the ".syllabus-status-badge" "css_element"
 
   Scenario: A structural edit reopens review without hiding the plan from tutors and students

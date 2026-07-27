@@ -22,3 +22,32 @@
    them.
 8. Site administrators manage the three Custom Fields templates (`plan`, `week`, `activity`)
    under **Site administration > Plugins > Activity modules > Syllabus**.
+
+## Which edits reopen review, and which never do
+
+Once a plan has been approved at least once, editing it behaves differently depending on what
+changed.
+
+**Always reopens review** — regresses the plan to `submitted` so coordination knows to take
+another look, but never hides the activity or reverts what students/tutors already see:
+
+* Editing a week's title, duration, start/end date, synchronous meeting details, or grading
+  stage
+* Editing an activity's title, type, category, dates, or points
+* Deleting a week
+* Deleting an activity
+* Editing the plan's Final assessment block (title, type, dates, points)
+
+**Never reopens review** — freely editable at any status, including while a review is pending:
+
+* Any narrative field: course description, objectives, contents, methodology, references,
+  grading criteria, tutoring follow-up, and the rest of the Custom Fields content
+* The Characterisation fields (academic period, course period, total workload) and the
+  teacher/course presentation video link
+* The number of grading stages and how they combine
+
+**Unpublishing stays available throughout.** The **Unpublish** action (pulling the plan back
+to draft and hiding it again) works whenever the activity is currently visible — including
+during a reopened-for-review window — not only from a plain `approved` status. It is the only
+supported way to hide an already-published plan; toggling the activity's own "Availability"
+setting has no effect, since that field is permanently frozen for a Syllabus instance.

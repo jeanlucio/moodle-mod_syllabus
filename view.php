@@ -54,11 +54,16 @@ $isreviewer = has_capability('mod/syllabus:review', $context);
 $isauthor = has_capability('mod/syllabus:submit', $context);
 $istutor = has_capability('mod/syllabus:viewtutorview', $context);
 
-// Content is gated by the plan's own status, independent of the course module's visibility
-// flag: a hidden-but-approved edge case should never happen, but a reviewer/author must
-// always be able to reach a draft regardless of visibility, while a tutor/student never
-// reaches a plan that is not yet approved, even if visibility was toggled by mistake.
-if (!$isreviewer && !$isauthor && $syllabus->status !== plan_state_manager::STATUS_APPROVED) {
+// A tutor/student is gated on the course module's own visibility, not literally
+// STATUS_APPROVED: a structural edit can reopen an approved plan for review (status regresses
+// to submitted or changes_requested) without ever hiding it, and content already visible to
+// tutors/students must stay reachable during that window. Visibility is only ever turned on
+// by plan_state_manager::approve() and only ever turned off by unpublish() (or the
+// course_module_updated observer correcting a manual toggle back to match), so "currently
+// visible" is exactly "has been approved and not since unpublished" - never true for a plan
+// that was never approved in the first place. A reviewer/author, by contrast, must always
+// reach the plan regardless of visibility, since they are the ones who act on a draft.
+if (!$isreviewer && !$isauthor && !$cm->visible) {
     throw new moodle_exception('plannotavailable', 'mod_syllabus');
 }
 

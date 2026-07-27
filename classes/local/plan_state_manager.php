@@ -149,28 +149,33 @@ final class plan_state_manager {
     }
 
     /**
-     * Pulls an approved plan back to draft and hides its course module again.
+     * Pulls a currently published plan back to draft and hides its course module again.
      *
      * A deliberate, auditable escape hatch distinct from the "Availability" form field, which
      * is permanently frozen (see mod_form.php) precisely so visibility never changes as a side
      * effect of an ordinary settings edit — this method is the only supported way to hide an
-     * approved plan again. Like submit()/approve()/request_changes(), this class enforces only
-     * the workflow's own business rules, never capability checks: the caller (the controller
-     * that wires this to a UI action) is responsible for verifying the
-     * user holds mod/syllabus:review, or is the author recorded in $plan->submittedby, before
-     * calling this — an unrelated teacher who merely shares mod/syllabus:submit on the course
-     * must never be able to unpublish someone else's plan.
+     * already-published plan again. Gated on the course module's own visibility, not literally
+     * STATUS_APPROVED: a structural edit can reopen an approved plan for review (status
+     * regresses to submitted, without ever hiding it — see reopen_for_structural_change()), and
+     * unpublish() must still be reachable during that window, not only from STATUS_APPROVED
+     * itself. Like submit()/approve()/request_changes(), this class enforces only the
+     * workflow's own business rules, never capability checks: the caller (the controller that
+     * wires this to a UI action) is responsible for verifying the user holds
+     * mod/syllabus:review, or is the author recorded in $plan->submittedby, before calling this
+     * — an unrelated teacher who merely shares mod/syllabus:submit on the course must never be
+     * able to unpublish someone else's plan.
      *
      * @param int $syllabusid ID of the syllabus record.
      * @param int $userid ID of the user unpublishing the plan, recorded for audit purposes.
      * @return void
-     * @throws moodle_exception If the plan is not currently approved.
+     * @throws moodle_exception If the plan is not currently published.
      */
     public static function unpublish(int $syllabusid, int $userid): void {
         global $DB;
 
         $plan = $DB->get_record('syllabus', ['id' => $syllabusid], '*', MUST_EXIST);
-        if ($plan->status !== self::STATUS_APPROVED) {
+        $cm = get_coursemodule_from_instance('syllabus', $syllabusid, $plan->course, false, IGNORE_MISSING);
+        if (!$cm || !$cm->visible) {
             throw new moodle_exception('onlyapprovedcanunpublish', 'mod_syllabus');
         }
 
@@ -181,10 +186,7 @@ final class plan_state_manager {
         $plan->timemodified = $now;
         $DB->update_record('syllabus', $plan);
 
-        $cm = get_coursemodule_from_instance('syllabus', $syllabusid, $plan->course, false, IGNORE_MISSING);
-        if ($cm) {
-            set_coursemodule_visible($cm->id, 0);
-        }
+        set_coursemodule_visible($cm->id, 0);
     }
 
     /**

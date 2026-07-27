@@ -313,36 +313,46 @@ final class plan_state_manager_test extends advanced_testcase {
     }
 
     /**
-     * An approved plan can be unpublished, recording who did it and when.
+     * An approved (and therefore currently published) plan can be unpublished, recording who
+     * did it and when.
+     *
+     * Uses a real course module, unlike create_plan()'s bare syllabus row: unpublish() is now
+     * gated on the course module's own visibility (see plan_state_manager::unpublish()), which
+     * only exists once a real module has gone through the real approve() flow.
      *
      * @return void
      */
     public function test_unpublish_transitions_to_draft(): void {
         global $DB;
 
+        $course = $this->getDataGenerator()->create_course();
+        $syllabus = $this->getDataGenerator()->create_module('syllabus', ['course' => $course->id]);
         $author = $this->getDataGenerator()->create_user();
         $unpublisher = $this->getDataGenerator()->create_user();
-        $syllabusid = $this->create_plan(plan_state_manager::STATUS_APPROVED, (int) $author->id);
+        plan_state_manager::submit($syllabus->id, (int) $author->id);
+        plan_state_manager::approve($syllabus->id, (int) $unpublisher->id);
 
-        plan_state_manager::unpublish($syllabusid, (int) $unpublisher->id);
+        plan_state_manager::unpublish($syllabus->id, (int) $unpublisher->id);
 
-        $plan = $DB->get_record('syllabus', ['id' => $syllabusid], '*', MUST_EXIST);
+        $plan = $DB->get_record('syllabus', ['id' => $syllabus->id], '*', MUST_EXIST);
         $this->assertSame(plan_state_manager::STATUS_DRAFT, $plan->status);
         $this->assertEquals($unpublisher->id, $plan->unpublishedby);
         $this->assertNotEmpty($plan->timeunpublished);
     }
 
     /**
-     * A plan that is not approved cannot be unpublished.
+     * A plan that has never been published (its course module was never made visible) cannot
+     * be unpublished.
      *
      * @return void
      */
     public function test_unpublish_when_not_approved_throws(): void {
+        $course = $this->getDataGenerator()->create_course();
+        $syllabus = $this->getDataGenerator()->create_module('syllabus', ['course' => $course->id]);
         $unpublisher = $this->getDataGenerator()->create_user();
-        $syllabusid = $this->create_plan(plan_state_manager::STATUS_DRAFT);
 
         $this->expectException(moodle_exception::class);
-        plan_state_manager::unpublish($syllabusid, (int) $unpublisher->id);
+        plan_state_manager::unpublish($syllabus->id, (int) $unpublisher->id);
     }
 
     /**
@@ -371,6 +381,40 @@ final class plan_state_manager_test extends advanced_testcase {
 
         $cmrow = $DB->get_record('course_modules', ['id' => $cm->id], '*', MUST_EXIST);
         $this->assertEquals(0, $cmrow->visible, 'Unpublishing the plan must hide its course module again.');
+    }
+
+    /**
+     * A structural edit that reopens an approved plan for review (status regresses to
+     * submitted) never hides its course module - content already visible to tutors/students
+     * must stay reachable - and unpublish() must still be reachable during that window, not
+     * only from STATUS_APPROVED itself.
+     *
+     * @return void
+     */
+    public function test_unpublish_reaches_a_plan_reopened_for_structural_change(): void {
+        global $DB;
+
+        $course = $this->getDataGenerator()->create_course();
+        $syllabus = $this->getDataGenerator()->create_module('syllabus', ['course' => $course->id]);
+        $cm = get_coursemodule_from_instance('syllabus', $syllabus->id, $course->id, false, MUST_EXIST);
+        $author = $this->getDataGenerator()->create_user();
+        $reviewer = $this->getDataGenerator()->create_user();
+        plan_state_manager::submit($syllabus->id, (int) $author->id);
+        plan_state_manager::approve($syllabus->id, (int) $reviewer->id);
+
+        plan_state_manager::reopen_for_structural_change($syllabus->id);
+
+        $plan = $DB->get_record('syllabus', ['id' => $syllabus->id], '*', MUST_EXIST);
+        $this->assertSame(plan_state_manager::STATUS_SUBMITTED, $plan->status);
+        $cmrow = $DB->get_record('course_modules', ['id' => $cm->id], '*', MUST_EXIST);
+        $this->assertEquals(1, $cmrow->visible, 'Reopening for review must never hide an already-visible plan.');
+
+        plan_state_manager::unpublish($syllabus->id, (int) $reviewer->id);
+
+        $plan = $DB->get_record('syllabus', ['id' => $syllabus->id], '*', MUST_EXIST);
+        $this->assertSame(plan_state_manager::STATUS_DRAFT, $plan->status);
+        $cmrow = $DB->get_record('course_modules', ['id' => $cm->id], '*', MUST_EXIST);
+        $this->assertEquals(0, $cmrow->visible, 'Unpublish must still succeed while reopened for review.');
     }
 
     /**

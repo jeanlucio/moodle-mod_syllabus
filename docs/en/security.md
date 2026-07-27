@@ -14,9 +14,12 @@
 * Workflow guards (wrong status for a transition, self-approval) raise a translated
   `moodle_exception`, never a `coding_exception` — these are business-rule outcomes a normal
   user action can trigger, not programmer mistakes
-* The activity's own visibility is gated by plan status independently of Moodle's native
-  course-module visibility flag, since visibility alone does not protect against roles with
-  `moodle/course:viewhiddenactivities`
+* Tutor/student content access is gated in `view.php` by the course module's own `visible`
+  flag — set only by `plan_state_manager::approve()`/`unpublish()` — rather than the plan's
+  literal status, so a structural edit that reopens an approved plan for review never blocks
+  content already visible to tutors/students. The gate is still enforced server-side,
+  independent of Moodle's course-page hidden-activity filtering, which does not itself block
+  direct access for a role holding `moodle/course:viewhiddenactivities`
 * Narrative content is Custom Fields API data, rendered through `format_text()` — never printed
   raw
 * Moodle External API compliant

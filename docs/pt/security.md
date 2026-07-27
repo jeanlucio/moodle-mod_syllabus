@@ -14,9 +14,13 @@
 * Guards de workflow (status errado para uma transição, autoaprovação) levantam um
   `moodle_exception` traduzido, nunca um `coding_exception` — são resultados de regra de
   negócio que uma ação normal do usuário pode disparar, não erros de programador
-* A visibilidade da própria atividade é controlada pelo status do plano, independentemente do
-  flag nativo de visibilidade do módulo de curso do Moodle, já que a visibilidade sozinha não
-  protege contra papéis com `moodle/course:viewhiddenactivities`
+* O acesso de tutor/estudante ao conteúdo é controlado, em `view.php`, pelo próprio flag
+  `visible` do módulo de curso — alterado só por `plan_state_manager::approve()`/`unpublish()`
+  — em vez do status literal do plano, para que uma edição estrutural que reabre a revisão de
+  um plano aprovado nunca bloqueie conteúdo que tutores/estudantes já veem. A checagem continua
+  aplicada no servidor, independente da filtragem de atividades ocultas da página do curso do
+  Moodle, que por si só não bloqueia acesso direto de um papel com
+  `moodle/course:viewhiddenactivities`
 * O conteúdo narrativo é dado da Custom Fields API, renderizado via `format_text()` — nunca
   impresso cru
 * Compatível com a External API do Moodle

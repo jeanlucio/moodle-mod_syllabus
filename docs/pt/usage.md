@@ -23,3 +23,35 @@
    aba do tutor as inclui.
 8. Administradores do site gerenciam os três modelos de Custom Fields (`plan`, `week`,
    `activity`) em **Administração do site > Plugins > Módulos de atividade > Syllabus**.
+
+## Quais edições reabrem a revisão, e quais nunca reabrem
+
+Depois que um plano foi aprovado ao menos uma vez, editá-lo se comporta de forma diferente
+dependendo do que mudou.
+
+**Sempre reabre a revisão** — regride o plano para `submitted` para que a coordenação saiba
+que precisa olhar de novo, mas nunca esconde a atividade nem reverte o que estudantes/tutores
+já veem:
+
+* Editar o título, a carga horária, a data de início/fim, os detalhes do encontro síncrono ou
+  a etapa de uma aula
+* Editar o título, tipo, categoria, datas ou pontuação de uma atividade
+* Excluir uma aula
+* Excluir uma atividade
+* Editar o bloco de Avaliação Final do plano (título, tipo, datas, pontos)
+
+**Nunca reabre a revisão** — editável livremente em qualquer status, inclusive com uma revisão
+pendente:
+
+* Qualquer campo narrativo: ementa, objetivos, conteúdos, metodologia, referências, critérios
+  de avaliação, acompanhamento de tutoria, e o restante do conteúdo de Custom Fields
+* Os campos de Caracterização (período letivo, período do curso, carga horária total) e o link
+  do vídeo de apresentação do professor/curso
+* O número de etapas de pontuação e como elas se combinam
+
+**Despublicar continua disponível o tempo todo.** A ação **Despublicar** (voltar o plano para
+rascunho e escondê-lo de novo) funciona sempre que a atividade estiver atualmente visível —
+inclusive durante uma janela de revisão reaberta — não só a partir do status `approved`
+isolado. É o único caminho suportado para esconder um plano já publicado; alternar a
+configuração "Disponibilidade" da própria atividade não tem efeito, já que esse campo vem
+permanentemente travado numa instância de Syllabus.

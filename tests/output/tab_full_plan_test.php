@@ -317,6 +317,10 @@ final class tab_full_plan_test extends advanced_testcase {
 
         plan_state_manager::approve($syllabus->id, (int) $reviewer->id);
         $syllabus = $DB->get_record('syllabus', ['id' => $syllabus->id], '*', MUST_EXIST);
+        // Canunpublish is gated on the course module's own visibility (see plan_state_manager
+        // ::unpublish()), which approve() just flipped in the database - the in-memory $cm
+        // fetched before approval is now stale and must be re-read.
+        $cm = get_coursemodule_from_instance('syllabus', $syllabus->id, $course->id, false, MUST_EXIST);
 
         $page = new tab_full_plan($syllabus, $cm, $course);
         $reviewerdata = $page->export_for_template($GLOBALS['PAGE']->get_renderer('mod_syllabus'));

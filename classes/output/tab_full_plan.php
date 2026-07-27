@@ -179,7 +179,11 @@ final class tab_full_plan implements renderable, templatable {
                 plan_state_manager::STATUS_CHANGES_REQUESTED,
             ], true),
             'canreviewnow'      => $canreview && $status === plan_state_manager::STATUS_SUBMITTED,
-            'canunpublish'      => $status === plan_state_manager::STATUS_APPROVED && ($canreview || $isauthor),
+            // Gated on the course module's own visibility, not literally STATUS_APPROVED: a
+            // structural edit can reopen an approved plan for review (status regresses to
+            // submitted) without ever hiding it, and unpublish() must still be reachable
+            // during that window - see plan_state_manager::unpublish().
+            'canunpublish'      => (bool) $this->cm->visible && ($canreview || $isauthor),
             'changesrequestedreason' => $status === plan_state_manager::STATUS_CHANGES_REQUESTED
                 ? $this->syllabus->changesrequestedreason
                 : null,

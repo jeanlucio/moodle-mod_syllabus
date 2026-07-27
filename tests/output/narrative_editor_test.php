@@ -32,7 +32,7 @@ use context_module;
  * Building the shared Tiny config needs no real HTTP request — $PAGE/$OUTPUT from
  * advanced_testcase are enough, so this is directly unit-testable rather than Behat-only.
  *
- * @coversDefaultClass \mod_syllabus\output\narrative_editor
+ * @covers \mod_syllabus\output\narrative_editor
  */
 final class narrative_editor_test extends advanced_testcase {
     #[\Override]
@@ -44,7 +44,6 @@ final class narrative_editor_test extends advanced_testcase {
     /**
      * A user whose preferred editor is the default (Tiny) is reported as Tiny-available.
      *
-     * @covers ::is_tiny_available
      * @return void
      */
     public function test_is_tiny_available_true_for_default_editor(): void {
@@ -58,7 +57,6 @@ final class narrative_editor_test extends advanced_testcase {
      * A user who explicitly chose the plain textarea editor in their profile is reported as
      * not having Tiny available — the lazy-load apparatus must never attach for them.
      *
-     * @covers ::is_tiny_available
      * @return void
      */
     public function test_is_tiny_available_false_for_plain_textarea_preference(): void {
@@ -72,7 +70,6 @@ final class narrative_editor_test extends advanced_testcase {
     /**
      * base_config() builds a complete Tiny configuration object scoped to the given context.
      *
-     * @covers ::base_config
      * @return void
      */
     public function test_base_config_builds_expected_structure(): void {

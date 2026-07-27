@@ -25,6 +25,9 @@ use advanced_testcase;
  * @copyright  2026 Jean Lúcio
  * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  * @covers ::xmldb_syllabus_upgrade
+ * @covers \mod_syllabus\local\customfield_seeder
+ * @covers \mod_syllabus\local\help_text_builder
+ * @covers \mod_syllabus\customfield\help_handler
  */
 final class db_upgrade_test extends advanced_testcase {
     /**

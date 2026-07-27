@@ -30,7 +30,7 @@ use advanced_testcase;
 /**
  * Tests for plan_teacher_name::resolve().
  *
- * @coversDefaultClass \mod_syllabus\output\plan_teacher_name
+ * @covers \mod_syllabus\output\plan_teacher_name
  */
 final class plan_teacher_name_test extends advanced_testcase {
     #[\Override]
@@ -42,7 +42,6 @@ final class plan_teacher_name_test extends advanced_testcase {
     /**
      * Resolves the full name of the plan's submitter.
      *
-     * @covers ::resolve
      * @return void
      */
     public function test_resolve_returns_submitter_fullname(): void {
@@ -55,7 +54,6 @@ final class plan_teacher_name_test extends advanced_testcase {
     /**
      * A plan never submitted has no submittedby yet, so it resolves to an empty string.
      *
-     * @covers ::resolve
      * @return void
      */
     public function test_resolve_returns_empty_string_when_never_submitted(): void {
@@ -67,7 +65,6 @@ final class plan_teacher_name_test extends advanced_testcase {
     /**
      * A submittedby pointing at a deleted/unknown user id resolves to an empty string.
      *
-     * @covers ::resolve
      * @return void
      */
     public function test_resolve_returns_empty_string_for_unknown_user(): void {

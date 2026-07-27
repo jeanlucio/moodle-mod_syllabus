@@ -34,7 +34,7 @@ use mod_syllabus\customfield\plan_handler;
  * exported data object and check the resulting HTML actually carries the plan's own content,
  * proving the renderer methods do more than call render_from_template() without error.
  *
- * @coversDefaultClass \mod_syllabus\output\renderer
+ * @covers \mod_syllabus\output\renderer
  */
 final class renderer_test extends advanced_testcase {
     #[\Override]
@@ -77,7 +77,6 @@ final class renderer_test extends advanced_testcase {
     /**
      * render_tab_student_plan() produces real HTML containing the plan's own content.
      *
-     * @covers ::render_tab_student_plan
      * @return void
      */
     public function test_render_tab_student_plan_contains_plan_content(): void {
@@ -97,7 +96,6 @@ final class renderer_test extends advanced_testcase {
     /**
      * render_tab_tutor_plan() produces real HTML containing the plan's own content.
      *
-     * @covers ::render_tab_tutor_plan
      * @return void
      */
     public function test_render_tab_tutor_plan_renders_without_error(): void {
@@ -119,7 +117,6 @@ final class renderer_test extends advanced_testcase {
      * render_tab_full_plan() produces real HTML containing the plan's own content, in the
      * read-only (coordination review) branch.
      *
-     * @covers ::render_tab_full_plan
      * @return void
      */
     public function test_render_tab_full_plan_contains_plan_content(): void {

@@ -35,7 +35,7 @@ use context_module;
  * None of this is covered by observer_test.php — that file only asserts on the observer's
  * side effects, never on the event object's own name/description/url/validation.
  *
- * @coversDefaultClass \mod_syllabus\event\plan_approved
+ * @covers \mod_syllabus\event\plan_approved
  */
 final class plan_approved_test extends advanced_testcase {
     #[\Override]
@@ -63,10 +63,6 @@ final class plan_approved_test extends advanced_testcase {
     /**
      * The event name, description and URL are all built correctly.
      *
-     * @covers ::get_name
-     * @covers ::get_description
-     * @covers ::get_url
-     * @covers ::get_objectid_mapping
      * @return void
      */
     public function test_name_description_url_and_mapping(): void {
@@ -84,7 +80,6 @@ final class plan_approved_test extends advanced_testcase {
      * Creating the event at anything other than a module context fails validation —
      * validate_data() runs at the end of create() itself, before the event is ever triggered.
      *
-     * @covers ::validate_data
      * @return void
      */
     public function test_validate_data_requires_module_context(): void {

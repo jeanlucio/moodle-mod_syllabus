@@ -125,8 +125,10 @@ final class tab_visibility_test extends \advanced_testcase {
      * The student tab never exports the tutor-exclusive week/activity fields — they are
      * absent from the exported object entirely, not merely empty.
      *
-     * @covers \mod_syllabus\output\tab_student_plan::export_for_template
-     * @covers \mod_syllabus\output\plan_read_export::weeks
+     * @covers \mod_syllabus\output\tab_student_plan
+     * @covers \mod_syllabus\output\plan_read_export
+     * @covers \mod_syllabus\output\plan_reader
+     * @covers \mod_syllabus\local\plan_state_manager
      * @return void
      */
     public function test_student_tab_never_exports_tutor_fields(): void {
@@ -151,7 +153,9 @@ final class tab_visibility_test extends \advanced_testcase {
      * The tutor tab exports the tutor-exclusive fields but never the plan-level narrative
      * content — that lives one click away, on the student tab.
      *
-     * @covers \mod_syllabus\output\tab_tutor_plan::export_for_template
+     * @covers \mod_syllabus\output\tab_tutor_plan
+     * @covers \mod_syllabus\output\plan_read_export
+     * @covers \mod_syllabus\output\plan_reader
      * @return void
      */
     public function test_tutor_tab_exports_tutor_fields_but_not_plan_narrative(): void {
@@ -177,7 +181,9 @@ final class tab_visibility_test extends \advanced_testcase {
      * an empty "no weeks yet" placeholder — including the Characterisation names (course,
      * discipline, teacher), which this branch did not export before.
      *
-     * @covers \mod_syllabus\output\tab_full_plan::export_for_template
+     * @covers \mod_syllabus\output\tab_full_plan
+     * @covers \mod_syllabus\output\plan_read_export
+     * @covers \mod_syllabus\output\plan_reader
      * @return void
      */
     public function test_full_plan_read_mode_exports_full_field_set(): void {
@@ -209,7 +215,7 @@ final class tab_visibility_test extends \advanced_testcase {
      * creates the row on the server immediately (with a default title) and reloads with it
      * fully open, so there is no client-built placeholder row to export.
      *
-     * @covers \mod_syllabus\output\tab_full_plan::export_for_template
+     * @covers \mod_syllabus\output\tab_full_plan
      * @return void
      */
     public function test_edit_mode_with_no_weeks_exports_empty_list(): void {
@@ -231,7 +237,7 @@ final class tab_visibility_test extends \advanced_testcase {
     /**
      * The consolidated schedule sorts activities by end date, across weeks.
      *
-     * @covers \mod_syllabus\output\plan_reader::schedule
+     * @covers \mod_syllabus\output\plan_reader
      * @return void
      */
     public function test_schedule_sorted_by_enddate(): void {

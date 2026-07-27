@@ -38,7 +38,10 @@ use stdClass;
  * to the owning syllabus (0, 1 and 2 respectively), so most tests below run once per area to
  * prove the shared base behaves the same regardless of how deep resolve_syllabus_id() reaches.
  *
- * @coversDefaultClass \mod_syllabus\customfield\syllabus_handler_base
+ * @covers \mod_syllabus\customfield\syllabus_handler_base
+ * @covers \mod_syllabus\customfield\plan_handler
+ * @covers \mod_syllabus\customfield\week_handler
+ * @covers \mod_syllabus\customfield\activity_handler
  */
 final class syllabus_handler_base_test extends advanced_testcase {
     #[\Override]
@@ -96,9 +99,6 @@ final class syllabus_handler_base_test extends advanced_testcase {
      * Each area's handler reports its own component/area, derived by core from the handler's
      * own namespace and class name.
      *
-     * @covers \mod_syllabus\customfield\plan_handler
-     * @covers \mod_syllabus\customfield\week_handler
-     * @covers \mod_syllabus\customfield\activity_handler
      * @return void
      */
     public function test_get_component_and_area(): void {
@@ -115,7 +115,6 @@ final class syllabus_handler_base_test extends advanced_testcase {
      * given syllabus, and rejects both a mismatched syllabus id and an orphaned/unknown
      * instanceid — the cross-instance guard external functions rely on before any write.
      *
-     * @covers ::belongs_to_syllabus
      * @return void
      */
     public function test_belongs_to_syllabus(): void {
@@ -145,7 +144,6 @@ final class syllabus_handler_base_test extends advanced_testcase {
      * The field templates are configured once, site-wide, so the configuration context is
      * always the system context regardless of area.
      *
-     * @covers ::get_configuration_context
      * @return void
      */
     public function test_get_configuration_context(): void {
@@ -159,7 +157,6 @@ final class syllabus_handler_base_test extends advanced_testcase {
     /**
      * The configuration URL always points at managefields.php with the matching area param.
      *
-     * @covers ::get_configuration_url
      * @return void
      */
     public function test_get_configuration_url(): void {
@@ -175,7 +172,6 @@ final class syllabus_handler_base_test extends advanced_testcase {
      * get_instance_context() resolves all the way to the activity's own module context for a
      * real instanceid, in every area, no matter how many hops resolve_syllabus_id() takes.
      *
-     * @covers ::get_instance_context
      * @return void
      */
     public function test_get_instance_context_resolves_to_module_context(): void {
@@ -192,7 +188,6 @@ final class syllabus_handler_base_test extends advanced_testcase {
      * being built) and for an orphaned/unknown instanceid that resolve_syllabus_id() cannot
      * map back to any syllabus.
      *
-     * @covers ::get_instance_context
      * @return void
      */
     public function test_get_instance_context_falls_back_to_system(): void {
@@ -212,7 +207,6 @@ final class syllabus_handler_base_test extends advanced_testcase {
      * can_configure() is gated on mod/syllabus:review at the system context — held by an
      * admin, not by a plain authenticated user.
      *
-     * @covers ::can_configure
      * @return void
      */
     public function test_can_configure(): void {
@@ -231,7 +225,6 @@ final class syllabus_handler_base_test extends advanced_testcase {
      * can_edit() is gated on mod/syllabus:submit at the instance context — held by the
      * enrolled teacher, not by an enrolled student.
      *
-     * @covers ::can_edit
      * @return void
      */
     public function test_can_edit(): void {
@@ -256,7 +249,6 @@ final class syllabus_handler_base_test extends advanced_testcase {
      * can_view() is gated on mod/syllabus:view at the instance context — held by an enrolled
      * student, not by a user with no role in the course at all.
      *
-     * @covers ::can_view
      * @return void
      */
     public function test_can_view(): void {

@@ -207,7 +207,8 @@ final class backup_restore_test extends \advanced_testcase {
      * Duplicating an activity within the same course preserves its weeks, activities and
      * every narrative Custom Field value at all three levels — the fast, common case.
      *
-     * @covers \restore_syllabus_activity_structure_step::define_structure
+     * @covers \restore_syllabus_activity_structure_step
+     * @covers \mod_syllabus\customfield\syllabus_handler_base
      * @return void
      */
     public function test_duplicate_activity_preserves_structure_and_customfields(): void {
@@ -260,8 +261,9 @@ final class backup_restore_test extends \advanced_testcase {
      * content as duplication, exercising the real backup_controller/restore_controller flow
      * end to end rather than just the same-course duplicate_module() shortcut.
      *
-     * @covers \backup_syllabus_activity_structure_step::define_structure
-     * @covers \restore_syllabus_activity_structure_step::define_structure
+     * @covers \backup_syllabus_activity_structure_step
+     * @covers \restore_syllabus_activity_structure_step
+     * @covers \mod_syllabus\customfield\syllabus_handler_base
      * @return void
      */
     public function test_full_course_backup_restore_preserves_structure_and_customfields(): void {
@@ -327,7 +329,7 @@ final class backup_restore_test extends \advanced_testcase {
      * users when a full course backup carries user info along (the default when both the
      * source and target enrol/include the same users).
      *
-     * @covers \restore_syllabus_activity_structure_step::process_syllabus
+     * @covers \restore_syllabus_activity_structure_step
      * @return void
      */
     public function test_full_course_backup_restore_remaps_workflow_users(): void {

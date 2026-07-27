@@ -33,7 +33,7 @@ use mod_syllabus\customfield\plan_handler;
  * own export_for_template() branches, which tab_visibility_test.php never drives into edit
  * mode with real saved fields — these tests call them directly instead.
  *
- * @coversDefaultClass \mod_syllabus\output\plan_reader
+ * @covers \mod_syllabus\output\plan_reader
  */
 final class plan_reader_test extends advanced_testcase {
     #[\Override]
@@ -77,7 +77,6 @@ final class plan_reader_test extends advanced_testcase {
     /**
      * plan_narrative() returns the plan-level Custom Field values, unfiltered.
      *
-     * @covers ::plan_narrative
      * @return void
      */
     public function test_plan_narrative_returns_plan_level_fields(): void {
@@ -98,7 +97,6 @@ final class plan_reader_test extends advanced_testcase {
      * combining the short summary and the full model guidance behind a disclosure is
      * help_text_builder's job at seed time, not this method's.
      *
-     * @covers ::export_editable_fields
      * @return void
      */
     public function test_export_editable_fields_shapes_textarea_fields_only(): void {
@@ -129,7 +127,6 @@ final class plan_reader_test extends advanced_testcase {
     /**
      * export_editable_fields() on a week area exports fields tagged isplanfield => false.
      *
-     * @covers ::export_editable_fields
      * @return void
      */
     public function test_export_editable_fields_week_area_is_not_flagged_as_plan_field(): void {
@@ -164,7 +161,6 @@ final class plan_reader_test extends advanced_testcase {
      * workload/period, Synchronous meeting, an activity's type/category, Final assessment)
      * that have no narrative Custom Field of their own.
      *
-     * @covers ::structural_help
      * @return void
      */
     public function test_structural_help_returns_all_five_fields(): void {

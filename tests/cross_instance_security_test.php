@@ -86,11 +86,11 @@ final class cross_instance_security_test extends \advanced_testcase {
      * by supplying course A's cmid alongside a week/activity/field id that actually belongs
      * to course B.
      *
-     * @covers \mod_syllabus\external\save_week::execute
-     * @covers \mod_syllabus\external\delete_week::execute
-     * @covers \mod_syllabus\external\save_activity::execute
-     * @covers \mod_syllabus\external\delete_activity::execute
-     * @covers \mod_syllabus\external\save_customfield_value::execute
+     * @covers \mod_syllabus\external\save_week
+     * @covers \mod_syllabus\external\delete_week
+     * @covers \mod_syllabus\external\save_activity
+     * @covers \mod_syllabus\external\delete_activity
+     * @covers \mod_syllabus\external\save_customfield_value
      * @return void
      */
     public function test_write_services_reject_cross_instance_targets(): void {
@@ -145,7 +145,7 @@ final class cross_instance_security_test extends \advanced_testcase {
      * relies on for the Custom Field areas — correctly distinguishes a genuinely owned
      * week/activity from one belonging to a different syllabus instance, at the unit level.
      *
-     * @covers \mod_syllabus\customfield\syllabus_handler_base::belongs_to_syllabus
+     * @covers \mod_syllabus\customfield\syllabus_handler_base
      * @return void
      */
     public function test_belongs_to_syllabus_distinguishes_instances(): void {

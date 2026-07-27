@@ -31,7 +31,7 @@ use mod_syllabus\customfield\plan_handler;
 /**
  * Tests for plan_read_export::final_assessment().
  *
- * @coversDefaultClass \mod_syllabus\output\plan_read_export
+ * @covers \mod_syllabus\output\plan_read_export
  */
 final class plan_read_export_test extends advanced_testcase {
     #[\Override]
@@ -77,7 +77,6 @@ final class plan_read_export_test extends advanced_testcase {
      * Custom Field value are exported as a single object, structurally paralleling
      * Characterisation rather than an activity inside some week.
      *
-     * @covers ::final_assessment
      * @return void
      */
     public function test_final_assessment_exports_plan_level_fields(): void {
@@ -116,7 +115,6 @@ final class plan_read_export_test extends advanced_testcase {
      * A plan that never had its Final assessment filled in exports an empty title, the signal
      * the read-only templates use to decide whether to render the block at all.
      *
-     * @covers ::final_assessment
      * @return void
      */
     public function test_final_assessment_title_is_empty_when_never_filled_in(): void {

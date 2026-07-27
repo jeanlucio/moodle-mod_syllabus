@@ -35,7 +35,8 @@ use mod_syllabus\local\plan_state_manager;
  * cover the workflow status flags (cansubmit/canreviewnow/canunpublish/changesrequestedreason)
  * across every plan status.
  *
- * @coversDefaultClass \mod_syllabus\output\tab_full_plan
+ * @covers \mod_syllabus\output\tab_full_plan
+ * @covers \mod_syllabus\local\plan_state_manager
  */
 final class tab_full_plan_test extends advanced_testcase {
     #[\Override]
@@ -91,7 +92,6 @@ final class tab_full_plan_test extends advanced_testcase {
      * fields carry the real stored timestamp (never the "defaulted" flag), and the Tiny
      * availability flag/config are present.
      *
-     * @covers ::export_for_template
      * @return void
      */
     public function test_edit_mode_with_real_week_exports_editable_structure(): void {
@@ -127,7 +127,6 @@ final class tab_full_plan_test extends advanced_testcase {
      * institution-specific value typed before this UI existed) is appended as an extra
      * selected option instead of being silently dropped.
      *
-     * @covers ::export_for_template
      * @return void
      */
     public function test_build_select_options_appends_unmatched_legacy_value(): void {
@@ -157,7 +156,6 @@ final class tab_full_plan_test extends advanced_testcase {
      * array has exactly one entry — the same single points chip the plan showed before this
      * feature existed.
      *
-     * @covers ::export_for_template
      * @return void
      */
     public function test_single_stage_by_default(): void {
@@ -179,8 +177,6 @@ final class tab_full_plan_test extends advanced_testcase {
      * stored stage is now higher than stagecount (lowered after the week was assigned) gets
      * that value appended as an extra selected option instead of being silently reassigned.
      *
-     * @covers ::export_for_template
-     * @covers ::build_stage_options
      * @return void
      */
     public function test_multiple_stages_and_orphaned_week_stage(): void {
@@ -213,7 +209,6 @@ final class tab_full_plan_test extends advanced_testcase {
      * The Final assessment's structured fields (title/type/dates/points) and its narrative
      * Custom Field are exported alongside the rest of the editable form.
      *
-     * @covers ::export_for_template
      * @return void
      */
     public function test_exports_final_assessment_fields(): void {
@@ -252,7 +247,6 @@ final class tab_full_plan_test extends advanced_testcase {
      * A brand-new plan with neither course date set gets both prefilled with today/+1 month,
      * flagged as a client-side default rather than a real saved value.
      *
-     * @covers ::export_for_template
      * @return void
      */
     public function test_empty_course_dates_are_defaulted_for_the_author(): void {
@@ -279,7 +273,6 @@ final class tab_full_plan_test extends advanced_testcase {
     /**
      * cansubmit is true from draft and changes_requested, false from submitted and approved.
      *
-     * @covers ::export_for_template
      * @return void
      */
     public function test_cansubmit_by_status(): void {
@@ -306,7 +299,6 @@ final class tab_full_plan_test extends advanced_testcase {
      * canreviewnow is true only for a reviewer while the plan is submitted; canunpublish is
      * true for the author or a reviewer once the plan has been approved.
      *
-     * @covers ::export_for_template
      * @return void
      */
     public function test_canreviewnow_and_canunpublish_by_status(): void {

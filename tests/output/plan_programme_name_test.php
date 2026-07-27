@@ -30,7 +30,7 @@ use advanced_testcase;
 /**
  * Tests for plan_programme_name::resolve().
  *
- * @coversDefaultClass \mod_syllabus\output\plan_programme_name
+ * @covers \mod_syllabus\output\plan_programme_name
  */
 final class plan_programme_name_test extends advanced_testcase {
     #[\Override]
@@ -42,7 +42,6 @@ final class plan_programme_name_test extends advanced_testcase {
     /**
      * Resolves the formatted name of an existing course category.
      *
-     * @covers ::resolve
      * @return void
      */
     public function test_resolve_existing_category(): void {
@@ -54,7 +53,6 @@ final class plan_programme_name_test extends advanced_testcase {
     /**
      * A category id that no longer exists resolves to an empty string, never a warning.
      *
-     * @covers ::resolve
      * @return void
      */
     public function test_resolve_unknown_category_returns_empty_string(): void {

@@ -36,6 +36,8 @@ use mod_syllabus\privacy\provider;
 
 /**
  * Privacy tests for mod_syllabus.
+ *
+ * @covers \mod_syllabus\privacy\provider
  */
 final class privacy_provider_test extends provider_testcase {
     /**
@@ -58,8 +60,6 @@ final class privacy_provider_test extends provider_testcase {
     /**
      * A user who submitted or reviewed a plan has a context; one who did neither does not.
      *
-     * @covers \mod_syllabus\privacy\provider::get_contexts_for_userid
-     * @covers \mod_syllabus\privacy\provider::get_metadata
      * @return void
      */
     public function test_get_contexts_for_userid(): void {
@@ -81,7 +81,6 @@ final class privacy_provider_test extends provider_testcase {
     /**
      * Both the submitter and the reviewer show up as users with data in the context.
      *
-     * @covers \mod_syllabus\privacy\provider::get_users_in_context
      * @return void
      */
     public function test_get_users_in_context(): void {
@@ -103,7 +102,6 @@ final class privacy_provider_test extends provider_testcase {
     /**
      * Exporting a submitter's data includes a "submitted" entry with a timestamp.
      *
-     * @covers \mod_syllabus\privacy\provider::export_user_data
      * @return void
      */
     public function test_export_user_data(): void {
@@ -131,7 +129,6 @@ final class privacy_provider_test extends provider_testcase {
     /**
      * Deleting all data in a context anonymises submittedby/reviewedby but keeps the plan row.
      *
-     * @covers \mod_syllabus\privacy\provider::delete_data_for_all_users_in_context
      * @return void
      */
     public function test_delete_data_for_all_users_in_context(): void {
@@ -155,7 +152,6 @@ final class privacy_provider_test extends provider_testcase {
     /**
      * Deleting a specific user only anonymises that user's own references.
      *
-     * @covers \mod_syllabus\privacy\provider::delete_data_for_users
      * @return void
      */
     public function test_delete_data_for_users(): void {
@@ -179,7 +175,6 @@ final class privacy_provider_test extends provider_testcase {
     /**
      * Deleting data for a user anonymises only their own references, everywhere they appear.
      *
-     * @covers \mod_syllabus\privacy\provider::delete_data_for_user
      * @return void
      */
     public function test_delete_data_for_user(): void {
@@ -205,10 +200,6 @@ final class privacy_provider_test extends provider_testcase {
      * the tests above ever unpublish a plan, so that third reference is otherwise never
      * exercised.
      *
-     * @covers \mod_syllabus\privacy\provider::get_contexts_for_userid
-     * @covers \mod_syllabus\privacy\provider::get_users_in_context
-     * @covers \mod_syllabus\privacy\provider::export_user_data
-     * @covers \mod_syllabus\privacy\provider::delete_data_for_all_users_in_context
      * @return void
      */
     public function test_unpublishedby_is_tracked_and_anonymised(): void {
@@ -245,8 +236,6 @@ final class privacy_provider_test extends provider_testcase {
      * context level other than CONTEXT_MODULE, rather than running a query against a context
      * they were never meant to handle.
      *
-     * @covers \mod_syllabus\privacy\provider::get_users_in_context
-     * @covers \mod_syllabus\privacy\provider::delete_data_for_all_users_in_context
      * @return void
      */
     public function test_wrong_context_level_is_a_noop(): void {
@@ -272,9 +261,6 @@ final class privacy_provider_test extends provider_testcase {
      * and delete_data_for_users() no-ops on an empty approved userlist — none of these ever
      * reach the database.
      *
-     * @covers \mod_syllabus\privacy\provider::export_user_data
-     * @covers \mod_syllabus\privacy\provider::delete_data_for_user
-     * @covers \mod_syllabus\privacy\provider::delete_data_for_users
      * @return void
      */
     public function test_empty_lists_are_a_noop(): void {

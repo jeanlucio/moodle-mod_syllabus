@@ -68,7 +68,7 @@ Feature: Syllabus approval workflow and role-based views
     And I am on "Course 1" course homepage
     And I follow "My Syllabus"
     When I set the field "Week title" to "Week 1 revised"
-    And I click on "body" "css_element"
+    And I click on "Duration (hours)" "field"
     And I should see "Saved"
     And I reload the page
     Then I should see "Submitted for review" in the ".syllabus-status-badge" "css_element"

@@ -69,7 +69,11 @@ Feature: Syllabus approval workflow and role-based views
     And I follow "My Syllabus"
     When I set the field "Week title" to "Week 1 revised"
     And I click on "Duration (hours)" "field"
-    And I should see "Saved"
+    # The "Saved" indicator fades back out 3 seconds after showing (see
+    # amd/src/weeks_manager.js::showRowSaved()), too transient a signal to assert on
+    # reliably - waiting past the autosave's own round trip and reloading is what actually
+    # matters here: the plan regressing to submitted.
+    And I wait "2" seconds
     And I reload the page
     Then I should see "Submitted for review" in the ".syllabus-status-badge" "css_element"
     And I should see "Unpublish"

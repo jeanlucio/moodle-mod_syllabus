@@ -149,18 +149,14 @@ final class lib_test extends advanced_testcase {
         $this->assertFalse($DB->record_exists('syllabus_weeks', ['id' => $week['weekid']]));
         $this->assertFalse($DB->record_exists('syllabus_activities', ['id' => $activity['activityid']]));
 
-        $this->assertEquals(0, $DB->count_records(
-            'customfield_data',
-            ['component' => 'mod_syllabus', 'area' => 'plan', 'instanceid' => $syllabus->id]
-        ));
-        $this->assertEquals(0, $DB->count_records(
-            'customfield_data',
-            ['component' => 'mod_syllabus', 'area' => 'week', 'instanceid' => $week['weekid']]
-        ));
-        $this->assertEquals(0, $DB->count_records(
-            'customfield_data',
-            ['component' => 'mod_syllabus', 'area' => 'activity', 'instanceid' => $activity['activityid']]
-        ));
+        // Filtered by instanceid alone, never component/area: those columns only exist on
+        // customfield_data from Moodle 5.1 onward, and this plugin's minimum supported
+        // version is 4.5. The instanceid values here are private to this plugin's own
+        // syllabus/syllabus_weeks/syllabus_activities tables, so no other component could
+        // plausibly hold a customfield_data row against the same id.
+        $this->assertEquals(0, $DB->count_records('customfield_data', ['instanceid' => $syllabus->id]));
+        $this->assertEquals(0, $DB->count_records('customfield_data', ['instanceid' => $week['weekid']]));
+        $this->assertEquals(0, $DB->count_records('customfield_data', ['instanceid' => $activity['activityid']]));
     }
 
     /**

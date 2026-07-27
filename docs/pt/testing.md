@@ -1,7 +1,8 @@
 # 🧪 Testes Automatizados
 
-O Syllabus vem com uma suíte de testes PHPUnit cobrindo o workflow de aprovação, web services,
-backup/restore, isolamento entre instâncias, tratamento de Custom Fields, eventos e
+O Syllabus vem com uma suíte de testes PHPUnit cobrindo o workflow de aprovação, as regras de
+completude de submissão, web services, backup/restore, isolamento entre instâncias,
+tratamento de Custom Fields e os passos de upgrade que os semeiam/reparam, eventos e
 notificações do workflow, renderização de output, e conformidade com a API de Privacidade.
 Todo push no CI roda contra a matriz completa (Moodle 4.5 → 5.2, PHP 8.2 → 8.4, PostgreSQL e
 MariaDB).
@@ -14,8 +15,8 @@ MariaDB).
 
 | Arquivo de teste | Casos |
 |-------------------|------:|
-| `lib_test.php` | 1 |
-| **Subtotal** | **1** |
+| `lib_test.php` | 4 |
+| **Subtotal** | **4** |
 
 ### Testes dos Handlers de Custom Fields (`tests/customfield/`)
 
@@ -37,115 +38,118 @@ MariaDB).
 
 | Arquivo de teste | Casos |
 |-------------------|------:|
-| `plan_state_manager_test.php` | 17 |
+| `plan_state_manager_test.php` | 18 |
+| `plan_completeness_checker_test.php` | 12 |
 | `structural_change_detector_test.php` | 4 |
-| **Subtotal** | **21** |
+| **Subtotal** | **34** |
 
 ### Testes de Web Services (`tests/external/`)
 
 | Arquivo de teste | Casos |
 |-------------------|------:|
-| `save_week_test.php` | 7 |
+| `save_week_test.php` | 9 |
 | `review_plan_test.php` | 6 |
+| `save_plan_details_test.php` | 6 |
 | `save_customfield_value_test.php` | 5 |
-| `save_plan_details_test.php` | 4 |
+| `save_final_assessment_test.php` | 4 |
 | `unpublish_plan_test.php` | 4 |
 | `save_activity_test.php` | 3 |
+| `reset_field_description_test.php` | 3 |
 | `delete_activity_test.php` | 2 |
 | `delete_week_test.php` | 2 |
 | `submit_plan_test.php` | 2 |
-| **Subtotal** | **35** |
+| **Subtotal** | **46** |
 
 ### Testes de Output, Observer e Notificações (`tests/output/`, `tests/observer*.php`)
 
 | Arquivo de teste | Casos |
 |-------------------|------:|
-| `output/tab_full_plan_test.php` | 5 |
+| `output/tab_full_plan_test.php` | 8 |
 | `output/tab_visibility_test.php` | 5 |
-| `observer_notifications_test.php` | 4 |
+| `observer_notifications_test.php` | 5 |
+| `output/plan_reader_test.php` | 4 |
 | `observer_test.php` | 3 |
 | `output/narrative_editor_test.php` | 3 |
+| `output/plan_teacher_name_test.php` | 3 |
 | `output/renderer_test.php` | 3 |
-| `output/plan_reader_test.php` | 3 |
 | `output/plan_programme_name_test.php` | 2 |
 | `output/plan_read_export_test.php` | 2 |
-| `output/plan_teacher_name_test.php` | 3 |
-| **Subtotal** | **33** |
+| **Subtotal** | **38** |
 
-### Testes de Backup, Restore, Privacidade e Segurança
+### Testes de Backup, Restore, Upgrade, Privacidade e Segurança
 
 | Arquivo de teste | Casos |
 |-------------------|------:|
 | `privacy_provider_test.php` | 9 |
+| `db_upgrade_test.php` | 10 |
 | `backup_restore_test.php` | 3 |
 | `cross_instance_security_test.php` | 2 |
 | `db_uninstall_test.php` | 1 |
-| **Subtotal** | **15** |
+| **Subtotal** | **25** |
 
-| **Total geral** | **121** |
+| **Total geral** | **163** |
 
 ```bash
 vendor/bin/phpunit --bootstrap lib/phpunit/bootstrap.php mod/syllabus
 ```
 
-**Cobertura de linhas por classe (PHPUnit + Xdebug):**
+**Cobertura de linhas por classe (PHPUnit + Xdebug, via a ferramenta `moodle-coverage`):**
 
 | Classe | Cobertura de linhas |
 |--------|:-------------------:|
+| `event\plan_approved` | 100% |
+| `event\plan_changes_requested` | 100% |
+| `event\plan_submitted` | 100% |
 | `external\delete_activity` | 100% |
 | `external\delete_week` | 100% |
+| `external\reset_field_description` | 100% |
 | `external\review_plan` | 100% |
 | `external\save_activity` | 100% |
+| `external\save_final_assessment` | 100% |
 | `external\save_plan_details` | 100% |
 | `external\save_week` | 100% |
 | `external\submit_plan` | 100% |
 | `external\unpublish_plan` | 100% |
+| `local\customfield_seeder` | 100% |
+| `local\help_text_builder` | 100% |
+| `local\plan_completeness_checker` | 100% |
+| `local\plan_state_manager` | 100% |
 | `local\structural_change_detector` | 100% |
 | `output\narrative_editor` | 100% |
 | `output\plan_programme_name` | 100% |
+| `output\plan_read_export` | 100% |
 | `output\plan_teacher_name` | 100% |
 | `output\renderer` | 100% |
-| `local\plan_state_manager` | 91% |
+| `output\tab_full_plan` | 100% |
+| `output\tab_student_plan` | 100% |
+| `output\tab_tutor_plan` | 100% |
+| `customfield\syllabus_handler_base` | 97% |
+| `output\plan_reader` | 96% |
 | `external\save_customfield_value` | 98% |
-| `output\tab_student_plan` | 94% |
-| `output\tab_tutor_plan` | 91% |
-| `observer` | 76% |
-| `privacy\provider` | 70% |
-| `event\plan_changes_requested` | 75% |
-| `event\plan_submitted` | 73% |
-| `event\plan_approved` | 70% |
-| `output\plan_read_export` | 58% |
-| `output\plan_reader` | 54% |
-| `customfield\plan_handler` | 50% |
-| `output\tab_full_plan` | 47% |
-| `customfield\syllabus_handler_base` | 43% |
-| `customfield\week_handler` | 40% |
-| `customfield\activity_handler` | 25% |
-| **Geral** | **77%** |
+| `observer` | 94% |
+| `privacy\provider` | 89% |
+| `customfield\activity_handler` | 88% |
+| `customfield\week_handler` | 80% |
+| `customfield\plan_handler` | 75% |
+| `customfield\help_handler` | 50% |
+| **Geral** | **98%** |
 
-> Antes desta rodada, `renderer`, `narrative_editor`, os handlers de Custom Fields, as três
-> classes de evento do workflow, e os métodos de notificação do observer estavam em 0% —
-> presumidos alcançáveis apenas por uma página renderizada de verdade ou um log de evento real.
-> Essa suposição estava errada para todos eles, exceto o output visual dos próprios templates
-> mustache: `render_from_template()`, o construtor de configuração do Tiny, os métodos dos
-> handlers protegidos por capability, e nome/descrição/URL/validação dos eventos rodam
-> perfeitamente dentro do PHPUnit sem nenhum navegador envolvido, e agora estão cobertos
-> diretamente.
-
-> As lacunas restantes são reais, mas mais estreitas: `tab_full_plan` e `plan_reader`/
-> `plan_read_export` ainda têm ramos sem teste na remodelagem de semanas/atividades em modo de
-> edição e na filtragem de campos exclusivos de tutor no modo leitura; os guards de
-> early-return de `privacy\provider` para requisições malformadas/parciais estão só
-> parcialmente exercitados; e o texto de `get_description()`/`get_url()` das três classes de
-> evento está coberto, mas nem todo método próprio herdado de `core\event\base`.
-
-> As três subclasses de handler de Custom Fields (`activity_handler`, `plan_handler`,
-> `week_handler`) aparecem com percentuais baixos aqui apesar de
-> `tests/customfield/syllabus_handler_base_test.php` chamar diretamente `belongs_to_syllabus()`
-> (e portanto o próprio override `resolve_syllabus_id()` de cada subclasse) com asserções que
-> passam, provando que o código roda corretamente. Isso é um artefato de medição do relatório
-> de cobertura do PHPUnit para métodos de override curtos e quase idênticos compartilhados
-> entre classes irmãs — não uma lacuna real de teste — confirmado inspecionando o relatório
-> HTML de cobertura linha a linha: a mesma leitura de "0% de cobertura" aparece até na única
-> linha `return $instanceid;` de `plan_handler::resolve_syllabus_id()`, que é exercitada por
-> dezenas de outros testes ao longo da suíte.
+> **Uma nota sobre como esses números foram alcançados.** Durante a maior parte do
+> desenvolvimento deste plugin, as anotações `@covers` em doc-comment eram escritas por método
+> de teste (`@coversDefaultClass \classecompleta` mais `@covers ::metodo` em cada teste, ou um
+> `@covers \classecompleta::metodo` repetido) — sintaxe válida do PHPUnit, que lida como
+> razoável isoladamente. Esse estilo descarta silenciosamente o crédito de cobertura de
+> qualquer coisa que o teste exercite *além* do único método anotado na mesma execução — um
+> helper privado, um método irmão, uma classe alcançada só por despacho. Em certo ponto isso
+> parecia um limite de medição intrínseco ao PHPUnit para métodos de override curtos
+> compartilhados entre classes irmãs; não era. Trocar toda classe de teste para um único
+> `@covers \classecompleta` de nível de classe (sem `::metodo`, um ou mais alvos por classe)
+> recuperou cobertura real, já validada por testes que passavam, que simplesmente nunca tinha
+> sido atribuída: a cobertura geral de linhas foi de cerca de 75% para 98% só com essa troca de
+> anotação, sem nenhuma lógica de teste nova envolvida. O punhado de classes ainda abaixo de
+> 100% aqui são lacunas genuínas e estreitas — wrappers triviais de `create()` nos quatro
+> handlers de Custom Field, um ramo de `save_customfield_value::execute()`, alguns guards de
+> retorno antecipado em `observer`/`privacy\provider`, e
+> `help_handler::resolve_syllabus_id()` (a área `help` não tem valores por instância, então
+> esse método de uma linha nunca é chamado de verdade) — revisadas individualmente e deixadas
+> sem teste por serem de baixo valor, não por terem passado despercebidas.

@@ -21,9 +21,10 @@
  * "Teorias, Metodologias e Planejamento Pedagógico em EaD" course plan and tutoring plan
  * supplied by the plugin author: characterisation, four weeks with their five activities,
  * every narrative Custom Field (plan/week/activity areas) and the final assessment block.
- * The plan is walked through the real submit()/approve() workflow so it ends up in the
- * 'approved' status, exactly as a coordinator would leave it. Run with --reset to wipe and
- * recreate everything.
+ * The plan is left in 'draft' status, fully populated, so the workflow itself (submit as the
+ * teacher, then approve/request changes — including leaving per-field review notes — as the
+ * coordinator) can be exercised manually instead of already landing pre-approved. Run with
+ * --reset to wipe and recreate everything.
  *
  * Usage:
  *   php mod/syllabus/cli/seed_pt_br.php --password=SuaSenhaDev
@@ -47,8 +48,6 @@ require_once($CFG->libdir . '/clilib.php');
 require_once($CFG->dirroot . '/course/lib.php');
 require_once($CFG->dirroot . '/course/modlib.php');
 require_once($CFG->dirroot . '/lib/enrollib.php');
-
-use mod_syllabus\local\plan_state_manager;
 
 // Suppress email sending in dev/test environments (no sendmail in Docker).
 $CFG->noemailever = true;
@@ -847,20 +846,9 @@ foreach ($activityfields as $activityid => $values) {
 }
 cli_writeln("Campos narrativos das atividades preenchidos.");
 
-// 12. Approval workflow: submit by the author, approve by the coordinator.
-
-$plan = $DB->get_record('syllabus', ['id' => $syllabusid], '*', MUST_EXIST);
-if ($plan->status === plan_state_manager::STATUS_DRAFT) {
-    plan_state_manager::submit($syllabusid, (int) $teacher->id);
-    $DB->set_field('syllabus', 'timesubmitted', mktime(10, 0, 0, 4, 20, 2026), ['id' => $syllabusid]);
-
-    plan_state_manager::approve($syllabusid, (int) $coordinator->id);
-    $DB->set_field('syllabus', 'timereviewed', mktime(15, 0, 0, 4, 24, 2026), ['id' => $syllabusid]);
-
-    cli_writeln("Plano submetido por {$teacher->firstname} e aprovado por {$coordinator->firstname}.");
-} else {
-    cli_writeln("Plano já estava fora do status de rascunho, fluxo de aprovação não repetido.");
-}
+// 12. Left in 'draft', on purpose — submit()/approve()/request_changes() are exercised
+// manually by whoever is testing, as teacher/coordinator, instead of the seed already
+// landing pre-approved.
 
 // 13. Summary.
 

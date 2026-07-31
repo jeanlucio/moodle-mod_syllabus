@@ -137,7 +137,7 @@ final class plan_reader {
      * for this plan (plan-level, then once per week, then once per activity) rather than
      * calling this again inside that loop.
      *
-     * @return array<string, string> "area:instanceid:fieldid" => note text
+     * @return array Note text keyed by "area:instanceid:fieldid".
      */
     public function review_notes(): array {
         global $DB;
@@ -165,7 +165,8 @@ final class plan_reader {
      * @param \core_customfield\data_controller[] $datacontrollers Field id => data_controller.
      * @param string $area Which area these fields belong to (plan/week/activity) — carried
      *     through as data-area so the autosave WS knows which handler to save back through.
-     * @param array<string, string> $reviewnotes Result of review_notes(), for this same plan.
+     * @param array $reviewnotes Result of review_notes(), for this same plan: note text keyed
+     *     by "area:instanceid:fieldid".
      * @return array
      */
     public function export_editable_fields(array $datacontrollers, string $area, array $reviewnotes = []): array {

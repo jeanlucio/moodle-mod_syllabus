@@ -322,8 +322,13 @@ const deleteActivity = async(row) => {
  * instead of the old two-step "reveal a blank row, then save it" flow.
  *
  * @param {HTMLElement} container The .path-mod-syllabus element.
+ * @param {bool} focusonload Whether to scroll/focus the new row after reload — true for an
+ *     explicit "Add week" click (the reader asked for this row, landing on it makes sense),
+ *     false for the system's own auto-created first week (see init()): the reader never asked
+ *     for that action, so hijacking their focus/scroll away from the top of a brand-new plan
+ *     is disorienting rather than helpful.
  */
-const createWeek = async(container) => {
+const createWeek = async(container, focusonload = true) => {
     const count = container.querySelectorAll('.syllabus-week-row').length;
     const title = await getString('defaultweektitle', 'mod_syllabus', count + 1);
     const result = await persistWeek({
@@ -331,7 +336,9 @@ const createWeek = async(container) => {
         syncdate: null, synclink: null, synctopic: null, stage: 1,
     });
     if (result) {
-        sessionStorage.setItem(FOCUS_WEEK_KEY, String(result.weekid));
+        if (focusonload) {
+            sessionStorage.setItem(FOCUS_WEEK_KEY, String(result.weekid));
+        }
         reload();
     }
 };
@@ -379,8 +386,11 @@ export const init = (coursemoduleid) => {
         // A plan with zero weeks starts by creating the first one automatically — same
         // "Add week" call the button itself makes — instead of landing on a page with
         // nothing but that lone button. "Add week" stays visible below for a second week.
+        // focusonload: false — the reader never clicked anything, so the reload this triggers
+        // should leave them wherever the page naturally lands (the top, Characterisation),
+        // not jump them straight to the new row as if they had asked to be taken there.
         if (!container.querySelector('.syllabus-week-row')) {
-            createWeek(container);
+            createWeek(container, false);
         }
     }
 

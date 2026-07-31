@@ -47,13 +47,15 @@
             "fieldid": "syllabus-week-startdate-2",
             "fieldclass": "syllabus-week-startdate",
             "labeltext": "Start date",
-            "timestamp": 1749000000
+            "timestamp": 1749000000,
+            "trackrequired": true
         },
         "enddatefield": {
             "fieldid": "syllabus-week-enddate-2",
             "fieldclass": "syllabus-week-enddate",
             "labeltext": "End date",
-            "timestamp": 1749600000
+            "timestamp": 1749600000,
+            "trackrequired": true
         },
         "syncdate": 1749250000,
         "synclink": "https://meet.example.org/week1",
@@ -97,14 +99,14 @@
                 <label class="form-label small mb-1" for="syllabus-week-title-{{id}}">
                     {{#str}} weektitle, mod_syllabus {{/str}}
                 </label>
-                <input type="text" class="form-control syllabus-week-title syllabus-required-input" id="syllabus-week-title-{{id}}"
+                <input type="text" class="form-control syllabus-week-title" id="syllabus-week-title-{{id}}"
                     value="{{title}}" placeholder="{{#str}} weektitle, mod_syllabus {{/str}}">
             </div>
             <div class="col-md-3">
                 <label class="form-label small mb-1" for="syllabus-week-duration-{{id}}">
                     {{#str}} weekduration, mod_syllabus {{/str}}
                 </label>
-                <input type="number" class="form-control syllabus-week-duration" id="syllabus-week-duration-{{id}}"
+                <input type="number" class="form-control syllabus-week-duration syllabus-required-input" id="syllabus-week-duration-{{id}}"
                     value="{{duration}}" placeholder="{{#str}} weekduration, mod_syllabus {{/str}}">
             </div>
             {{#hasmultiplestages}}

@@ -159,16 +159,14 @@ final class tab_full_plan implements renderable, templatable {
                 'syllabus-plan-coursestartdate',
                 'coursestartdate',
                 $coursestartdate,
-                $datesweredefaulted,
-                true
+                $datesweredefaulted
             ),
             'courseenddatefield' => $this->date_select_field(
                 'syllabus-plan-courseenddate',
                 'syllabus-plan-courseenddate',
                 'courseenddate',
                 $courseenddate,
-                $datesweredefaulted,
-                true
+                $datesweredefaulted
             ),
             'totalduration'     => $this->syllabus->totalduration,
             'presentationvideourl' => $this->syllabus->presentationvideourl,
@@ -368,13 +366,17 @@ final class tab_full_plan implements renderable, templatable {
                     'syllabus-week-startdate-' . $week->id,
                     'syllabus-week-startdate',
                     'weekstartdate',
-                    $week->startdate
+                    $week->startdate,
+                    false,
+                    true
                 ),
                 'enddatefield'  => $this->date_select_field(
                     'syllabus-week-enddate-' . $week->id,
                     'syllabus-week-enddate',
                     'weekenddate',
-                    $week->enddate
+                    $week->enddate,
+                    false,
+                    true
                 ),
                 'syncdate'      => $week->syncdate,
                 'synclink'      => $week->synclink,

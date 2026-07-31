@@ -46,7 +46,7 @@ final class send_workflow_notification_test extends advanced_testcase {
     /**
      * Builds and executes the task with the given custom data.
      *
-     * @param array $customdata
+     * @param array $customdata Same shape as observer.php passes to set_custom_data().
      * @return void
      */
     private function run_task(array $customdata): void {

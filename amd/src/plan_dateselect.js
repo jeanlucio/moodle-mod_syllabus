@@ -92,11 +92,12 @@ export const populate = (container) => {
  * zero timestamp leaves the selects on their blank placeholder, matching "no date set".
  *
  * @param {HTMLElement} container
+ * @returns {bool} True if a real timestamp was applied, false if left blank.
  */
 export const hydrate = (container) => {
     const timestamp = parseInt(container.dataset.timestamp, 10);
     if (!timestamp) {
-        return;
+        return false;
     }
     const date = new Date(timestamp * 1000);
     const daySelect = container.querySelector('.syllabus-date-day');
@@ -111,6 +112,7 @@ export const hydrate = (container) => {
     if (yearSelect) {
         yearSelect.value = String(date.getUTCFullYear());
     }
+    return true;
 };
 
 /**
@@ -136,25 +138,40 @@ export const readTimestamp = (container) => {
 
 /**
  * Populates and hydrates every `.syllabus-date-select` found within a given container — used
- * both for the whole-page pass at init() and for a single freshly client-built row. Any
- * container carrying `data-autosave-default="1"` (a value that was only ever filled in as a
- * starting suggestion, never actually saved — see date_select.mustache) gets a real 'change'
- * dispatched on it once, so the author's autosave listener (plan_details.js) persists it
- * exactly as if they had picked it themselves. Dispatched from the day select specifically —
- * any of the three would do, plan_details.js's listener covers the whole Characterisation
- * container, not one field at a time.
+ * both for the whole-page pass at init() and for a single freshly client-built row.
+ *
+ * Two different synthetic events can follow hydration, for two different reasons:
+ *
+ * - A container carrying `data-autosave-default="1"` (a value only ever filled in as a
+ *   starting suggestion, never actually saved — see date_select.mustache) gets a real
+ *   'change' dispatched on it once, so the author's autosave listener (plan_details.js)
+ *   persists it exactly as if they had picked it themselves.
+ * - Any other container that DID hydrate a real, already-saved timestamp gets a bubbling
+ *   'input' (never 'change') dispatched instead — hydrate() sets .value via plain property
+ *   assignment, which fires no DOM event on its own, so plan_navigator.js's rail fill-state
+ *   check (recompute(), which runs once synchronously as soon as ITS OWN module loads) can
+ *   run before this async module's init() has finished populating/selecting these dates,
+ *   permanently reading them as empty. 'input' (not 'change') reaches plan_navigator's
+ *   container-level listener without also triggering plan_details.js's per-field 'change'
+ *   listener, which would otherwise re-save an unchanged value on every page load.
+ *
+ * Dispatched from the day select specifically — any of the three would do, both listeners
+ * this can reach are wired to the whole container/page, not one field at a time.
  *
  * @param {HTMLElement} container
  */
 export const wireContainer = (container) => {
     container.querySelectorAll('.syllabus-date-select').forEach((el) => {
         populate(el);
-        hydrate(el);
+        const hydrated = hydrate(el);
+        const daySelect = el.querySelector('.syllabus-date-day');
+        if (!daySelect) {
+            return;
+        }
         if (el.dataset.autosaveDefault === '1') {
-            const daySelect = el.querySelector('.syllabus-date-day');
-            if (daySelect) {
-                daySelect.dispatchEvent(new Event('change', {bubbles: true}));
-            }
+            daySelect.dispatchEvent(new Event('change', {bubbles: true}));
+        } else if (hydrated) {
+            daySelect.dispatchEvent(new Event('input', {bubbles: true}));
         }
     });
 };

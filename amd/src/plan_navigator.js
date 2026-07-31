@@ -357,6 +357,8 @@ const wireRailLinks = (container) => {
 /**
  * Highlights whichever rail link points at the section currently nearest the top of the
  * viewport — a purely visual "you are here" cue, same non-blocking spirit as the ✓/!/○ icons.
+ * Never moves any scroll position itself — see syncRailScroll() for that, driven by page
+ * scroll progress rather than by which section is active, on purpose (see its own docblock).
  * Falls back to doing nothing where IntersectionObserver isn't available (old browser); the
  * rail still works for reading state and clicking to scroll either way.
  *
@@ -388,6 +390,64 @@ const wireScrollSpy = (container) => {
             observer.observe(section);
         }
     });
+};
+
+/**
+ * Keeps `.syllabus-nav-rail`'s own scroll position proportional to how far the reader has
+ * scrolled through `.syllabus-edit-layout` — the same idea as an IDE's minimap, or two
+ * synchronised split panes: the rail reaches the bottom of its own scrollable range exactly
+ * when the page reaches the bottom of the form, moving gradually in between.
+ *
+ * Deliberately NOT "jump to keep the active link in view" (an earlier version of this used
+ * `scrollIntoView()` on the active link instead): that approach only scrolls the minimum
+ * distance needed to reveal the newly-active link, which can hide an earlier link — e.g.
+ * Characterisation — well before the rail actually runs out of room to show everything, an
+ * effect a user flagged as confusing to follow. Proportional sync never hides an earlier
+ * link until the rail's own limited height genuinely requires it.
+ *
+ * @param {HTMLElement} layout The `.syllabus-edit-layout` element (rail + form content).
+ * @param {HTMLElement} rail The `.syllabus-nav-rail` element.
+ */
+const syncRailScroll = (layout, rail) => {
+    const railRange = rail.scrollHeight - rail.clientHeight;
+    if (railRange <= 0) {
+        // Rail fits entirely within the viewport already — nothing to sync.
+        return;
+    }
+    const layoutRange = layout.offsetHeight - window.innerHeight;
+    if (layoutRange <= 0) {
+        rail.scrollTop = 0;
+        return;
+    }
+    const layoutTop = layout.getBoundingClientRect().top + window.scrollY;
+    const fraction = Math.min(1, Math.max(0, (window.scrollY - layoutTop) / layoutRange));
+    rail.scrollTop = fraction * railRange;
+};
+
+/**
+ * Wires syncRailScroll() to the page's own scroll, throttled to at most once per animation
+ * frame — `scroll` can fire far more often than the browser can usefully repaint.
+ *
+ * @param {HTMLElement} layout The `.syllabus-edit-layout` element.
+ */
+const wireRailScrollSync = (layout) => {
+    const rail = layout.querySelector('.syllabus-nav-rail');
+    if (!rail) {
+        return;
+    }
+    let ticking = false;
+    const onScroll = () => {
+        if (ticking) {
+            return;
+        }
+        ticking = true;
+        window.requestAnimationFrame(() => {
+            syncRailScroll(layout, rail);
+            ticking = false;
+        });
+    };
+    window.addEventListener('scroll', onScroll, {passive: true});
+    onScroll();
 };
 
 /**
@@ -423,6 +483,7 @@ export const init = async() => {
 
     wireRailLinks(container);
     wireScrollSpy(container);
+    wireRailScrollSync(container);
     wireCollapseAll(container);
     wireAutosaveChip(container);
 

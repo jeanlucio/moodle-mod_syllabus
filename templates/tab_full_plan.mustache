@@ -43,13 +43,15 @@
             "fieldid": "syllabus-plan-coursestartdate",
             "fieldclass": "syllabus-plan-coursestartdate",
             "labeltext": "Course period",
-            "timestamp": 1749020400
+            "timestamp": 1749020400,
+            "trackrequired": true
         },
         "courseenddatefield": {
             "fieldid": "syllabus-plan-courseenddate",
             "fieldclass": "syllabus-plan-courseenddate",
             "labeltext": "Course period",
-            "timestamp": 1751342400
+            "timestamp": 1751342400,
+            "trackrequired": true
         },
         "totalduration": 1800,
         "presentationvideourl": "https://example.com/presentation-video",
@@ -84,13 +86,15 @@
             "fieldid": "syllabus-plan-finalassessmentstartdate",
             "fieldclass": "syllabus-plan-finalassessmentstartdate",
             "labeltext": "Start date",
-            "timestamp": 1749000000
+            "timestamp": 1749000000,
+            "trackrequired": true
         },
         "finalassessmentenddatefield": {
             "fieldid": "syllabus-plan-finalassessmentenddate",
             "fieldclass": "syllabus-plan-finalassessmentenddate",
             "labeltext": "End date",
-            "timestamp": 1749600000
+            "timestamp": 1749600000,
+            "trackrequired": true
         },
         "finalassessmentpoints": 100,
         "finalassessmentfield": {
@@ -195,60 +199,60 @@
                 </button>
             </div>
 
-            <h3 id="syllabus-section-characterisation" data-syllabus-section>
-                {{#str}} characterisation, mod_syllabus {{/str}}
-            </h3>
-            <div class="row g-2 syllabus-characterisation-edit mb-3">
-                <div class="col-md-4">
-                    <label class="form-label small mb-1" for="syllabus-plan-academicperiod">
-                        {{#str}} academicperiod, mod_syllabus {{/str}}
-                    </label>
-                    <input type="text" class="form-control syllabus-plan-academicperiod syllabus-required-input"
-                        id="syllabus-plan-academicperiod" value="{{academicperiod}}"
-                        placeholder="{{#str}} academicperiod, mod_syllabus {{/str}}">
+            <div id="syllabus-section-characterisation" data-syllabus-section>
+                <h3>{{#str}} characterisation, mod_syllabus {{/str}}</h3>
+                <div class="row g-2 syllabus-characterisation-edit mb-3">
+                    <div class="col-md-4">
+                        <label class="form-label small mb-1" for="syllabus-plan-academicperiod">
+                            {{#str}} academicperiod, mod_syllabus {{/str}}
+                        </label>
+                        <input type="text" class="form-control syllabus-plan-academicperiod syllabus-required-input"
+                            id="syllabus-plan-academicperiod" value="{{academicperiod}}"
+                            placeholder="{{#str}} academicperiod, mod_syllabus {{/str}}">
+                    </div>
+                    <div class="col-md-4">
+                        {{#coursestartdatefield}}{{> mod_syllabus/date_select }}{{/coursestartdatefield}}
+                    </div>
+                    <div class="col-md-4">
+                        {{#courseenddatefield}}{{> mod_syllabus/date_select }}{{/courseenddatefield}}
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label small mb-1" for="syllabus-plan-totalduration">
+                            {{#str}} totalworkload, mod_syllabus {{/str}}
+                        </label>
+                        <input type="number" class="form-control syllabus-plan-totalduration syllabus-required-input"
+                            id="syllabus-plan-totalduration" value="{{totalduration}}"
+                            placeholder="{{#str}} totalworkload, mod_syllabus {{/str}}">
+                    </div>
+                    <div class="col-md-8">
+                        <label class="form-label small mb-1" for="syllabus-plan-presentationvideourl">
+                            {{#str}} presentationvideo, mod_syllabus {{/str}}
+                        </label>
+                        <input type="url" class="form-control syllabus-plan-presentationvideourl"
+                            id="syllabus-plan-presentationvideourl" value="{{presentationvideourl}}"
+                            placeholder="{{#str}} presentationvideo, mod_syllabus {{/str}}">
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label small mb-1" for="syllabus-plan-stagecount">
+                            {{#str}} stagecount, mod_syllabus {{/str}}
+                        </label>
+                        <input type="number" min="1" class="form-control syllabus-plan-stagecount"
+                            id="syllabus-plan-stagecount" value="{{stagecount}}"
+                            placeholder="{{#str}} stagecount, mod_syllabus {{/str}}">
+                    </div>
+                    <div class="col-md-2 {{^hasmultiplestages}}d-none{{/hasmultiplestages}}">
+                        <label class="form-label small mb-1" for="syllabus-plan-grademethod">
+                            {{#str}} grademethod, mod_syllabus {{/str}}
+                        </label>
+                        <select class="form-select syllabus-plan-grademethod" id="syllabus-plan-grademethod">
+                            {{#grademethodoptions}}
+                            <option value="{{value}}" {{#selected}}selected{{/selected}}>{{label}}</option>
+                            {{/grademethodoptions}}
+                        </select>
+                    </div>
                 </div>
-                <div class="col-md-4">
-                    {{#coursestartdatefield}}{{> mod_syllabus/date_select }}{{/coursestartdatefield}}
-                </div>
-                <div class="col-md-4">
-                    {{#courseenddatefield}}{{> mod_syllabus/date_select }}{{/courseenddatefield}}
-                </div>
-                <div class="col-md-4">
-                    <label class="form-label small mb-1" for="syllabus-plan-totalduration">
-                        {{#str}} totalworkload, mod_syllabus {{/str}}
-                    </label>
-                    <input type="number" class="form-control syllabus-plan-totalduration syllabus-required-input"
-                        id="syllabus-plan-totalduration" value="{{totalduration}}"
-                        placeholder="{{#str}} totalworkload, mod_syllabus {{/str}}">
-                </div>
-                <div class="col-md-8">
-                    <label class="form-label small mb-1" for="syllabus-plan-presentationvideourl">
-                        {{#str}} presentationvideo, mod_syllabus {{/str}}
-                    </label>
-                    <input type="url" class="form-control syllabus-plan-presentationvideourl"
-                        id="syllabus-plan-presentationvideourl" value="{{presentationvideourl}}"
-                        placeholder="{{#str}} presentationvideo, mod_syllabus {{/str}}">
-                </div>
-                <div class="col-md-2">
-                    <label class="form-label small mb-1" for="syllabus-plan-stagecount">
-                        {{#str}} stagecount, mod_syllabus {{/str}}
-                    </label>
-                    <input type="number" min="1" class="form-control syllabus-plan-stagecount"
-                        id="syllabus-plan-stagecount" value="{{stagecount}}"
-                        placeholder="{{#str}} stagecount, mod_syllabus {{/str}}">
-                </div>
-                <div class="col-md-2 {{^hasmultiplestages}}d-none{{/hasmultiplestages}}">
-                    <label class="form-label small mb-1" for="syllabus-plan-grademethod">
-                        {{#str}} grademethod, mod_syllabus {{/str}}
-                    </label>
-                    <select class="form-select syllabus-plan-grademethod" id="syllabus-plan-grademethod">
-                        {{#grademethodoptions}}
-                        <option value="{{value}}" {{#selected}}selected{{/selected}}>{{label}}</option>
-                        {{/grademethodoptions}}
-                    </select>
-                </div>
+                <div class="mb-3">{{{structuralhelp.characterisation}}}</div>
             </div>
-            <div class="mb-3">{{{structuralhelp.characterisation}}}</div>
 
             {{#planfields}}
                 {{> mod_syllabus/narrative_field }}
@@ -264,45 +268,45 @@
                 {{#str}} addweek, mod_syllabus {{/str}}
             </button>
 
-            <h3 id="syllabus-section-finalassessment" data-syllabus-section class="mt-4">
-                {{#str}} finalassessment, mod_syllabus {{/str}}
-            </h3>
-            <div class="row g-2 mb-2 syllabus-finalassessment-edit">
-                <div class="col-md-4">
-                    <label class="form-label small mb-1" for="syllabus-plan-finalassessmenttitle">
-                        {{#str}} finalassessmenttitle, mod_syllabus {{/str}}
-                    </label>
-                    <input type="text" class="form-control syllabus-plan-finalassessmenttitle"
-                        id="syllabus-plan-finalassessmenttitle" value="{{finalassessmenttitle}}"
-                        placeholder="{{#str}} finalassessmenttitle, mod_syllabus {{/str}}">
+            <div id="syllabus-section-finalassessment" data-syllabus-section class="mt-4">
+                <h3>{{#str}} finalassessment, mod_syllabus {{/str}}</h3>
+                <div class="row g-2 mb-2 syllabus-finalassessment-edit">
+                    <div class="col-md-4">
+                        <label class="form-label small mb-1" for="syllabus-plan-finalassessmenttitle">
+                            {{#str}} finalassessmenttitle, mod_syllabus {{/str}}
+                        </label>
+                        <input type="text" class="form-control syllabus-plan-finalassessmenttitle syllabus-required-input"
+                            id="syllabus-plan-finalassessmenttitle" value="{{finalassessmenttitle}}"
+                            placeholder="{{#str}} finalassessmenttitle, mod_syllabus {{/str}}">
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label small mb-1" for="syllabus-plan-finalassessmenttype">
+                            {{#str}} finalassessmenttype, mod_syllabus {{/str}}
+                        </label>
+                        <select class="form-select syllabus-plan-finalassessmenttype syllabus-required-input" id="syllabus-plan-finalassessmenttype">
+                            <option value="">{{#str}} choosedots, core {{/str}}</option>
+                            {{#finalassessmenttypeoptions}}
+                            <option value="{{value}}" {{#selected}}selected{{/selected}}>{{label}}</option>
+                            {{/finalassessmenttypeoptions}}
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label small mb-1" for="syllabus-plan-finalassessmentpoints">
+                            {{#str}} finalassessmentpoints, mod_syllabus {{/str}}
+                        </label>
+                        <input type="number" step="0.01" class="form-control syllabus-plan-finalassessmentpoints syllabus-required-input"
+                            id="syllabus-plan-finalassessmentpoints" value="{{finalassessmentpoints}}"
+                            placeholder="{{#str}} finalassessmentpoints, mod_syllabus {{/str}}">
+                    </div>
+                    <div class="col-md-6">
+                        {{#finalassessmentstartdatefield}}{{> mod_syllabus/date_select }}{{/finalassessmentstartdatefield}}
+                    </div>
+                    <div class="col-md-6">
+                        {{#finalassessmentenddatefield}}{{> mod_syllabus/date_select }}{{/finalassessmentenddatefield}}
+                    </div>
                 </div>
-                <div class="col-md-2">
-                    <label class="form-label small mb-1" for="syllabus-plan-finalassessmenttype">
-                        {{#str}} finalassessmenttype, mod_syllabus {{/str}}
-                    </label>
-                    <select class="form-select syllabus-plan-finalassessmenttype" id="syllabus-plan-finalassessmenttype">
-                        <option value="">{{#str}} choosedots, core {{/str}}</option>
-                        {{#finalassessmenttypeoptions}}
-                        <option value="{{value}}" {{#selected}}selected{{/selected}}>{{label}}</option>
-                        {{/finalassessmenttypeoptions}}
-                    </select>
-                </div>
-                <div class="col-md-2">
-                    <label class="form-label small mb-1" for="syllabus-plan-finalassessmentpoints">
-                        {{#str}} finalassessmentpoints, mod_syllabus {{/str}}
-                    </label>
-                    <input type="number" step="0.01" class="form-control syllabus-plan-finalassessmentpoints"
-                        id="syllabus-plan-finalassessmentpoints" value="{{finalassessmentpoints}}"
-                        placeholder="{{#str}} finalassessmentpoints, mod_syllabus {{/str}}">
-                </div>
-                <div class="col-md-6">
-                    {{#finalassessmentstartdatefield}}{{> mod_syllabus/date_select }}{{/finalassessmentstartdatefield}}
-                </div>
-                <div class="col-md-6">
-                    {{#finalassessmentenddatefield}}{{> mod_syllabus/date_select }}{{/finalassessmentenddatefield}}
-                </div>
+                <div class="mb-3">{{{structuralhelp.finalassessment}}}</div>
             </div>
-            <div class="mb-3">{{{structuralhelp.finalassessment}}}</div>
             {{#finalassessmentfield}}
                 {{> mod_syllabus/narrative_field }}
             {{/finalassessmentfield}}

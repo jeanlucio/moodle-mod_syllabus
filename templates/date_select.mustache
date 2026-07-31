@@ -33,21 +33,30 @@
     instead of silently showing a value that would vanish if the author never touches the
     field at all.
 
+    trackrequired opts this date's 3 selects into the rail's fill heuristic (see
+    plan_navigator.js::updateSectionStates()) — deliberately off by default, since most
+    call sites of this shared partial (week/activity dates) were never meant to be tracked;
+    only pass it for the handful of dates that should count toward their section's ✓.
+
     Example context (json):
     {
         "fieldid": "syllabus-activity-startdate-5",
         "fieldclass": "syllabus-activity-startdate",
         "labeltext": "Start date",
         "timestamp": 1749000000,
-        "autosavedefault": false
+        "autosavedefault": false,
+        "trackrequired": false
     }
 }}
 <div class="syllabus-date-select {{fieldclass}}" data-timestamp="{{timestamp}}"
     data-autosave-default="{{#autosavedefault}}1{{/autosavedefault}}">
     <span class="form-label small mb-1 d-block" id="{{fieldid}}-label">{{labeltext}}</span>
     <div class="d-flex gap-1">
-        <select class="form-select form-select-sm syllabus-date-day" aria-labelledby="{{fieldid}}-label"></select>
-        <select class="form-select form-select-sm syllabus-date-month" aria-labelledby="{{fieldid}}-label"></select>
-        <select class="form-select form-select-sm syllabus-date-year" aria-labelledby="{{fieldid}}-label"></select>
+        <select class="form-select form-select-sm syllabus-date-day{{#trackrequired}} syllabus-required-input{{/trackrequired}}"
+            aria-labelledby="{{fieldid}}-label"></select>
+        <select class="form-select form-select-sm syllabus-date-month{{#trackrequired}} syllabus-required-input{{/trackrequired}}"
+            aria-labelledby="{{fieldid}}-label"></select>
+        <select class="form-select form-select-sm syllabus-date-year{{#trackrequired}} syllabus-required-input{{/trackrequired}}"
+            aria-labelledby="{{fieldid}}-label"></select>
     </div>
 </div>

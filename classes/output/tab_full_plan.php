@@ -159,14 +159,16 @@ final class tab_full_plan implements renderable, templatable {
                 'syllabus-plan-coursestartdate',
                 'coursestartdate',
                 $coursestartdate,
-                $datesweredefaulted
+                $datesweredefaulted,
+                true
             ),
             'courseenddatefield' => $this->date_select_field(
                 'syllabus-plan-courseenddate',
                 'syllabus-plan-courseenddate',
                 'courseenddate',
                 $courseenddate,
-                $datesweredefaulted
+                $datesweredefaulted,
+                true
             ),
             'totalduration'     => $this->syllabus->totalduration,
             'presentationvideourl' => $this->syllabus->presentationvideourl,
@@ -222,13 +224,17 @@ final class tab_full_plan implements renderable, templatable {
                 'syllabus-plan-finalassessmentstartdate',
                 'syllabus-plan-finalassessmentstartdate',
                 'finalassessmentstartdate',
-                $this->syllabus->finalassessmentstartdate
+                $this->syllabus->finalassessmentstartdate,
+                false,
+                true
             );
             $data->finalassessmentenddatefield = $this->date_select_field(
                 'syllabus-plan-finalassessmentenddate',
                 'syllabus-plan-finalassessmentenddate',
                 'finalassessmentenddate',
-                $this->syllabus->finalassessmentenddate
+                $this->syllabus->finalassessmentenddate,
+                false,
+                true
             );
             $data->finalassessmentpoints = $this->syllabus->finalassessmentpoints;
             $data->grademethodoptions = $this->build_select_options(
@@ -462,6 +468,10 @@ final class tab_full_plan implements renderable, templatable {
      * @param int|null $timestamp Currently stored value, or null/0 if unset.
      * @param bool $autosavedefault Whether $timestamp is only a starting suggestion (never
      *     actually saved) that the client should autosave once, right after hydrating.
+     * @param bool $trackrequired Whether this date's 3 selects count toward the rail's fill
+     *     heuristic (see plan_navigator.js::updateSectionStates()) — deliberately opt-in per
+     *     call site, since date_select.mustache is shared by fields the rail was never meant
+     *     to track (e.g. Characterisation's course period, week/activity dates).
      * @return stdClass
      */
     private function date_select_field(
@@ -469,7 +479,8 @@ final class tab_full_plan implements renderable, templatable {
         string $fieldclass,
         string $labelkey,
         ?int $timestamp,
-        bool $autosavedefault = false
+        bool $autosavedefault = false,
+        bool $trackrequired = false
     ): stdClass {
         return (object) [
             'fieldid'         => $fieldid,
@@ -477,6 +488,7 @@ final class tab_full_plan implements renderable, templatable {
             'labeltext'       => get_string($labelkey, 'mod_syllabus'),
             'timestamp'       => $timestamp,
             'autosavedefault' => $autosavedefault,
+            'trackrequired'   => $trackrequired,
         ];
     }
 }

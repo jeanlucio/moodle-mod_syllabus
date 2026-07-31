@@ -392,9 +392,17 @@ const wireScrollSpy = (container) => {
 
 /**
  * Initialises the navigation rail and totals bar for the edit-mode form.
+ *
+ * Scoped to `.syllabus-edit-layout`, not `.syllabus-edit-content` — the nav rail
+ * (`.syllabus-nav-rail`, holding every `.syllabus-rail-link`) is a SIBLING of
+ * `.syllabus-edit-content`, not a descendant of it. Every other selector this module uses
+ * (totals bar, week rows, collapse-all button, etc.) already lives inside `.syllabus-edit-
+ * content`, so widening the scope to their shared parent is safe and changes nothing else —
+ * but it was the reason updateSectionStates()/wireRailLinks()/wireScrollSpy() could never
+ * find a single `.syllabus-rail-link` and silently no-opped on every section, every time.
  */
 export const init = async() => {
-    const container = document.querySelector('.syllabus-edit-content');
+    const container = document.querySelector('.syllabus-edit-layout');
     if (!container) {
         return;
     }

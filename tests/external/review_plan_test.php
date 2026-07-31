@@ -17,9 +17,11 @@
 namespace mod_syllabus\external;
 
 use advanced_testcase;
+use core\task\manager;
 use core_external\external_api;
 use invalid_parameter_exception;
 use mod_syllabus\local\plan_state_manager;
+use mod_syllabus\task\send_workflow_notification;
 use moodle_exception;
 
 /**
@@ -61,21 +63,39 @@ final class review_plan_test extends advanced_testcase {
     }
 
     /**
-     * A coordinator can approve a submitted plan, notifying the author.
+     * Fetches the single queued send_workflow_notification task of the given type — used
+     * instead of a bare get_adhoc_tasks() count, since create_submitted_plan() already queues
+     * its own 'submitted' task before the test's own action queues a second one.
+     *
+     * @param string $type
+     * @return \core\task\adhoc_task
+     */
+    private function get_queued_task(string $type): \core\task\adhoc_task {
+        $matching = array_values(array_filter(
+            manager::get_adhoc_tasks(send_workflow_notification::class),
+            fn ($task) => $task->get_custom_data()->type === $type
+        ));
+        $this->assertCount(1, $matching, "Expected exactly one queued task of type '{$type}'.");
+        return $matching[0];
+    }
+
+    /**
+     * A coordinator can approve a submitted plan, queuing the author notification task.
+     *
+     * The task's own content/recipient are send_workflow_notification_test.php's
+     * responsibility — sending is queued rather than done inline precisely so this external
+     * function call returns immediately (see send_workflow_notification's own docblock).
      *
      * @return void
      */
-    public function test_approves_and_notifies_author(): void {
+    public function test_approves_and_queues_author_notification(): void {
         global $DB;
 
-        [$syllabus, $teacher, $manager] = $this->create_submitted_plan();
+        [$syllabus, , $manager] = $this->create_submitted_plan();
 
         $this->setUser($manager);
-        $sink = $this->redirectMessages();
         $result = review_plan::execute($syllabus->cmid, 'approved');
         $result = external_api::clean_returnvalue(review_plan::execute_returns(), $result);
-        $messages = $sink->get_messages();
-        $sink->close();
 
         $this->assertTrue($result['success']);
         $this->assertSame(plan_state_manager::STATUS_APPROVED, $result['status']);
@@ -84,34 +104,31 @@ final class review_plan_test extends advanced_testcase {
             $DB->get_field('syllabus', 'status', ['id' => $syllabus->id])
         );
 
-        $this->assertCount(1, $messages);
-        $this->assertEquals($teacher->id, reset($messages)->useridto);
+        $data = $this->get_queued_task('approved')->get_custom_data();
+        $this->assertEquals($syllabus->id, $data->planid);
     }
 
     /**
-     * A coordinator can request changes, with the reason reaching the author's message.
+     * A coordinator can request changes, queuing the author notification task with the reason.
      *
      * @return void
      */
-    public function test_requests_changes_and_notifies_author(): void {
+    public function test_requests_changes_and_queues_author_notification(): void {
         global $DB;
 
-        [$syllabus, $teacher, $manager] = $this->create_submitted_plan();
+        [$syllabus, , $manager] = $this->create_submitted_plan();
 
         $this->setUser($manager);
-        $sink = $this->redirectMessages();
         review_plan::execute($syllabus->cmid, 'changes_requested', 'Fix the bibliography.');
-        $messages = $sink->get_messages();
-        $sink->close();
 
         $this->assertSame(
             plan_state_manager::STATUS_CHANGES_REQUESTED,
             $DB->get_field('syllabus', 'status', ['id' => $syllabus->id])
         );
-        $this->assertCount(1, $messages);
-        $message = reset($messages);
-        $this->assertEquals($teacher->id, $message->useridto);
-        $this->assertStringContainsString('Fix the bibliography.', $message->fullmessage);
+
+        $data = $this->get_queued_task('changes_requested')->get_custom_data();
+        $this->assertEquals($syllabus->id, $data->planid);
+        $this->assertSame('Fix the bibliography.', $data->reason);
     }
 
     /**

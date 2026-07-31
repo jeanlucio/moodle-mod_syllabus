@@ -16,16 +16,13 @@
 
 namespace mod_syllabus;
 
-use context_module;
 use core\event\course_module_updated;
-use core\message\message;
-use core_user;
+use core\task\manager;
 use mod_syllabus\event\plan_approved;
 use mod_syllabus\event\plan_changes_requested;
 use mod_syllabus\event\plan_submitted;
 use mod_syllabus\local\plan_state_manager;
-use moodle_url;
-use stdClass;
+use mod_syllabus\task\send_workflow_notification;
 
 /**
  * Event observers for mod_syllabus.
@@ -80,168 +77,56 @@ final class observer {
     }
 
     /**
-     * Notifies every user with mod/syllabus:review in the context that a plan awaits review.
+     * Queues a background task to notify every user with mod/syllabus:review in the context
+     * that a plan awaits review.
+     *
+     * Notifying is queued rather than sent inline because message_send() dispatches
+     * synchronously to every enabled message processor, including e-mail — on a site with a
+     * real SMTP relay this blocks the submitting AJAX request for a second or more per
+     * recipient. See send_workflow_notification for the actual sending logic.
      *
      * @param plan_submitted $event The triggered event.
      * @return void
      */
     public static function plan_submitted(plan_submitted $event): void {
-        global $DB;
-
-        $plan = $DB->get_record('syllabus', ['id' => $event->objectid], '*', IGNORE_MISSING);
-        $cm = $plan ? get_coursemodule_from_instance('syllabus', $plan->id, $plan->course, false, IGNORE_MISSING) : null;
-        if (!$plan || !$cm) {
-            return;
-        }
-
-        $context = context_module::instance($cm->id);
-        $subject = get_string('messagesubjectsubmitted', 'mod_syllabus', format_string($plan->name));
-        $body = self::build_submitted_body($plan, $cm);
-
-        foreach (get_users_by_capability($context, 'mod/syllabus:review') as $recipient) {
-            if ((int) $recipient->id === (int) $event->userid) {
-                continue;
-            }
-            self::send_message($plan, $cm, $recipient, 'plan_submitted', $subject, $body);
-        }
+        $task = new send_workflow_notification();
+        $task->set_custom_data([
+            'type'          => 'submitted',
+            'planid'        => $event->objectid,
+            'triggeruserid' => $event->userid,
+        ]);
+        manager::queue_adhoc_task($task);
     }
 
     /**
-     * Builds the "plan submitted" notification body: author, submission time, the course's own
-     * expected start date (so the reviewer can judge how much turnaround time they have), and
-     * whether this is a resubmission after changes were requested.
-     *
-     * @param stdClass $plan Syllabus record.
-     * @param stdClass $cm Course module record.
-     * @return string
-     */
-    private static function build_submitted_body(stdClass $plan, stdClass $cm): string {
-        global $DB;
-
-        $course = $DB->get_record('course', ['id' => $plan->course], 'id, fullname, startdate', IGNORE_MISSING);
-
-        $lines = [
-            get_string('messagebodysubmitted', 'mod_syllabus', (object) [
-                'planname' => format_string($plan->name),
-                'coursename' => $course ? format_string($course->fullname) : '',
-            ]),
-            '',
-        ];
-
-        if ($plan->submittedby) {
-            $author = core_user::get_user($plan->submittedby);
-            if ($author) {
-                $lines[] = get_string('messagedetailauthor', 'mod_syllabus', fullname($author));
-            }
-        }
-        if ($plan->timesubmitted) {
-            $lines[] = get_string('messagedetailsubmitted', 'mod_syllabus', userdate($plan->timesubmitted));
-        }
-        if ($course) {
-            $coursestart = $course->startdate
-                ? userdate($course->startdate, get_string('strftimedate', 'langconfig'))
-                : get_string('messagestartdatenotset', 'mod_syllabus');
-            $lines[] = get_string('messagedetailcoursestart', 'mod_syllabus', $coursestart);
-        }
-        if ($plan->timereviewed) {
-            $lines[] = get_string('messagedetailresubmission', 'mod_syllabus');
-        }
-
-        $lines[] = '';
-        $lines[] = get_string(
-            'messagedetaillink',
-            'mod_syllabus',
-            (new moodle_url('/mod/syllabus/view.php', ['id' => $cm->id]))->out(false)
-        );
-
-        return implode("\n", $lines);
-    }
-
-    /**
-     * Notifies the plan's author that their submission was approved.
+     * Queues a background task to notify the plan's author that their submission was approved.
      *
      * @param plan_approved $event The triggered event.
      * @return void
      */
     public static function plan_approved(plan_approved $event): void {
-        global $DB;
-
-        $plan = $DB->get_record('syllabus', ['id' => $event->objectid], '*', IGNORE_MISSING);
-        $cm = $plan ? get_coursemodule_from_instance('syllabus', $plan->id, $plan->course, false, IGNORE_MISSING) : null;
-        $author = $plan && $plan->submittedby ? core_user::get_user($plan->submittedby) : null;
-        if (!$plan || !$cm || !$author) {
-            return;
-        }
-
-        self::send_message(
-            $plan,
-            $cm,
-            $author,
-            'plan_approved',
-            get_string('messagesubjectapproved', 'mod_syllabus', format_string($plan->name)),
-            get_string('messagebodyapproved', 'mod_syllabus', format_string($plan->name))
-        );
+        $task = new send_workflow_notification();
+        $task->set_custom_data([
+            'type'   => 'approved',
+            'planid' => $event->objectid,
+        ]);
+        manager::queue_adhoc_task($task);
     }
 
     /**
-     * Notifies the plan's author that the coordinator requested changes.
+     * Queues a background task to notify the plan's author that the coordinator requested
+     * changes.
      *
      * @param plan_changes_requested $event The triggered event.
      * @return void
      */
     public static function plan_changes_requested(plan_changes_requested $event): void {
-        global $DB;
-
-        $plan = $DB->get_record('syllabus', ['id' => $event->objectid], '*', IGNORE_MISSING);
-        $cm = $plan ? get_coursemodule_from_instance('syllabus', $plan->id, $plan->course, false, IGNORE_MISSING) : null;
-        $author = $plan && $plan->submittedby ? core_user::get_user($plan->submittedby) : null;
-        if (!$plan || !$cm || !$author) {
-            return;
-        }
-
-        $a = (object) ['name' => format_string($plan->name), 'reason' => $event->other['reason']];
-        self::send_message(
-            $plan,
-            $cm,
-            $author,
-            'plan_changes_requested',
-            get_string('messagesubjectchangesrequested', 'mod_syllabus', format_string($plan->name)),
-            get_string('messagebodychangesrequested', 'mod_syllabus', $a)
-        );
-    }
-
-    /**
-     * Builds and sends one workflow notification.
-     *
-     * @param stdClass $plan Syllabus record the message is about.
-     * @param stdClass $cm Course module record.
-     * @param stdClass $recipient User to notify.
-     * @param string $name Message provider name, as declared in db/messages.php.
-     * @param string $subject Message subject.
-     * @param string $body Message body (plain text).
-     * @return void
-     */
-    private static function send_message(
-        stdClass $plan,
-        stdClass $cm,
-        stdClass $recipient,
-        string $name,
-        string $subject,
-        string $body
-    ): void {
-        $message = new message();
-        $message->component = 'mod_syllabus';
-        $message->name = $name;
-        $message->userfrom = core_user::get_noreply_user();
-        $message->userto = $recipient;
-        $message->subject = $subject;
-        $message->fullmessage = $body;
-        $message->fullmessageformat = FORMAT_PLAIN;
-        $message->fullmessagehtml = '';
-        $message->smallmessage = $subject;
-        $message->notification = 1;
-        $message->contexturl = new moodle_url('/mod/syllabus/view.php', ['id' => $cm->id]);
-        $message->contexturlname = format_string($plan->name);
-        message_send($message);
+        $task = new send_workflow_notification();
+        $task->set_custom_data([
+            'type'   => 'changes_requested',
+            'planid' => $event->objectid,
+            'reason' => $event->other['reason'],
+        ]);
+        manager::queue_adhoc_task($task);
     }
 }

@@ -17,8 +17,10 @@
 namespace mod_syllabus\external;
 
 use advanced_testcase;
+use core\task\manager;
 use core_external\external_api;
 use mod_syllabus\local\plan_state_manager;
+use mod_syllabus\task\send_workflow_notification;
 
 /**
  * Unit tests for the mod_syllabus_submit_plan external function.
@@ -40,11 +42,16 @@ final class submit_plan_test extends advanced_testcase {
     }
 
     /**
-     * A draft plan can be submitted by its author, notifying every reviewer.
+     * A draft plan can be submitted by its author, queuing the reviewer notification task.
+     *
+     * The task's own content/recipients (which reviewers get notified, message text) are
+     * send_workflow_notification_test.php's responsibility — sending is queued rather than done
+     * inline precisely so this external function call returns immediately (see
+     * send_workflow_notification's own docblock).
      *
      * @return void
      */
-    public function test_submits_and_notifies_reviewers(): void {
+    public function test_submits_and_queues_reviewer_notification(): void {
         global $DB;
 
         $course = $this->getDataGenerator()->create_course();
@@ -55,11 +62,8 @@ final class submit_plan_test extends advanced_testcase {
         $this->getDataGenerator()->enrol_user($manager->id, $course->id, 'manager');
 
         $this->setUser($teacher);
-        $sink = $this->redirectMessages();
         $result = submit_plan::execute($syllabus->cmid);
         $result = external_api::clean_returnvalue(submit_plan::execute_returns(), $result);
-        $messages = $sink->get_messages();
-        $sink->close();
 
         $this->assertTrue($result['success']);
         $this->assertSame(plan_state_manager::STATUS_SUBMITTED, $result['status']);
@@ -68,10 +72,12 @@ final class submit_plan_test extends advanced_testcase {
             $DB->get_field('syllabus', 'status', ['id' => $syllabus->id])
         );
 
-        $this->assertCount(1, $messages);
-        $message = reset($messages);
-        $this->assertEquals($manager->id, $message->useridto);
-        $this->assertSame('mod_syllabus', $message->component);
+        $tasks = manager::get_adhoc_tasks(send_workflow_notification::class);
+        $this->assertCount(1, $tasks);
+        $data = reset($tasks)->get_custom_data();
+        $this->assertSame('submitted', $data->type);
+        $this->assertEquals($syllabus->id, $data->planid);
+        $this->assertEquals($teacher->id, $data->triggeruserid);
     }
 
     /**

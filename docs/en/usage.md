@@ -23,6 +23,18 @@
 8. Site administrators manage the three Custom Fields templates (`plan`, `week`, `activity`)
    under **Site administration > Plugins > Activity modules > Syllabus**.
 
+## Coordinator review notes per field
+
+Beyond the single justification text used when requesting changes, coordination can leave a
+note on any specific narrative field (plan, week or activity) from a dedicated panel in the
+Full plan tab:
+
+* Open a field's note row, type a comment, and it autosaves — the teacher sees it as a visible
+  indicator right on that field, next to its "View model guidance" toggle.
+* Notes stay visible through a resubmission (`submitted` → `changes_requested` → `submitted`
+  again), so the teacher can address them without losing track of what was flagged.
+* Approving the plan clears every open note — there is nothing left to act on once approved.
+
 ## Which edits reopen review, and which never do
 
 Once a plan has been approved at least once, editing it behaves differently depending on what

@@ -24,6 +24,21 @@
 8. Administradores do site gerenciam os três modelos de Custom Fields (`plan`, `week`,
    `activity`) em **Administração do site > Plugins > Módulos de atividade > Syllabus**.
 
+## Observações da coordenação por campo
+
+Além do texto único de justificativa usado ao solicitar ajustes, a coordenação pode deixar uma
+observação em qualquer campo narrativo específico (plano, aula ou atividade) por um painel
+dedicado na aba Plano completo:
+
+* Abra a linha de observação de um campo, digite um comentário, e ele salva automaticamente —
+  o professor vê um indicador visual direto naquele campo, ao lado do "Ver orientações do
+  modelo".
+* As observações continuam visíveis durante um reenvio (`submitted` → `changes_requested` →
+  `submitted` de novo), para que o professor consiga tratá-las sem perder o rastro do que foi
+  sinalizado.
+* Aprovar o plano limpa todas as observações abertas — não sobra nada a tratar depois de
+  aprovado.
+
 ## Quais edições reabrem a revisão, e quais nunca reabrem
 
 Depois que um plano foi aprovado ao menos uma vez, editá-lo se comporta de forma diferente

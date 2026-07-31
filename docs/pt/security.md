@@ -29,3 +29,7 @@
   revisado/despublicado por) são exportadas/anonimizadas por usuário, já que o plano em si é
   conteúdo institucional compartilhado e contínuo que precisa sobreviver a uma solicitação de
   exclusão de dados, não uma submissão por usuário
+* As observações da coordenação (`syllabus_review_notes`) são a única exceção deliberada a essa
+  regra de só anonimizar: o conteúdo inteiro de uma observação é texto autoral do revisor, então
+  excluir os dados de um revisor apaga a linha da observação por completo, em vez de só
+  anonimizar uma referência nela

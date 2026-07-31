@@ -31,8 +31,8 @@ verificam o que só uma sessão de navegador real, com múltiplos usuários, con
 
 | Arquivo de teste | Casos |
 |-------------------|------:|
-| `syllabus_handler_base_test.php` | 9 |
-| **Subtotal** | **9** |
+| `syllabus_handler_base_test.php` | 10 |
+| **Subtotal** | **10** |
 
 ### Testes dos Eventos do Workflow (`tests/event/`)
 
@@ -47,16 +47,17 @@ verificam o que só uma sessão de navegador real, com múltiplos usuários, con
 
 | Arquivo de teste | Casos |
 |-------------------|------:|
-| `plan_state_manager_test.php` | 19 |
+| `plan_state_manager_test.php` | 21 |
 | `plan_completeness_checker_test.php` | 12 |
 | `structural_change_detector_test.php` | 4 |
-| **Subtotal** | **35** |
+| **Subtotal** | **37** |
 
 ### Testes de Web Services (`tests/external/`)
 
 | Arquivo de teste | Casos |
 |-------------------|------:|
 | `save_week_test.php` | 9 |
+| `save_review_note_test.php` | 7 |
 | `review_plan_test.php` | 6 |
 | `save_plan_details_test.php` | 6 |
 | `save_customfield_value_test.php` | 5 |
@@ -67,7 +68,7 @@ verificam o que só uma sessão de navegador real, com múltiplos usuários, con
 | `delete_activity_test.php` | 2 |
 | `delete_week_test.php` | 2 |
 | `submit_plan_test.php` | 2 |
-| **Subtotal** | **46** |
+| **Subtotal** | **53** |
 
 ### Testes de Output, Observer e Notificações (`tests/output/`, `tests/observer*.php`)
 
@@ -76,27 +77,27 @@ verificam o que só uma sessão de navegador real, com múltiplos usuários, con
 | `output/tab_full_plan_test.php` | 8 |
 | `output/tab_visibility_test.php` | 5 |
 | `observer_notifications_test.php` | 5 |
-| `output/plan_reader_test.php` | 4 |
+| `output/plan_reader_test.php` | 5 |
 | `observer_test.php` | 3 |
 | `output/narrative_editor_test.php` | 3 |
 | `output/plan_teacher_name_test.php` | 3 |
 | `output/renderer_test.php` | 3 |
 | `output/plan_programme_name_test.php` | 2 |
 | `output/plan_read_export_test.php` | 2 |
-| **Subtotal** | **38** |
+| **Subtotal** | **39** |
 
 ### Testes de Backup, Restore, Upgrade, Privacidade e Segurança
 
 | Arquivo de teste | Casos |
 |-------------------|------:|
-| `privacy_provider_test.php` | 9 |
+| `privacy_provider_test.php` | 15 |
 | `db_upgrade_test.php` | 10 |
-| `backup_restore_test.php` | 3 |
+| `backup_restore_test.php` | 5 |
 | `cross_instance_security_test.php` | 2 |
 | `db_uninstall_test.php` | 1 |
-| **Subtotal** | **25** |
+| **Subtotal** | **33** |
 
-| **Total geral** | **164** |
+| **Total geral** | **183** |
 
 ```bash
 vendor/bin/phpunit --bootstrap lib/phpunit/bootstrap.php mod/syllabus
@@ -116,6 +117,7 @@ vendor/bin/phpunit --bootstrap lib/phpunit/bootstrap.php mod/syllabus
 | `external\save_activity` | 100% |
 | `external\save_final_assessment` | 100% |
 | `external\save_plan_details` | 100% |
+| `external\save_review_note` | 100% |
 | `external\save_week` | 100% |
 | `external\submit_plan` | 100% |
 | `external\unpublish_plan` | 100% |
@@ -133,10 +135,10 @@ vendor/bin/phpunit --bootstrap lib/phpunit/bootstrap.php mod/syllabus
 | `output\tab_student_plan` | 100% |
 | `output\tab_tutor_plan` | 100% |
 | `customfield\syllabus_handler_base` | 97% |
-| `output\plan_reader` | 96% |
+| `output\plan_reader` | 97% |
 | `external\save_customfield_value` | 98% |
 | `observer` | 94% |
-| `privacy\provider` | 89% |
+| `privacy\provider` | 93% |
 | `customfield\activity_handler` | 88% |
 | `customfield\week_handler` | 80% |
 | `customfield\plan_handler` | 75% |
@@ -146,6 +148,8 @@ vendor/bin/phpunit --bootstrap lib/phpunit/bootstrap.php mod/syllabus
 > O punhado de classes ainda abaixo de 100% cobre lacunas genuínas e estreitas, revisadas
 > individualmente e deixadas sem teste por serem de baixo valor, não por terem passado
 > despercebidas — wrappers triviais de `create()` nos quatro handlers de Custom Field, um ramo
-> de `save_customfield_value::execute()`, alguns guards de retorno antecipado em
-> `observer`/`privacy\provider`, e `help_handler::resolve_syllabus_id()` (a área `help` não tem
+> de `save_customfield_value::execute()`, alguns guards de retorno antecipado/`continue` em
+> `observer`/`privacy\provider` para um contexto malformado ou órfão, o ramo de plano sem
+> nenhuma aula em `plan_reader::weeks()`, o skip de campo não-textarea em
+> `export_editable_fields()`, e `help_handler::resolve_syllabus_id()` (a área `help` não tem
 > valores por instância, então esse método de uma linha nunca é chamado de verdade).

@@ -27,3 +27,7 @@
   personal data — only the three workflow actor references (submitted/reviewed/unpublished by)
   are exported/anonymised per user, since the plan itself is shared, ongoing institutional
   content that must survive a data-deletion request, not a per-user submission
+* Coordinator review notes (`syllabus_review_notes`) are the one deliberate exception to that
+  anonymise-only rule: a note's entire substance is the reviewer's own authored text, so
+  deleting a reviewer's data deletes the note row outright rather than anonymising a reference
+  on it

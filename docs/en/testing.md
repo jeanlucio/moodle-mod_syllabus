@@ -30,8 +30,8 @@ approved, then verify what only a real, multi-user browser session can prove:
 
 | Test file | Cases |
 |-----------|------:|
-| `syllabus_handler_base_test.php` | 9 |
-| **Subtotal** | **9** |
+| `syllabus_handler_base_test.php` | 10 |
+| **Subtotal** | **10** |
 
 ### Workflow Event Tests (`tests/event/`)
 
@@ -46,16 +46,17 @@ approved, then verify what only a real, multi-user browser session can prove:
 
 | Test file | Cases |
 |-----------|------:|
-| `plan_state_manager_test.php` | 19 |
+| `plan_state_manager_test.php` | 21 |
 | `plan_completeness_checker_test.php` | 12 |
 | `structural_change_detector_test.php` | 4 |
-| **Subtotal** | **35** |
+| **Subtotal** | **37** |
 
 ### Web Services Tests (`tests/external/`)
 
 | Test file | Cases |
 |-----------|------:|
 | `save_week_test.php` | 9 |
+| `save_review_note_test.php` | 7 |
 | `review_plan_test.php` | 6 |
 | `save_plan_details_test.php` | 6 |
 | `save_customfield_value_test.php` | 5 |
@@ -66,7 +67,7 @@ approved, then verify what only a real, multi-user browser session can prove:
 | `delete_activity_test.php` | 2 |
 | `delete_week_test.php` | 2 |
 | `submit_plan_test.php` | 2 |
-| **Subtotal** | **46** |
+| **Subtotal** | **53** |
 
 ### Output, Observer & Notification Tests (`tests/output/`, `tests/observer*.php`)
 
@@ -75,27 +76,27 @@ approved, then verify what only a real, multi-user browser session can prove:
 | `output/tab_full_plan_test.php` | 8 |
 | `output/tab_visibility_test.php` | 5 |
 | `observer_notifications_test.php` | 5 |
-| `output/plan_reader_test.php` | 4 |
+| `output/plan_reader_test.php` | 5 |
 | `observer_test.php` | 3 |
 | `output/narrative_editor_test.php` | 3 |
 | `output/plan_teacher_name_test.php` | 3 |
 | `output/renderer_test.php` | 3 |
 | `output/plan_programme_name_test.php` | 2 |
 | `output/plan_read_export_test.php` | 2 |
-| **Subtotal** | **38** |
+| **Subtotal** | **39** |
 
 ### Backup, Restore, Upgrade, Privacy & Security Tests
 
 | Test file | Cases |
 |-----------|------:|
-| `privacy_provider_test.php` | 9 |
+| `privacy_provider_test.php` | 15 |
 | `db_upgrade_test.php` | 10 |
-| `backup_restore_test.php` | 3 |
+| `backup_restore_test.php` | 5 |
 | `cross_instance_security_test.php` | 2 |
 | `db_uninstall_test.php` | 1 |
-| **Subtotal** | **25** |
+| **Subtotal** | **33** |
 
-| **Grand Total** | **164** |
+| **Grand Total** | **183** |
 
 ```bash
 vendor/bin/phpunit --bootstrap lib/phpunit/bootstrap.php mod/syllabus
@@ -115,6 +116,7 @@ vendor/bin/phpunit --bootstrap lib/phpunit/bootstrap.php mod/syllabus
 | `external\save_activity` | 100% |
 | `external\save_final_assessment` | 100% |
 | `external\save_plan_details` | 100% |
+| `external\save_review_note` | 100% |
 | `external\save_week` | 100% |
 | `external\submit_plan` | 100% |
 | `external\unpublish_plan` | 100% |
@@ -132,10 +134,10 @@ vendor/bin/phpunit --bootstrap lib/phpunit/bootstrap.php mod/syllabus
 | `output\tab_student_plan` | 100% |
 | `output\tab_tutor_plan` | 100% |
 | `customfield\syllabus_handler_base` | 97% |
-| `output\plan_reader` | 96% |
+| `output\plan_reader` | 97% |
 | `external\save_customfield_value` | 98% |
 | `observer` | 94% |
-| `privacy\provider` | 89% |
+| `privacy\provider` | 93% |
 | `customfield\activity_handler` | 88% |
 | `customfield\week_handler` | 80% |
 | `customfield\plan_handler` | 75% |
@@ -145,6 +147,7 @@ vendor/bin/phpunit --bootstrap lib/phpunit/bootstrap.php mod/syllabus
 > The handful of classes still below 100% cover genuine, narrow gaps that were reviewed
 > individually and left untested as low-value, not overlooked — trivial `create()` wrappers
 > on the four Custom Field handlers, one branch of `save_customfield_value::execute()`, a
-> couple of early-return guards in `observer`/`privacy\provider`, and
-> `help_handler::resolve_syllabus_id()` (the `help` area has no per-instance values, so that
-> one-line method is never actually called).
+> handful of early-return/`continue` guards in `observer`/`privacy\provider` for a malformed or
+> orphaned context, the zero-weeks branch of `plan_reader::weeks()`, the non-textarea skip in
+> `export_editable_fields()`, and `help_handler::resolve_syllabus_id()` (the `help` area has no
+> per-instance values, so that one-line method is never actually called).

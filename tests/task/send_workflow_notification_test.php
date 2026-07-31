@@ -128,6 +128,59 @@ final class send_workflow_notification_test extends advanced_testcase {
     }
 
     /**
+     * The reviewer's notification includes the author's resubmission note when one was left,
+     * and omits the line entirely when it wasn't — an empty note is not "blank feedback",
+     * it is no feedback at all.
+     *
+     * @return void
+     */
+    public function test_submitted_body_includes_the_resubmission_note_when_present(): void {
+        $course = $this->getDataGenerator()->create_course();
+        $syllabus = $this->getDataGenerator()->create_module('syllabus', ['course' => $course->id]);
+
+        $submitter = $this->getDataGenerator()->create_user();
+        $reviewer = $this->getDataGenerator()->create_user();
+        $this->getDataGenerator()->enrol_user($reviewer->id, $course->id, 'manager');
+
+        plan_state_manager::submit($syllabus->id, (int) $submitter->id);
+        plan_state_manager::request_changes($syllabus->id, (int) $reviewer->id, 'Please fix the grading criteria.');
+        plan_state_manager::submit($syllabus->id, (int) $submitter->id, 'Fixed the grading criteria.');
+
+        $sink = $this->redirectMessages();
+        $this->run_task(['type' => 'submitted', 'planid' => $syllabus->id, 'triggeruserid' => $submitter->id]);
+        $messages = $sink->get_messages();
+        $sink->close();
+
+        $this->assertCount(1, $messages);
+        $this->assertStringContainsString('Fixed the grading criteria.', $messages[0]->fullmessage);
+    }
+
+    /**
+     * A first-time submission from draft has no resubmission note at all — the body must not
+     * carry an empty "Teacher's note:" line with nothing after it.
+     *
+     * @return void
+     */
+    public function test_submitted_body_omits_the_note_line_when_none_was_left(): void {
+        $course = $this->getDataGenerator()->create_course();
+        $syllabus = $this->getDataGenerator()->create_module('syllabus', ['course' => $course->id]);
+
+        $submitter = $this->getDataGenerator()->create_user();
+        $reviewer = $this->getDataGenerator()->create_user();
+        $this->getDataGenerator()->enrol_user($reviewer->id, $course->id, 'manager');
+
+        plan_state_manager::submit($syllabus->id, (int) $submitter->id);
+
+        $sink = $this->redirectMessages();
+        $this->run_task(['type' => 'submitted', 'planid' => $syllabus->id, 'triggeruserid' => $submitter->id]);
+        $messages = $sink->get_messages();
+        $sink->close();
+
+        $this->assertCount(1, $messages);
+        $this->assertStringNotContainsString("Teacher's note:", $messages[0]->fullmessage);
+    }
+
+    /**
      * A plan that no longer exists by the time the task runs (deleted between the event firing
      * and the next cron run) is a silent no-op, never an exception.
      *

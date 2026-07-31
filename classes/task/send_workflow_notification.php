@@ -189,6 +189,9 @@ final class send_workflow_notification extends adhoc_task {
         if ($plan->timereviewed) {
             $lines[] = get_string('messagedetailresubmission', 'mod_syllabus');
         }
+        if (trim((string) $plan->resubmissionnote) !== '') {
+            $lines[] = get_string('messagedetailresubmissionnote', 'mod_syllabus', $plan->resubmissionnote);
+        }
 
         $lines[] = '';
         $lines[] = get_string(

@@ -293,6 +293,38 @@ final class tab_full_plan_test extends advanced_testcase {
         $data = $page->export_for_template($GLOBALS['PAGE']->get_renderer('mod_syllabus'));
         $this->assertTrue($data->cansubmit);
         $this->assertSame('Please adjust.', $data->changesrequestedreason);
+        $this->assertTrue($data->showresubmissionnoteinput);
+    }
+
+    /**
+     * The author's resubmission note is shown to whoever is viewing the plan while it awaits
+     * review (status submitted), but not before it was written, and not once the coordinator
+     * has moved the plan on to a decision (approved).
+     *
+     * @return void
+     */
+    public function test_resubmissionnote_visible_only_while_submitted(): void {
+        [$syllabus, $cm, $course, $teacher] = $this->seed_editable_plan();
+        $this->setUser($teacher);
+
+        $page = new tab_full_plan($syllabus, $cm, $course);
+        $this->assertNull($page->export_for_template($GLOBALS['PAGE']->get_renderer('mod_syllabus'))->resubmissionnote);
+
+        $reviewer = $this->getDataGenerator()->create_user();
+        plan_state_manager::submit($syllabus->id, (int) $teacher->id);
+        plan_state_manager::request_changes($syllabus->id, (int) $reviewer->id, 'Please adjust.');
+        plan_state_manager::submit($syllabus->id, (int) $teacher->id, 'Adjusted as requested.');
+        $syllabus = $this->refresh($syllabus);
+
+        $page = new tab_full_plan($syllabus, $cm, $course);
+        $data = $page->export_for_template($GLOBALS['PAGE']->get_renderer('mod_syllabus'));
+        $this->assertSame('Adjusted as requested.', $data->resubmissionnote);
+        $this->assertFalse($data->showresubmissionnoteinput);
+
+        plan_state_manager::approve($syllabus->id, (int) $reviewer->id);
+        $syllabus = $this->refresh($syllabus);
+        $page = new tab_full_plan($syllabus, $cm, $course);
+        $this->assertNull($page->export_for_template($GLOBALS['PAGE']->get_renderer('mod_syllabus'))->resubmissionnote);
     }
 
     /**

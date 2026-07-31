@@ -149,6 +149,24 @@ final class plan_state_manager_test extends advanced_testcase {
     }
 
     /**
+     * A resubmission after changes were requested stores the author's optional note to the
+     * coordinator; a first submission from draft with no note leaves it empty.
+     *
+     * @return void
+     */
+    public function test_submit_stores_resubmission_note(): void {
+        global $DB;
+
+        $author = $this->getDataGenerator()->create_user();
+        $syllabusid = $this->create_plan(plan_state_manager::STATUS_CHANGES_REQUESTED, (int) $author->id);
+
+        plan_state_manager::submit($syllabusid, (int) $author->id, 'Fixed the bibliography as requested.');
+
+        $plan = $DB->get_record('syllabus', ['id' => $syllabusid], '*', MUST_EXIST);
+        $this->assertSame('Fixed the bibliography as requested.', $plan->resubmissionnote);
+    }
+
+    /**
      * A plan already awaiting review or already approved cannot be submitted again.
      *
      * @return void
@@ -253,6 +271,26 @@ final class plan_state_manager_test extends advanced_testcase {
         plan_state_manager::approve($syllabusid, (int) $reviewer->id);
 
         $this->assertEquals(0, $DB->count_records('syllabus_review_notes', ['syllabusid' => $syllabusid]));
+    }
+
+    /**
+     * Approving a plan clears its resubmission note — the same "clean slate" moment that
+     * already nulls changesrequestedreason and every open coordinator review note.
+     *
+     * @return void
+     */
+    public function test_approve_clears_resubmission_note(): void {
+        global $DB;
+
+        $author = $this->getDataGenerator()->create_user();
+        $reviewer = $this->getDataGenerator()->create_user();
+        $syllabusid = $this->create_plan(plan_state_manager::STATUS_CHANGES_REQUESTED, (int) $author->id);
+        plan_state_manager::submit($syllabusid, (int) $author->id, 'Fixed the bibliography.');
+
+        plan_state_manager::approve($syllabusid, (int) $reviewer->id);
+
+        $plan = $DB->get_record('syllabus', ['id' => $syllabusid], '*', MUST_EXIST);
+        $this->assertNull($plan->resubmissionnote);
     }
 
     /**

@@ -124,6 +124,8 @@
         "canreviewnow": false,
         "canunpublish": false,
         "changesrequestedreason": null,
+        "resubmissionnote": null,
+        "showresubmissionnoteinput": false,
         "coursedescriptionreviewnote": null,
         "objectivesreviewnote": null,
         "contentsreviewnote": null,
@@ -402,8 +404,23 @@
     </div>
     {{/changesrequestedreason}}
 
+    {{#resubmissionnote}}
+    <div class="alert alert-info syllabus-resubmission-note-display">
+        <strong>{{#str}} resubmissionnote, mod_syllabus {{/str}}:</strong> {{resubmissionnote}}
+    </div>
+    {{/resubmissionnote}}
+
     <div class="syllabus-workflow-actions mt-4">
         {{#cansubmit}}
+            {{#showresubmissionnoteinput}}
+            <div class="mb-2">
+                <label for="syllabus-resubmission-note" class="form-label">
+                    {{#str}} resubmissionnote, mod_syllabus {{/str}}
+                </label>
+                <textarea id="syllabus-resubmission-note" class="form-control syllabus-resubmission-note" rows="3"
+                    placeholder="{{#str}} resubmissionnoteplaceholder, mod_syllabus {{/str}}"></textarea>
+            </div>
+            {{/showresubmissionnoteinput}}
         <button type="button" class="btn btn-primary syllabus-submit-plan">
             {{#str}} submitforreview, mod_syllabus {{/str}}
         </button>

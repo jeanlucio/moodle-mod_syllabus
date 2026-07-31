@@ -189,6 +189,16 @@ final class tab_full_plan implements renderable, templatable {
             'changesrequestedreason' => $status === plan_state_manager::STATUS_CHANGES_REQUESTED
                 ? $this->syllabus->changesrequestedreason
                 : null,
+            // Shown to whoever is reviewing the plan currently awaiting a decision — cleared by
+            // plan_state_manager::approve() the same way changesrequestedreason is, so a stale
+            // note from a much earlier cycle never resurfaces after the plan regresses through
+            // changes_requested again.
+            'resubmissionnote' => $status === plan_state_manager::STATUS_SUBMITTED
+                ? $this->syllabus->resubmissionnote
+                : null,
+            // Only meaningful while the author can still act on a changes_requested plan — the
+            // textarea that feeds submit_plan's optional 'note' param.
+            'showresubmissionnoteinput' => $caneditcontent && $status === plan_state_manager::STATUS_CHANGES_REQUESTED,
         ];
 
         $planfielddata = plan_handler::create()->get_instance_data($this->syllabus->id, true);

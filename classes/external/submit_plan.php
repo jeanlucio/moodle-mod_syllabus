@@ -40,6 +40,12 @@ class submit_plan extends external_api {
     public static function execute_parameters(): external_function_parameters {
         return new external_function_parameters([
             'cmid' => new external_value(PARAM_INT, 'Course module ID'),
+            'note' => new external_value(
+                PARAM_TEXT,
+                'Optional note to the coordinator, shown when resubmitting after changes were requested',
+                VALUE_DEFAULT,
+                ''
+            ),
         ]);
     }
 
@@ -47,12 +53,13 @@ class submit_plan extends external_api {
      * Submit the plan for review, triggering the plan_submitted event.
      *
      * @param int $cmid Course module ID.
+     * @param string $note Optional note to the coordinator, see execute_parameters().
      * @return array Result with the new status and success flag.
      */
-    public static function execute(int $cmid): array {
+    public static function execute(int $cmid, string $note = ''): array {
         global $DB, $USER;
 
-        $params = self::validate_parameters(self::execute_parameters(), ['cmid' => $cmid]);
+        $params = self::validate_parameters(self::execute_parameters(), ['cmid' => $cmid, 'note' => $note]);
 
         $cm = get_coursemodule_from_id('syllabus', $params['cmid'], 0, false, MUST_EXIST);
         $context = context_module::instance($cm->id);
@@ -60,7 +67,7 @@ class submit_plan extends external_api {
         require_capability('mod/syllabus:submit', $context);
 
         $plan = $DB->get_record('syllabus', ['id' => $cm->instance], '*', MUST_EXIST);
-        plan_state_manager::submit($plan->id, (int) $USER->id);
+        plan_state_manager::submit($plan->id, (int) $USER->id, $params['note']);
 
         plan_submitted::create([
             'objectid' => $plan->id,

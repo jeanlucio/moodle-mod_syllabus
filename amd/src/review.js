@@ -67,7 +67,9 @@ export const init = (coursemoduleid) => {
     const submitBtn = container.querySelector('.syllabus-submit-plan');
     if (submitBtn) {
         submitBtn.addEventListener('click', () => {
-            callAndReload('mod_syllabus_submit_plan', {cmid});
+            const noteField = container.querySelector('.syllabus-resubmission-note');
+            const note = noteField ? noteField.value.trim() : '';
+            callAndReload('mod_syllabus_submit_plan', {cmid, note});
         });
     }
 

@@ -81,6 +81,35 @@ final class submit_plan_test extends advanced_testcase {
     }
 
     /**
+     * A resubmission after changes were requested can carry an optional note to the
+     * coordinator, stored on the plan itself (see plan_state_manager::submit()).
+     *
+     * @return void
+     */
+    public function test_resubmit_stores_the_optional_note(): void {
+        global $DB;
+
+        $course = $this->getDataGenerator()->create_course();
+        $syllabus = $this->getDataGenerator()->create_module('syllabus', ['course' => $course->id]);
+        $teacher = $this->getDataGenerator()->create_user();
+        $this->getDataGenerator()->enrol_user($teacher->id, $course->id, 'editingteacher');
+        $reviewer = $this->getDataGenerator()->create_user();
+
+        $this->setUser($teacher);
+        submit_plan::execute($syllabus->cmid);
+        $this->setUser($reviewer);
+        plan_state_manager::request_changes($syllabus->id, (int) $reviewer->id, 'Fix the bibliography.');
+
+        $this->setUser($teacher);
+        submit_plan::execute($syllabus->cmid, 'Fixed the bibliography as requested.');
+
+        $this->assertSame(
+            'Fixed the bibliography as requested.',
+            $DB->get_field('syllabus', 'resubmissionnote', ['id' => $syllabus->id])
+        );
+    }
+
+    /**
      * A user without mod/syllabus:submit cannot submit a plan.
      *
      * @return void

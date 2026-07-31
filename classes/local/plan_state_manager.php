@@ -47,10 +47,14 @@ final class plan_state_manager {
      *
      * @param int $syllabusid ID of the syllabus record.
      * @param int $userid ID of the author submitting the plan.
+     * @param string $note Author's optional note to the coordinator, meant for a resubmission
+     *     after changes were requested — the UI only ever collects one on that path, but this
+     *     method itself doesn't care which transition is happening; an empty string on a first
+     *     submission is simply stored as such.
      * @return void
      * @throws moodle_exception If the plan is not in a submittable status, or required content is missing.
      */
-    public static function submit(int $syllabusid, int $userid): void {
+    public static function submit(int $syllabusid, int $userid, string $note = ''): void {
         global $DB;
 
         $plan = $DB->get_record('syllabus', ['id' => $syllabusid], '*', MUST_EXIST);
@@ -68,6 +72,7 @@ final class plan_state_manager {
         $plan->status = self::STATUS_SUBMITTED;
         $plan->submittedby = $userid;
         $plan->timesubmitted = $now;
+        $plan->resubmissionnote = $note;
         $plan->timemodified = $now;
         $DB->update_record('syllabus', $plan);
     }
@@ -77,8 +82,8 @@ final class plan_state_manager {
      *
      * Also clears every per-field coordinator review note left on this plan (see
      * save_review_note) — approval is the same "clean slate" moment that already nulls
-     * changesrequestedreason, and a note left on an approved plan would have no author-facing
-     * meaning left to convey.
+     * changesrequestedreason and resubmissionnote, and a note left on an approved plan would
+     * have no author-facing meaning left to convey.
      *
      * @param int $syllabusid ID of the syllabus record.
      * @param int $reviewerid ID of the coordinator approving the plan.
@@ -96,6 +101,7 @@ final class plan_state_manager {
         $plan->reviewedby = $reviewerid;
         $plan->timereviewed = $now;
         $plan->changesrequestedreason = null;
+        $plan->resubmissionnote = null;
         $plan->timemodified = $now;
         $DB->update_record('syllabus', $plan);
         $DB->delete_records('syllabus_review_notes', ['syllabusid' => $syllabusid]);

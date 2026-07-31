@@ -246,6 +246,30 @@ final class syllabus_handler_base_test extends advanced_testcase {
     }
 
     /**
+     * resolve_fieldid_by_shortname() finds the local field id matching a shortname, and
+     * returns null when no field of this area has that shortname — the restore-time scenario
+     * where a field was removed via managefields.php since the backup was taken.
+     *
+     * @return void
+     */
+    public function test_resolve_fieldid_by_shortname(): void {
+        [, , $syllabus, $ids] = $this->seed();
+        [$handler, $instanceid] = $this->handlers($syllabus, $ids)['plan'];
+        $datacontrollers = $handler->get_instance_data($instanceid, true);
+        $expectedfieldid = null;
+        foreach ($datacontrollers as $fieldid => $datacontroller) {
+            if ($datacontroller->get_field()->get('shortname') === 'coursedescription') {
+                $expectedfieldid = $fieldid;
+                break;
+            }
+        }
+        $this->assertNotNull($expectedfieldid, 'Sanity check: coursedescription must be seeded.');
+
+        $this->assertSame($expectedfieldid, $handler->resolve_fieldid_by_shortname($instanceid, 'coursedescription'));
+        $this->assertNull($handler->resolve_fieldid_by_shortname($instanceid, 'nosuchfield'));
+    }
+
+    /**
      * can_view() is gated on mod/syllabus:view at the instance context — held by an enrolled
      * student, not by a user with no role in the course at all.
      *

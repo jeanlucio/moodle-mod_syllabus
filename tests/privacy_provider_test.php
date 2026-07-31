@@ -270,6 +270,28 @@ final class privacy_provider_test extends provider_testcase {
     }
 
     /**
+     * Exporting the reviewer's own data includes a "reviewed" entry with a timestamp —
+     * test_export_user_data() above only ever checked the submitter's export.
+     *
+     * @return void
+     */
+    public function test_export_user_data_for_reviewer_includes_reviewed_entry(): void {
+        $this->resetAfterTest();
+        $this->setAdminUser();
+
+        [, $syllabus, , $reviewer] = $this->create_reviewed_plan();
+        $cm = get_coursemodule_from_instance('syllabus', $syllabus->id, 0, false, MUST_EXIST);
+        $context = context_module::instance($cm->id);
+
+        $contextlist = provider::get_contexts_for_userid($reviewer->id);
+        $approved = new approved_contextlist($reviewer, 'mod_syllabus', $contextlist->get_contextids());
+        provider::export_user_data($approved);
+
+        $data = writer::with_context($context)->get_data([get_string('pluginname', 'mod_syllabus')]);
+        $this->assertTrue(property_exists($data, 'reviewed'));
+    }
+
+    /**
      * Deleting all data in a context anonymises submittedby/reviewedby but keeps the plan row.
      *
      * @return void

@@ -29,9 +29,9 @@
     own editor preference is the plain textarea (tinyavailable false) gets exactly that,
     unchanged, with no lazy-load machinery attached.
 
-    The id/data-syllabus-section pair on the wrapper is harmless even for week/activity
-    fields that have no matching rail entry — plan_navigator.js simply finds no link for
-    that section id and does nothing.
+    The id/data-syllabus-section pair on the wrapper is also present on week/activity fields
+    that have no matching rail entry; plan_navigator.js's scroll spy filters those out before
+    observing, so an unlinked section never reaches its highlight logic.
 
     Example context (json):
     {

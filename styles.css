@@ -88,15 +88,37 @@
     gap: 1.5rem;
 }
 
+/*
+ * The sticky offset MUST clear Boost's own fixed top navbar (`.navbar.fixed-top`, 60px tall,
+ * z-index 1030). Sticking at a bare `top: 1rem` puts the rail's own first links *underneath*
+ * that navbar — they are laid out on screen, and every geometric check (getBoundingClientRect,
+ * IntersectionObserver, Playwright's isVisible) reports them as visible, but a reader simply
+ * cannot see them. Moodle publishes the navbar's height as `--navbar-height`; the fallback
+ * matches Boost's current value for the rare theme that doesn't set it.
+ *
+ * No max-height/overflow-y here on purpose: a plain sticky element taller than the viewport
+ * already does what's wanted natively — it stays put for as long as there is room in
+ * `.syllabus-edit-layout` below it, and only slides up (revealing its own lower links) as the
+ * reader nears the end of the form. Capping it with its own scrollable overflow instead meant
+ * it could start hiding its first links long before the page was anywhere near its end.
+ */
 .path-mod-syllabus .syllabus-nav-rail {
     display: flex;
     flex: 0 0 220px;
     flex-direction: column;
     gap: 0.25rem;
     position: sticky;
-    top: 1rem;
-    max-height: calc(100vh - 2rem);
-    overflow-y: auto;
+    top: calc(var(--navbar-height, 60px) + 1rem);
+}
+
+/*
+ * Same fixed-navbar clearance, for the other direction: clicking a rail link (or following a
+ * plain #anchor) scrolls the target's own top edge to the very top of the viewport, which puts
+ * a section heading underneath Boost's fixed navbar. scroll-margin-top is what the scroll
+ * lands against, so the heading arrives just below the navbar instead of behind it.
+ */
+.path-mod-syllabus [data-syllabus-section] {
+    scroll-margin-top: calc(var(--navbar-height, 60px) + 1rem);
 }
 
 .path-mod-syllabus .syllabus-rail-link {

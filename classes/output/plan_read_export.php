@@ -40,9 +40,20 @@ final class plan_read_export {
      * @param plan_reader $reader Used to flatten each week's/activity's raw Custom Field data.
      * @param array $weeks Result of plan_reader::weeks().
      * @param bool $showtutorfields Whether to include the tutor-exclusive fields.
+     * @param bool $includereviewnotes Whether to attach a coordinator review-note object
+     *     (fieldid/instanceid/area/coordinatornote) next to each narrative field, for inline
+     *     rendering right under it — only the coordinator's own read of Tab 1 sets this,
+     *     never the tutor/student tabs.
+     * @param array $reviewnotes Result of plan_reader::review_notes(), for this same plan.
      * @return stdClass[]
      */
-    public static function weeks(plan_reader $reader, array $weeks, bool $showtutorfields): array {
+    public static function weeks(
+        plan_reader $reader,
+        array $weeks,
+        bool $showtutorfields,
+        bool $includereviewnotes = false,
+        array $reviewnotes = []
+    ): array {
         $result = [];
         foreach ($weeks as $week) {
             $fields = $reader->flatten_fields($week->fields);
@@ -60,12 +71,28 @@ final class plan_read_export {
                 'supportmaterial'       => $fields['supportmaterial'] ?? '',
                 'supplementarymaterial' => $fields['supplementarymaterial'] ?? '',
                 'showtutorfields'       => $showtutorfields,
-                'activities'            => self::activities($reader, $week->activities, $showtutorfields),
+                'activities'            => self::activities(
+                    $reader,
+                    $week->activities,
+                    $showtutorfields,
+                    $includereviewnotes,
+                    $reviewnotes
+                ),
                 'hasactivities'         => !empty($week->activities),
             ];
             if ($showtutorfields) {
                 $data['interactiontools'] = $fields['interactiontools'] ?? '';
                 $data['notes'] = $fields['notes'] ?? '';
+            }
+            if ($includereviewnotes) {
+                $notefields = $reader->review_note_fields($week->fields, 'week', $reviewnotes);
+                $data['detailsreviewnote'] = $notefields['details'] ?? null;
+                $data['supportmaterialreviewnote'] = $notefields['supportmaterial'] ?? null;
+                $data['supplementarymaterialreviewnote'] = $notefields['supplementarymaterial'] ?? null;
+                if ($showtutorfields) {
+                    $data['interactiontoolsreviewnote'] = $notefields['interactiontools'] ?? null;
+                    $data['notesreviewnote'] = $notefields['notes'] ?? null;
+                }
             }
             $result[] = (object) $data;
         }
@@ -79,10 +106,23 @@ final class plan_read_export {
      *
      * @param stdClass $syllabus The syllabus record.
      * @param stdClass $narrative Result of plan_reader::plan_narrative().
+     * @param bool $includereviewnotes Whether to attach a coordinator review-note object for
+     *     the instructions field — only the coordinator's own read of Tab 1 sets this.
+     * @param plan_reader|null $reader Required when $includereviewnotes is true.
+     * @param array $finalassessmentfielddata Field id => data_controller for the
+     *     finalassessmentinstructions field, required when $includereviewnotes is true.
+     * @param array $reviewnotes Result of plan_reader::review_notes(), for this same plan.
      * @return stdClass
      */
-    public static function final_assessment(stdClass $syllabus, stdClass $narrative): stdClass {
-        return (object) [
+    public static function final_assessment(
+        stdClass $syllabus,
+        stdClass $narrative,
+        bool $includereviewnotes = false,
+        ?plan_reader $reader = null,
+        array $finalassessmentfielddata = [],
+        array $reviewnotes = []
+    ): stdClass {
+        $data = [
             'title'        => $syllabus->finalassessmenttitle,
             'type'         => $syllabus->finalassessmenttype,
             'startdate'    => $syllabus->finalassessmentstartdate,
@@ -90,6 +130,11 @@ final class plan_read_export {
             'points'       => $syllabus->finalassessmentpoints,
             'instructions' => $narrative->finalassessmentinstructions ?? '',
         ];
+        if ($includereviewnotes && $reader !== null) {
+            $notefields = $reader->review_note_fields($finalassessmentfielddata, 'plan', $reviewnotes);
+            $data['instructionsreviewnote'] = $notefields['finalassessmentinstructions'] ?? null;
+        }
+        return (object) $data;
     }
 
     /**
@@ -98,9 +143,18 @@ final class plan_read_export {
      * @param plan_reader $reader Used to flatten each activity's raw Custom Field data.
      * @param array $activities syllabus_activities rows, each carrying ->fields (raw data_controllers).
      * @param bool $showtutorfields Whether to include the tutor-exclusive fields.
+     * @param bool $includereviewnotes Whether to attach a coordinator review-note object next
+     *     to each narrative field — see weeks() for the full rationale.
+     * @param array $reviewnotes Result of plan_reader::review_notes(), for this same plan.
      * @return stdClass[]
      */
-    private static function activities(plan_reader $reader, array $activities, bool $showtutorfields): array {
+    private static function activities(
+        plan_reader $reader,
+        array $activities,
+        bool $showtutorfields,
+        bool $includereviewnotes,
+        array $reviewnotes
+    ): array {
         $result = [];
         foreach ($activities as $activity) {
             $fields = $reader->flatten_fields($activity->fields);
@@ -118,6 +172,14 @@ final class plan_read_export {
             if ($showtutorfields) {
                 $data['gradingcriteria'] = $fields['gradingcriteria'] ?? '';
                 $data['tutorguidance'] = $fields['tutorguidance'] ?? '';
+            }
+            if ($includereviewnotes) {
+                $notefields = $reader->review_note_fields($activity->fields, 'activity', $reviewnotes);
+                $data['studentinstructionsreviewnote'] = $notefields['studentinstructions'] ?? null;
+                if ($showtutorfields) {
+                    $data['gradingcriteriareviewnote'] = $notefields['gradingcriteria'] ?? null;
+                    $data['tutorguidancereviewnote'] = $notefields['tutorguidance'] ?? null;
+                }
             }
             $result[] = (object) $data;
         }

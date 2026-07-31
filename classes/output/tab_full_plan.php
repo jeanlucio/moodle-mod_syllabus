@@ -253,61 +253,41 @@ final class tab_full_plan implements renderable, templatable {
                 $data->tinyconfig = json_encode(narrative_editor::base_config($context));
             }
         } else {
-            $data->readweeks = plan_read_export::weeks($reader, $weeks, true);
+            $data->readweeks = plan_read_export::weeks($reader, $weeks, true, $canreview, $reviewnotes);
             $data->hasweeks = !empty($data->readweeks);
-            $finalassessment = plan_read_export::final_assessment($this->syllabus, $narrative);
+            $finalassessment = plan_read_export::final_assessment(
+                $this->syllabus,
+                $narrative,
+                $canreview,
+                $reader,
+                $finalassessmentfielddata,
+                $reviewnotes
+            );
             $data->finalassessment = $finalassessment;
             $data->hasfinalassessment = trim((string) $finalassessment->title) !== '';
             $schedule = $reader->schedule($weeks);
             $data->schedule = $schedule;
             $data->hasschedule = !empty($schedule);
-        }
 
-        if ($canreview) {
-            $data->reviewnotesplanfields = $reader->export_editable_fields($planfielddata, 'plan', $reviewnotes);
-            $reviewnotesfinalassessmentfield = $reader->export_editable_fields(
-                $finalassessmentfielddata,
-                'plan',
-                $reviewnotes
-            );
-            $data->reviewnotesfinalassessmentfield = $reviewnotesfinalassessmentfield[0] ?? null;
-            $data->reviewnotesweeks = $this->export_review_note_weeks($reader, $weeks, $reviewnotes);
-            $data->hasreviewnotesweeks = !empty($data->reviewnotesweeks);
+            // The coordinator's review notes are rendered inline, directly under each
+            // plan-level narrative field's own read-only block — never as a separate panel:
+            // a professor who also holds mod/syllabus:review (e.g. testing with an admin
+            // account) already sees the badge inline via narrative_field.mustache in the
+            // caneditcontent branch above, so a second, editable copy at the end would be
+            // both redundant and confusing. Scoping this purely to the read branch is what
+            // guarantees that.
+            if ($canreview) {
+                $planreviewnotefields = $reader->review_note_fields($planfielddata, 'plan', $reviewnotes);
+                $data->coursedescriptionreviewnote = $planreviewnotefields['coursedescription'] ?? null;
+                $data->objectivesreviewnote = $planreviewnotefields['objectives'] ?? null;
+                $data->contentsreviewnote = $planreviewnotefields['contents'] ?? null;
+                $data->methodologyreviewnote = $planreviewnotefields['methodology'] ?? null;
+                $data->presentationscriptreviewnote = $planreviewnotefields['presentationscript'] ?? null;
+                $data->generalreferencesreviewnote = $planreviewnotefields['generalreferences'] ?? null;
+            }
         }
 
         return $data;
-    }
-
-    /**
-     * Reshapes plan_reader::weeks() into the minimal shape the coordinator's review-notes
-     * panel needs: just each week/activity's title plus its narrative fields (already carrying
-     * fieldid/instanceid/area/name/coordinatornote via export_editable_fields()) — none of the
-     * editable-form scaffolding (date pickers, type/category selects) export_editable_weeks()
-     * builds for the author's own edit view, which the panel has no use for.
-     *
-     * @param plan_reader $reader Used to build each field's exported representation.
-     * @param array $weeks Result of plan_reader::weeks().
-     * @param array $reviewnotes Result of plan_reader::review_notes().
-     * @return array
-     */
-    private function export_review_note_weeks(plan_reader $reader, array $weeks, array $reviewnotes): array {
-        $result = [];
-        foreach ($weeks as $week) {
-            $weekactivities = [];
-            foreach ($week->activities as $activity) {
-                $weekactivities[] = (object) [
-                    'title'  => $activity->title,
-                    'fields' => $reader->export_editable_fields($activity->fields, 'activity', $reviewnotes),
-                ];
-            }
-            $result[] = (object) [
-                'title'         => $week->title,
-                'fields'        => $reader->export_editable_fields($week->fields, 'week', $reviewnotes),
-                'activities'    => $weekactivities,
-                'hasactivities' => !empty($weekactivities),
-            ];
-        }
-        return $result;
     }
 
     /**

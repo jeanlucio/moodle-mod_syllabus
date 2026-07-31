@@ -23,6 +23,13 @@
     excludes those two fields and the activity-level grading/tutor fields from the student
     tab, nothing else at week level.
 
+    The coordinator's review notes are rendered inline right below each narrative field, via
+    the ...reviewnote objects (only ever populated by plan_read_export::weeks() for Tab 1's
+    read branch, canreview true) — resolved through Mustache's normal context-stack fallback
+    to the top-level canreview flag, same pattern as structuralhelp in week_row.mustache.
+    Absent (null/missing) for the student/tutor tabs, so nothing renders there regardless of
+    the viewer's own capabilities.
+
     Example context (json):
     {
         "id": 2,
@@ -41,7 +48,12 @@
         "interactiontools": "<p>Forum in the virtual coffee room.</p>",
         "notes": "<p>No additional notes.</p>",
         "hasactivities": true,
-        "activities": []
+        "activities": [],
+        "detailsreviewnote": null,
+        "supportmaterialreviewnote": null,
+        "supplementarymaterialreviewnote": null,
+        "interactiontoolsreviewnote": null,
+        "notesreviewnote": null
     }
 }}
 <div class="syllabus-week-read border rounded p-3 mb-3">
@@ -57,6 +69,7 @@
     </h4>
 
     {{#details}}<div class="syllabus-details mb-2">{{{details}}}</div>{{/details}}
+    {{#canreview}}{{#detailsreviewnote}}{{> mod_syllabus/review_note_row }}{{/detailsreviewnote}}{{/canreview}}
 
     {{#hassync}}
     <div class="alert alert-info syllabus-sync-meeting">
@@ -73,12 +86,14 @@
         {{{supportmaterial}}}
     </div>
     {{/supportmaterial}}
+    {{#canreview}}{{#supportmaterialreviewnote}}{{> mod_syllabus/review_note_row }}{{/supportmaterialreviewnote}}{{/canreview}}
     {{#supplementarymaterial}}
     <div class="syllabus-supplementarymaterial mb-2">
         <strong>{{#str}} supplementarymaterial, mod_syllabus {{/str}}:</strong>
         {{{supplementarymaterial}}}
     </div>
     {{/supplementarymaterial}}
+    {{#canreview}}{{#supplementarymaterialreviewnote}}{{> mod_syllabus/review_note_row }}{{/supplementarymaterialreviewnote}}{{/canreview}}
 
     {{#showtutorfields}}
         {{#interactiontools}}
@@ -87,12 +102,14 @@
             <div>{{{interactiontools}}}</div>
         </div>
         {{/interactiontools}}
+        {{#canreview}}{{#interactiontoolsreviewnote}}{{> mod_syllabus/review_note_row }}{{/interactiontoolsreviewnote}}{{/canreview}}
         {{#notes}}
         <div class="alert alert-secondary">
             <strong>{{#str}} notes, mod_syllabus {{/str}}:</strong>
             <div>{{{notes}}}</div>
         </div>
         {{/notes}}
+        {{#canreview}}{{#notesreviewnote}}{{> mod_syllabus/review_note_row }}{{/notesreviewnote}}{{/canreview}}
     {{/showtutorfields}}
 
     {{#hasactivities}}

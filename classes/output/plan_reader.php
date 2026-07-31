@@ -212,6 +212,37 @@ final class plan_reader {
     }
 
     /**
+     * Per-field review-note metadata, keyed by shortname — the lightweight counterpart to
+     * export_editable_fields() used by the read-only inline rendering (each note box sits
+     * directly under its field in plan_week_read.mustache/plan_activity_read.mustache/
+     * tab_full_plan.mustache's read branch). Skips instance_form_before_set_data(), which
+     * export_editable_fields() needs to pre-fill an editable draft area for the field itself —
+     * pointless here, since this box only ever edits the coordinator's note, never the field.
+     *
+     * @param \core_customfield\data_controller[] $datacontrollers Field id => data_controller.
+     * @param string $area Which area these fields belong to (plan/week/activity).
+     * @param array $reviewnotes Result of review_notes(), for this same plan.
+     * @return array shortname => stdClass{fieldid, instanceid, area, coordinatornote}
+     */
+    public function review_note_fields(array $datacontrollers, string $area, array $reviewnotes): array {
+        $result = [];
+        foreach ($datacontrollers as $fieldid => $datacontroller) {
+            if ($datacontroller->get_field()->get('type') !== 'textarea') {
+                continue;
+            }
+            $shortname = $datacontroller->get_field()->get('shortname');
+            $instanceid = $datacontroller->get('instanceid');
+            $result[$shortname] = (object) [
+                'fieldid'         => $fieldid,
+                'instanceid'      => $instanceid,
+                'area'            => $area,
+                'coordinatornote' => $reviewnotes["{$area}:{$instanceid}:{$fieldid}"] ?? '',
+            ];
+        }
+        return $result;
+    }
+
+    /**
      * Fetches the formatted description of every field in the 'help' Custom Field area,
      * keyed by shortname — the model guidance for structural fields that have no narrative
      * Custom Field of their own (Characterisation, a week's workload/period, Synchronous

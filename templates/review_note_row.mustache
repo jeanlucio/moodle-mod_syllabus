@@ -17,22 +17,25 @@
 {{!
     @template mod_syllabus/review_note_row
 
-    One coordinator review-note row for a single narrative field. Shared partial reused for
-    plan-level, week-level and activity-level fields alike by review_notes_panel, so the note
-    markup/behaviour never drifts between the three.
+    One coordinator review-note box for a single narrative field, rendered inline directly
+    under that field's own read-only content (plan_week_read.mustache, plan_activity_read.mustache,
+    plan_final_assessment.mustache, tab_full_plan.mustache's read branch) — never a standalone
+    panel. The label is a fixed "Coordinator note" string rather than the field's own name:
+    the field's heading already sits immediately above this box, so repeating its name here
+    would be redundant.
 
     Example context (json):
     {
         "fieldid": 5,
         "instanceid": 10,
         "area": "week",
-        "name": "Details",
         "coordinatornote": "Please expand this section with more examples."
     }
 }}
-<div class="syllabus-review-note-row mb-2" data-area="{{area}}" data-instanceid="{{instanceid}}" data-fieldid="{{fieldid}}">
+<div class="alert alert-warning syllabus-review-note-row mb-2"
+    data-area="{{area}}" data-instanceid="{{instanceid}}" data-fieldid="{{fieldid}}">
     <label class="form-label small mb-1" for="syllabus-review-note-{{area}}-{{instanceid}}-{{fieldid}}">
-        {{name}}
+        {{#str}} reviewnote, mod_syllabus {{/str}}
     </label>
     <textarea id="syllabus-review-note-{{area}}-{{instanceid}}-{{fieldid}}"
         class="form-control form-control-sm syllabus-review-note-input" rows="2"

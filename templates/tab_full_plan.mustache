@@ -21,8 +21,12 @@
     management UI — with narrative Custom Field autosave, a section-navigation rail and a
     totals bar (mod_syllabus/plan_navigator) — while coordination/admin without that
     capability get the full read-only content (via the shared plan_week_read/
-    plan_activity_read/plan_schedule partials, same as the tutor tab's field set) plus the
-    review panel and workflow actions.
+    plan_activity_read/plan_schedule partials, same as the tutor tab's field set) plus
+    workflow actions. When canreview, each narrative field's read-only block also gets an
+    inline coordinator review-note box directly under it (mod_syllabus/review_note_row) —
+    never a separate panel, and never shown at all in the caneditcontent branch (a professor
+    who also holds mod/syllabus:review only sees the read-only badge inline via
+    narrative_field.mustache, not this editable box).
 
     Example context (json):
     {
@@ -120,9 +124,12 @@
         "canreviewnow": false,
         "canunpublish": false,
         "changesrequestedreason": null,
-        "reviewnotesplanfields": [],
-        "reviewnotesfinalassessmentfield": null,
-        "reviewnotesweeks": []
+        "coursedescriptionreviewnote": null,
+        "objectivesreviewnote": null,
+        "contentsreviewnote": null,
+        "methodologyreviewnote": null,
+        "presentationscriptreviewnote": null,
+        "generalreferencesreviewnote": null
     }
 }}
 <div class="path-mod-syllabus syllabus-tab-full" data-cmid="{{cmid}}">
@@ -347,21 +354,26 @@
         </div>
 
         <h3>{{#str}} coursedescription, mod_syllabus {{/str}}</h3>
-        <div class="syllabus-coursedescription mb-3">{{{coursedescription}}}</div>
+        <div class="syllabus-coursedescription mb-2">{{{coursedescription}}}</div>
+        {{#canreview}}{{#coursedescriptionreviewnote}}{{> mod_syllabus/review_note_row }}{{/coursedescriptionreviewnote}}{{/canreview}}
 
         <h3>{{#str}} objectives, mod_syllabus {{/str}}</h3>
-        <div class="syllabus-objectives mb-3">{{{objectives}}}</div>
+        <div class="syllabus-objectives mb-2">{{{objectives}}}</div>
+        {{#canreview}}{{#objectivesreviewnote}}{{> mod_syllabus/review_note_row }}{{/objectivesreviewnote}}{{/canreview}}
 
         <h3>{{#str}} contents, mod_syllabus {{/str}}</h3>
-        <div class="syllabus-contents mb-3">{{{contents}}}</div>
+        <div class="syllabus-contents mb-2">{{{contents}}}</div>
+        {{#canreview}}{{#contentsreviewnote}}{{> mod_syllabus/review_note_row }}{{/contentsreviewnote}}{{/canreview}}
 
         <h3>{{#str}} methodology, mod_syllabus {{/str}}</h3>
-        <div class="syllabus-methodology mb-3">{{{methodology}}}</div>
+        <div class="syllabus-methodology mb-2">{{{methodology}}}</div>
+        {{#canreview}}{{#methodologyreviewnote}}{{> mod_syllabus/review_note_row }}{{/methodologyreviewnote}}{{/canreview}}
 
         {{#presentationscript}}
         <h3>{{#str}} presentationscript, mod_syllabus {{/str}}</h3>
-        <div class="syllabus-presentationscript mb-3">{{{presentationscript}}}</div>
+        <div class="syllabus-presentationscript mb-2">{{{presentationscript}}}</div>
         {{/presentationscript}}
+        {{#canreview}}{{#presentationscriptreviewnote}}{{> mod_syllabus/review_note_row }}{{/presentationscriptreviewnote}}{{/canreview}}
 
         <h3>{{#str}} weeks, mod_syllabus {{/str}}</h3>
         {{#hasweeks}}
@@ -377,8 +389,9 @@
 
         {{#generalreferences}}
         <h3>{{#str}} generalreferences, mod_syllabus {{/str}}</h3>
-        <div class="syllabus-generalreferences mb-3">{{{generalreferences}}}</div>
+        <div class="syllabus-generalreferences mb-2">{{{generalreferences}}}</div>
         {{/generalreferences}}
+        {{#canreview}}{{#generalreferencesreviewnote}}{{> mod_syllabus/review_note_row }}{{/generalreferencesreviewnote}}{{/canreview}}
 
         {{> mod_syllabus/plan_schedule }}
     {{/caneditcontent}}
@@ -390,10 +403,6 @@
     {{/changesrequestedreason}}
 
     <div class="syllabus-workflow-actions mt-4">
-        {{#canreview}}
-            {{> mod_syllabus/review_notes_panel }}
-        {{/canreview}}
-
         {{#cansubmit}}
         <button type="button" class="btn btn-primary syllabus-submit-plan">
             {{#str}} submitforreview, mod_syllabus {{/str}}

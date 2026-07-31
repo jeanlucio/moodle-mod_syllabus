@@ -23,6 +23,11 @@
     branch) — never rendered in the edit-mode branch, which has its own structured form for
     the same fields plus the narrative Custom Field editor.
 
+    The coordinator's review note for the instructions field is rendered inline right below
+    it, via finalassessment.instructionsreviewnote — see plan_week_read.mustache for the full
+    rationale (same context-stack-fallback pattern for canreview, same null/missing-by-default
+    safety for the student/tutor tabs).
+
     Example context (json):
     {
         "hasfinalassessment": true,
@@ -32,7 +37,8 @@
             "startdate": 1749000000,
             "enddate": 1749600000,
             "points": 100,
-            "instructions": "<p>Exam covering the whole semester's content.</p>"
+            "instructions": "<p>Exam covering the whole semester's content.</p>",
+            "instructionsreviewnote": null
         }
     }
 }}
@@ -51,5 +57,8 @@
     {{#finalassessment.instructions}}
     <div class="syllabus-studentinstructions">{{{finalassessment.instructions}}}</div>
     {{/finalassessment.instructions}}
+    {{#finalassessment}}
+        {{#canreview}}{{#instructionsreviewnote}}{{> mod_syllabus/review_note_row }}{{/instructionsreviewnote}}{{/canreview}}
+    {{/finalassessment}}
 </div>
 {{/hasfinalassessment}}

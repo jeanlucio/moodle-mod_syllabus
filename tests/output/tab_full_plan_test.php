@@ -333,6 +333,68 @@ final class tab_full_plan_test extends advanced_testcase {
     }
 
     /**
+     * A reviewer's read branch (caneditcontent false, canreview true) attaches an inline
+     * coordinator review-note object next to every narrative field — plan-level, week, activity
+     * and Final assessment alike — rather than the old consolidated end-of-page panel. The
+     * author's own edit-mode export (seed_editable_plan() logs in as the teacher) never carries
+     * these properties at all, confirming the inline boxes are exclusive to the reviewer's
+     * read-only view.
+     *
+     * @return void
+     */
+    public function test_reviewer_read_branch_attaches_inline_review_notes(): void {
+        global $DB;
+
+        [$syllabus, $cm, $course, $teacher] = $this->seed_editable_plan();
+        $reviewer = $this->getDataGenerator()->create_user();
+        $this->getDataGenerator()->enrol_user($reviewer->id, $course->id, 'manager');
+
+        $planfieldid = $DB->get_field_sql(
+            "SELECT f.id
+               FROM {customfield_field} f
+               JOIN {customfield_category} c ON c.id = f.categoryid
+              WHERE c.component = :component AND c.area = :area AND f.shortname = :shortname",
+            ['component' => 'mod_syllabus', 'area' => 'plan', 'shortname' => 'coursedescription'],
+            MUST_EXIST
+        );
+        $DB->insert_record('syllabus_review_notes', [
+            'syllabusid'   => $syllabus->id,
+            'area'         => 'plan',
+            'instanceid'   => $syllabus->id,
+            'fieldid'      => $planfieldid,
+            'note'         => 'Please expand the course description.',
+            'reviewerid'   => $reviewer->id,
+            'timecreated'  => time(),
+            'timemodified' => time(),
+        ]);
+
+        $this->setUser($reviewer);
+        $page = new tab_full_plan($syllabus, $cm, $course);
+        $data = $page->export_for_template($GLOBALS['PAGE']->get_renderer('mod_syllabus'));
+
+        $this->assertFalse($data->caneditcontent);
+        $this->assertTrue($data->canreview);
+        $this->assertFalse(property_exists($data, 'reviewnotesplanfields'));
+        $this->assertFalse(property_exists($data, 'reviewnotesweeks'));
+
+        $this->assertNotNull($data->coursedescriptionreviewnote);
+        $this->assertSame('Please expand the course description.', $data->coursedescriptionreviewnote->coordinatornote);
+        $this->assertNotNull($data->objectivesreviewnote);
+        $this->assertSame('', $data->objectivesreviewnote->coordinatornote);
+
+        $week = $data->readweeks[0];
+        $this->assertNotNull($week->detailsreviewnote);
+        $this->assertSame('week', $week->detailsreviewnote->area);
+        $activity = $week->activities[0];
+        $this->assertNotNull($activity->studentinstructionsreviewnote);
+        $this->assertSame('activity', $activity->studentinstructionsreviewnote->area);
+
+        $this->setUser($teacher);
+        $authordata = $page->export_for_template($GLOBALS['PAGE']->get_renderer('mod_syllabus'));
+        $this->assertFalse(property_exists($authordata, 'coursedescriptionreviewnote'));
+    }
+
+    /**
      * Re-fetches a syllabus record after a workflow transition changed its status.
      *
      * @param \stdClass $syllabus

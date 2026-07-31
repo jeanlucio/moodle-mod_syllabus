@@ -22,6 +22,11 @@
     Never receives those two properties at all when the caller is the student tab, so there
     is nothing to accidentally leak here regardless of this template's own logic.
 
+    The coordinator's review notes are rendered inline right below each narrative field, via
+    the ...reviewnote objects — see plan_week_read.mustache for the full rationale (same
+    context-stack-fallback pattern for canreview, same null/missing-by-default safety for the
+    student/tutor tabs).
+
     Example context (json):
     {
         "title": "Graded Forum 1",
@@ -33,7 +38,10 @@
         "studentinstructions": "<p>Read the chapter and reply in the forum.</p>",
         "showtutorfields": true,
         "gradingcriteria": "<p>4 pts clarity, 4 pts argumentation...</p>",
-        "tutorguidance": "<p>Review posts and assign points using the rubric.</p>"
+        "tutorguidance": "<p>Review posts and assign points using the rubric.</p>",
+        "studentinstructionsreviewnote": null,
+        "gradingcriteriareviewnote": null,
+        "tutorguidancereviewnote": null
     }
 }}
 <div class="syllabus-activity-read border rounded p-2 mb-2">
@@ -49,6 +57,7 @@
     {{#studentinstructions}}
     <div class="syllabus-studentinstructions">{{{studentinstructions}}}</div>
     {{/studentinstructions}}
+    {{#canreview}}{{#studentinstructionsreviewnote}}{{> mod_syllabus/review_note_row }}{{/studentinstructionsreviewnote}}{{/canreview}}
     {{#showtutorfields}}
         {{#gradingcriteria}}
         <div class="alert alert-secondary mt-2 mb-0">
@@ -56,11 +65,13 @@
             <div>{{{gradingcriteria}}}</div>
         </div>
         {{/gradingcriteria}}
+        {{#canreview}}{{#gradingcriteriareviewnote}}{{> mod_syllabus/review_note_row }}{{/gradingcriteriareviewnote}}{{/canreview}}
         {{#tutorguidance}}
         <div class="alert alert-secondary mt-2 mb-0">
             <strong>{{#str}} tutorguidance, mod_syllabus {{/str}}:</strong>
             <div>{{{tutorguidance}}}</div>
         </div>
         {{/tutorguidance}}
+        {{#canreview}}{{#tutorguidancereviewnote}}{{> mod_syllabus/review_note_row }}{{/tutorguidancereviewnote}}{{/canreview}}
     {{/showtutorfields}}
 </div>

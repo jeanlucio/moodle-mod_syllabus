@@ -203,6 +203,47 @@ final class plan_reader_test extends advanced_testcase {
     }
 
     /**
+     * review_note_fields() indexes by shortname (unlike export_editable_fields(), indexed by
+     * position) — every textarea field gets an entry, with an empty coordinatornote when no
+     * note was ever left, so a read-only template can always render the box (even a first-ever
+     * note) by simply checking the shortname key exists.
+     *
+     * @return void
+     */
+    public function test_review_note_fields_indexes_by_shortname(): void {
+        global $DB;
+
+        $this->setAdminUser();
+        $course = $this->getDataGenerator()->create_course();
+        $syllabus = $this->getDataGenerator()->create_module('syllabus', ['course' => $course->id]);
+        $fieldid = $this->field_id(plan_handler::create(), 'coursedescription');
+        $DB->insert_record('syllabus_review_notes', [
+            'syllabusid'   => $syllabus->id,
+            'area'         => 'plan',
+            'instanceid'   => $syllabus->id,
+            'fieldid'      => $fieldid,
+            'note'         => 'Please expand this section.',
+            'reviewerid'   => null,
+            'timecreated'  => time(),
+            'timemodified' => time(),
+        ]);
+
+        $reader = new plan_reader($syllabus);
+        $reviewnotes = $reader->review_notes();
+        $datacontrollers = plan_handler::create()->get_instance_data($syllabus->id, true);
+        $notefields = $reader->review_note_fields($datacontrollers, 'plan', $reviewnotes);
+
+        $this->assertArrayHasKey('coursedescription', $notefields);
+        $this->assertEquals($fieldid, $notefields['coursedescription']->fieldid);
+        $this->assertEquals($syllabus->id, $notefields['coursedescription']->instanceid);
+        $this->assertSame('plan', $notefields['coursedescription']->area);
+        $this->assertSame('Please expand this section.', $notefields['coursedescription']->coordinatornote);
+
+        $this->assertArrayHasKey('objectives', $notefields);
+        $this->assertSame('', $notefields['objectives']->coordinatornote);
+    }
+
+    /**
      * Finds a seeded field's id by its shortname within a handler.
      *
      * @param \core_customfield\handler $handler Handler to search.

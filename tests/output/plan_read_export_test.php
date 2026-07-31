@@ -130,4 +130,101 @@ final class plan_read_export_test extends advanced_testcase {
 
         $this->assertSame('', trim((string) $exported->title));
     }
+
+    /**
+     * final_assessment() only attaches instructionsreviewnote when includereviewnotes is true
+     * — the tutor/student tabs never pass it, so their exported object never carries it at all
+     * (rather than carrying a permanently-null property that would invite a template to
+     * accidentally render an editable box for a role that must never see one).
+     *
+     * @return void
+     */
+    public function test_final_assessment_review_note_only_attached_when_requested(): void {
+        global $DB;
+
+        $course = $this->getDataGenerator()->create_course();
+        $syllabus = $this->getDataGenerator()->create_module('syllabus', [
+            'course'               => $course->id,
+            'finalassessmenttitle' => 'Final exam',
+        ]);
+        $syllabus = $DB->get_record('syllabus', ['id' => $syllabus->id], '*', MUST_EXIST);
+
+        $reader = new plan_reader($syllabus);
+        $narrative = $reader->plan_narrative();
+
+        $planfielddata = plan_handler::create()->get_instance_data($syllabus->id, true);
+        $finalassessmentfielddata = [];
+        foreach ($planfielddata as $fieldid => $datacontroller) {
+            if ($datacontroller->get_field()->get('shortname') === 'finalassessmentinstructions') {
+                $finalassessmentfielddata = [$fieldid => $datacontroller];
+                break;
+            }
+        }
+        $reviewnotes = [
+            "plan:{$syllabus->id}:" . array_key_first($finalassessmentfielddata) => 'Please clarify the rubric.',
+        ];
+
+        $withoutnotes = plan_read_export::final_assessment($syllabus, $narrative);
+        $this->assertFalse(property_exists($withoutnotes, 'instructionsreviewnote'));
+
+        $withnotes = plan_read_export::final_assessment(
+            $syllabus,
+            $narrative,
+            true,
+            $reader,
+            $finalassessmentfielddata,
+            $reviewnotes
+        );
+        $this->assertNotNull($withnotes->instructionsreviewnote);
+        $this->assertSame('Please clarify the rubric.', $withnotes->instructionsreviewnote->coordinatornote);
+    }
+
+    /**
+     * weeks() only attaches each field's ...reviewnote object when includereviewnotes is true,
+     * propagating the same flag down into activities() for its own narrative fields.
+     *
+     * @return void
+     */
+    public function test_weeks_review_note_only_attached_when_requested(): void {
+        global $DB;
+
+        $course = $this->getDataGenerator()->create_course();
+        $syllabus = $this->getDataGenerator()->create_module('syllabus', ['course' => $course->id]);
+        $now = time();
+        $DB->insert_record('syllabus_weeks', [
+            'syllabusid'   => $syllabus->id,
+            'title'        => 'Week 1',
+            'duration'     => 8,
+            'startdate'    => $now,
+            'enddate'      => $now + WEEKSECS,
+            'sortorder'    => 0,
+            'timecreated'  => $now,
+            'timemodified' => $now,
+        ]);
+        $weekid = $DB->get_field('syllabus_weeks', 'id', ['syllabusid' => $syllabus->id], MUST_EXIST);
+        $DB->insert_record('syllabus_activities', [
+            'weekid'       => $weekid,
+            'title'        => 'Kickoff forum',
+            'type'         => 'forum',
+            'category'     => 'synchronous',
+            'startdate'    => $now,
+            'enddate'      => $now + WEEKSECS,
+            'sortorder'    => 0,
+            'timecreated'  => $now,
+            'timemodified' => $now,
+        ]);
+
+        $reader = new plan_reader($syllabus);
+        $weeks = $reader->weeks();
+
+        $withoutnotes = plan_read_export::weeks($reader, $weeks, true);
+        $this->assertFalse(property_exists($withoutnotes[0], 'detailsreviewnote'));
+        $this->assertFalse(property_exists($withoutnotes[0]->activities[0], 'studentinstructionsreviewnote'));
+
+        $withnotes = plan_read_export::weeks($reader, $weeks, true, true, []);
+        $this->assertNotNull($withnotes[0]->detailsreviewnote);
+        $this->assertSame('', $withnotes[0]->detailsreviewnote->coordinatornote);
+        $this->assertNotNull($withnotes[0]->activities[0]->studentinstructionsreviewnote);
+        $this->assertSame('', $withnotes[0]->activities[0]->studentinstructionsreviewnote->coordinatornote);
+    }
 }

@@ -1,0 +1,81 @@
+{{!
+    This file is part of Moodle - https://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+}}
+{{!
+    @template mod_syllabus/review_notes_panel
+
+    Coordinator-only panel listing every narrative field of the plan (plan-level, Final
+    assessment, then per week and per activity within each week), each with a note the
+    coordinator can add/edit/clear — autosaved via mod_syllabus/review_notes
+    (mod_syllabus_save_review_note). Visible to anyone with mod/syllabus:review, regardless of
+    the plan's current status, not only while a decision is pending.
+
+    Example context (json):
+    {
+        "reviewnotesplanfields": [
+            {"fieldid": 3, "instanceid": 2, "area": "plan", "name": "Course description", "coordinatornote": ""}
+        ],
+        "reviewnotesfinalassessmentfield": null,
+        "reviewnotesweeks": [
+            {
+                "title": "Week 1",
+                "fields": [
+                    {"fieldid": 5, "instanceid": 10, "area": "week", "name": "Details", "coordinatornote": "Please expand this."}
+                ],
+                "hasactivities": true,
+                "activities": [
+                    {
+                        "title": "Activity 1",
+                        "fields": [
+                            {"fieldid": 8, "instanceid": 15, "area": "activity", "name": "Student instructions", "coordinatornote": ""}
+                        ]
+                    }
+                ]
+            }
+        ]
+    }
+}}
+<div class="syllabus-review-notes-panel border rounded p-3 mb-3">
+    <h4>{{#str}} reviewnotesheading, mod_syllabus {{/str}}</h4>
+    <p class="form-text text-muted">{{#str}} reviewnotehelp, mod_syllabus {{/str}}</p>
+
+    {{#reviewnotesplanfields}}
+        {{> mod_syllabus/review_note_row }}
+    {{/reviewnotesplanfields}}
+
+    {{#reviewnotesfinalassessmentfield}}
+        {{> mod_syllabus/review_note_row }}
+    {{/reviewnotesfinalassessmentfield}}
+
+    {{#reviewnotesweeks}}
+    <div class="syllabus-review-notes-week mt-2">
+        <h5>{{title}}</h5>
+        {{#fields}}
+            {{> mod_syllabus/review_note_row }}
+        {{/fields}}
+        {{#hasactivities}}
+        {{#activities}}
+        <div class="syllabus-review-notes-activity ms-3">
+            <h6>{{title}}</h6>
+            {{#fields}}
+                {{> mod_syllabus/review_note_row }}
+            {{/fields}}
+        </div>
+        {{/activities}}
+        {{/hasactivities}}
+    </div>
+    {{/reviewnotesweeks}}
+</div>

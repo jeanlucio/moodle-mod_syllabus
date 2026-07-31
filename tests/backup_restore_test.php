@@ -145,6 +145,77 @@ final class backup_restore_test extends \advanced_testcase {
     }
 
     /**
+     * Finds a seeded field's id by its shortname within a handler.
+     *
+     * @param \core_customfield\handler $handler Handler to search.
+     * @param string $shortname Field shortname.
+     * @return int
+     */
+    private function field_id(\core_customfield\handler $handler, string $shortname): int {
+        foreach ($handler->get_fields() as $field) {
+            if ($field->get('shortname') === $shortname) {
+                return (int) $field->get('id');
+            }
+        }
+        $this->fail("Seeded field '{$shortname}' not found.");
+    }
+
+    /**
+     * Inserts a coordinator review note directly on a specific field.
+     *
+     * @param int $syllabusid
+     * @param string $area
+     * @param int $instanceid
+     * @param \core_customfield\handler $handler
+     * @param string $shortname
+     * @param string $note
+     * @param int $reviewerid
+     * @return void
+     */
+    private function add_review_note(
+        int $syllabusid,
+        string $area,
+        int $instanceid,
+        \core_customfield\handler $handler,
+        string $shortname,
+        string $note,
+        int $reviewerid
+    ): void {
+        global $DB;
+
+        $DB->insert_record('syllabus_review_notes', [
+            'syllabusid'   => $syllabusid,
+            'area'         => $area,
+            'instanceid'   => $instanceid,
+            'fieldid'      => $this->field_id($handler, $shortname),
+            'note'         => $note,
+            'reviewerid'   => $reviewerid,
+            'timecreated'  => time(),
+            'timemodified' => time(),
+        ]);
+    }
+
+    /**
+     * Asserts a review note with the expected text exists for the given plan/area/instance.
+     *
+     * @param int $syllabusid
+     * @param string $area
+     * @param int $instanceid
+     * @param string $expectednote
+     * @return void
+     */
+    private function assert_review_note(int $syllabusid, string $area, int $instanceid, string $expectednote): void {
+        global $DB;
+
+        $note = $DB->get_record('syllabus_review_notes', [
+            'syllabusid' => $syllabusid,
+            'area'       => $area,
+            'instanceid' => $instanceid,
+        ], '*', MUST_EXIST);
+        $this->assertSame($expectednote, $note->note);
+    }
+
+    /**
      * Reads a Custom Field's exported (formatted) value for one instance.
      *
      * @param \core_customfield\handler $handler
@@ -257,6 +328,69 @@ final class backup_restore_test extends \advanced_testcase {
     }
 
     /**
+     * A coordinator review note on a plan-level, week-level and activity-level field each
+     * survives duplicating the activity within the same course, still attached to the exact
+     * field it was left on — matched by shortname, since fieldids are not stable across
+     * duplication either (see resolve_fieldid_by_shortname()).
+     *
+     * @covers \restore_syllabus_activity_structure_step
+     * @covers \mod_syllabus\customfield\syllabus_handler_base
+     * @return void
+     */
+    public function test_duplicate_activity_preserves_review_notes(): void {
+        global $CFG, $DB;
+        require_once($CFG->dirroot . '/course/lib.php');
+
+        $this->setAdminUser();
+        $course = $this->getDataGenerator()->create_course();
+        [$syllabus, $weekid, $activityid] = $this->seed_plan($course->id);
+        $reviewer = $this->getDataGenerator()->create_user();
+        $this->getDataGenerator()->enrol_user($reviewer->id, $course->id, 'manager');
+
+        $this->add_review_note(
+            $syllabus->id,
+            'plan',
+            $syllabus->id,
+            plan_handler::create(),
+            'coursedescription',
+            'Plan note.',
+            (int) $reviewer->id
+        );
+        $this->add_review_note(
+            $syllabus->id,
+            'week',
+            $weekid,
+            week_handler::create(),
+            'details',
+            'Week note.',
+            (int) $reviewer->id
+        );
+        $this->add_review_note(
+            $syllabus->id,
+            'activity',
+            $activityid,
+            activity_handler::create(),
+            'studentinstructions',
+            'Activity note.',
+            (int) $reviewer->id
+        );
+
+        $cm = get_coursemodule_from_instance('syllabus', $syllabus->id, $course->id, false, MUST_EXIST);
+        if (method_exists(cmactions::class, 'duplicate')) {
+            $newcm = (new cmactions($course))->duplicate($cm->id);
+        } else {
+            $newcm = duplicate_module($course, $cm);
+        }
+
+        $newweek = $DB->get_record('syllabus_weeks', ['syllabusid' => $newcm->instance], '*', MUST_EXIST);
+        $newactivity = $DB->get_record('syllabus_activities', ['weekid' => $newweek->id], '*', MUST_EXIST);
+
+        $this->assert_review_note($newcm->instance, 'plan', $newcm->instance, 'Plan note.');
+        $this->assert_review_note($newcm->instance, 'week', $newweek->id, 'Week note.');
+        $this->assert_review_note($newcm->instance, 'activity', $newactivity->id, 'Activity note.');
+    }
+
+    /**
      * A full course backup restored into a brand new course preserves the same structure and
      * content as duplication, exercising the real backup_controller/restore_controller flow
      * end to end rather than just the same-course duplicate_module() shortcut.
@@ -357,6 +491,74 @@ final class backup_restore_test extends \advanced_testcase {
         // than creating a new one, but either way the reference must resolve to the right
         // person, not be left pointing at whatever the old numeric id happens to mean here.
         $this->assertSame($submitter->username, $newsubmitter->username);
+        $this->assertSame($reviewer->username, $newreviewer->username);
+    }
+
+    /**
+     * A full course backup/restore preserves review notes on all three field levels, still
+     * attached to the exact field they were left on, and remaps reviewerid to the restored
+     * copy of the same user — mirroring test_full_course_backup_restore_remaps_workflow_users
+     * for submittedby/reviewedby/unpublishedby.
+     *
+     * @covers \backup_syllabus_activity_structure_step
+     * @covers \restore_syllabus_activity_structure_step
+     * @covers \mod_syllabus\customfield\syllabus_handler_base
+     * @return void
+     */
+    public function test_full_course_backup_restore_preserves_review_notes(): void {
+        global $DB;
+
+        $this->setAdminUser();
+        $course = $this->getDataGenerator()->create_course();
+        [$syllabus, $weekid, $activityid] = $this->seed_plan($course->id);
+        $reviewer = $this->getDataGenerator()->create_user();
+        $this->getDataGenerator()->enrol_user($reviewer->id, $course->id, 'manager');
+
+        $this->add_review_note(
+            $syllabus->id,
+            'plan',
+            $syllabus->id,
+            plan_handler::create(),
+            'coursedescription',
+            'Plan note.',
+            (int) $reviewer->id
+        );
+        $this->add_review_note(
+            $syllabus->id,
+            'week',
+            $weekid,
+            week_handler::create(),
+            'details',
+            'Week note.',
+            (int) $reviewer->id
+        );
+        $this->add_review_note(
+            $syllabus->id,
+            'activity',
+            $activityid,
+            activity_handler::create(),
+            'studentinstructions',
+            'Activity note.',
+            (int) $reviewer->id
+        );
+
+        $newcourse = $this->backup_and_restore_into_new_course($course);
+
+        $newsyllabus = $DB->get_record('syllabus', ['course' => $newcourse->id], '*', MUST_EXIST);
+        $newweek = $DB->get_record('syllabus_weeks', ['syllabusid' => $newsyllabus->id], '*', MUST_EXIST);
+        $newactivity = $DB->get_record('syllabus_activities', ['weekid' => $newweek->id], '*', MUST_EXIST);
+
+        $this->assert_review_note($newsyllabus->id, 'plan', $newsyllabus->id, 'Plan note.');
+        $this->assert_review_note($newsyllabus->id, 'week', $newweek->id, 'Week note.');
+        $this->assert_review_note($newsyllabus->id, 'activity', $newactivity->id, 'Activity note.');
+
+        $planrecord = $DB->get_record(
+            'syllabus_review_notes',
+            ['syllabusid' => $newsyllabus->id, 'area' => 'plan'],
+            '*',
+            MUST_EXIST
+        );
+        $newreviewer = $DB->get_record('user', ['id' => $planrecord->reviewerid], '*', MUST_EXIST);
         $this->assertSame($reviewer->username, $newreviewer->username);
     }
 }

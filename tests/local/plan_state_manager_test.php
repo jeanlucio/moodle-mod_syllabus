@@ -228,6 +228,62 @@ final class plan_state_manager_test extends advanced_testcase {
     }
 
     /**
+     * Approving a plan clears every open coordinator review note on it — a note has no
+     * author-facing meaning left once the plan it was left on is approved.
+     *
+     * @return void
+     */
+    public function test_approve_clears_review_notes(): void {
+        global $DB;
+
+        $author = $this->getDataGenerator()->create_user();
+        $reviewer = $this->getDataGenerator()->create_user();
+        $syllabusid = $this->create_plan(plan_state_manager::STATUS_SUBMITTED, (int) $author->id);
+        $DB->insert_record('syllabus_review_notes', [
+            'syllabusid'   => $syllabusid,
+            'area'         => 'plan',
+            'instanceid'   => $syllabusid,
+            'fieldid'      => 1,
+            'note'         => 'Please fix this.',
+            'reviewerid'   => $reviewer->id,
+            'timecreated'  => time(),
+            'timemodified' => time(),
+        ]);
+
+        plan_state_manager::approve($syllabusid, (int) $reviewer->id);
+
+        $this->assertEquals(0, $DB->count_records('syllabus_review_notes', ['syllabusid' => $syllabusid]));
+    }
+
+    /**
+     * Requesting changes leaves any existing review notes untouched — they must survive the
+     * author's resubmission, since that is exactly the loop the notes exist to support.
+     *
+     * @return void
+     */
+    public function test_request_changes_does_not_clear_review_notes(): void {
+        global $DB;
+
+        $author = $this->getDataGenerator()->create_user();
+        $reviewer = $this->getDataGenerator()->create_user();
+        $syllabusid = $this->create_plan(plan_state_manager::STATUS_SUBMITTED, (int) $author->id);
+        $DB->insert_record('syllabus_review_notes', [
+            'syllabusid'   => $syllabusid,
+            'area'         => 'plan',
+            'instanceid'   => $syllabusid,
+            'fieldid'      => 1,
+            'note'         => 'Please fix this.',
+            'reviewerid'   => $reviewer->id,
+            'timecreated'  => time(),
+            'timemodified' => time(),
+        ]);
+
+        plan_state_manager::request_changes($syllabusid, (int) $reviewer->id, 'See the field notes.');
+
+        $this->assertEquals(1, $DB->count_records('syllabus_review_notes', ['syllabusid' => $syllabusid]));
+    }
+
+    /**
      * The author of a plan cannot approve their own submission, even as a reviewer.
      *
      * @return void

@@ -58,6 +58,149 @@ final class privacy_provider_test extends provider_testcase {
     }
 
     /**
+     * Inserts a coordinator review note directly on a plan-level field.
+     *
+     * @param \stdClass $syllabus
+     * @param \stdClass $reviewer
+     * @return void
+     */
+    private function add_review_note(\stdClass $syllabus, \stdClass $reviewer): void {
+        global $DB;
+
+        $DB->insert_record('syllabus_review_notes', [
+            'syllabusid'   => $syllabus->id,
+            'area'         => 'plan',
+            'instanceid'   => $syllabus->id,
+            'fieldid'      => 1,
+            'note'         => 'Please expand this section.',
+            'reviewerid'   => $reviewer->id,
+            'timecreated'  => time(),
+            'timemodified' => time(),
+        ]);
+    }
+
+    /**
+     * A user who only ever left a review note (never submitted/reviewed/unpublished the plan
+     * itself) still has a context, and shows up in get_users_in_context.
+     *
+     * @return void
+     */
+    public function test_review_note_author_has_a_context(): void {
+        $this->resetAfterTest();
+        $this->setAdminUser();
+
+        $course = $this->getDataGenerator()->create_course();
+        $syllabus = $this->getDataGenerator()->create_module('syllabus', ['course' => $course->id]);
+        $noteauthor = $this->getDataGenerator()->create_user();
+        $this->add_review_note($syllabus, $noteauthor);
+
+        $this->assertCount(1, provider::get_contexts_for_userid($noteauthor->id));
+
+        $cm = get_coursemodule_from_instance('syllabus', $syllabus->id, 0, false, MUST_EXIST);
+        $context = context_module::instance($cm->id);
+        $userlist = new userlist($context, 'mod_syllabus');
+        provider::get_users_in_context($userlist);
+        $this->assertContains((int) $noteauthor->id, $userlist->get_userids());
+    }
+
+    /**
+     * Exporting a reviewer's data includes their review notes, with the note text.
+     *
+     * @return void
+     */
+    public function test_export_user_data_includes_review_notes(): void {
+        $this->resetAfterTest();
+        $this->setAdminUser();
+
+        [, $syllabus] = $this->create_reviewed_plan();
+        $noteauthor = $this->getDataGenerator()->create_user();
+        $this->add_review_note($syllabus, $noteauthor);
+        $cm = get_coursemodule_from_instance('syllabus', $syllabus->id, 0, false, MUST_EXIST);
+        $context = context_module::instance($cm->id);
+
+        $contextlist = provider::get_contexts_for_userid($noteauthor->id);
+        $approved = new approved_contextlist($noteauthor, 'mod_syllabus', $contextlist->get_contextids());
+        provider::export_user_data($approved);
+
+        $data = writer::with_context($context)->get_data([get_string('pluginname', 'mod_syllabus')]);
+        $this->assertTrue(property_exists($data, 'reviewnotes'));
+        $this->assertSame('Please expand this section.', $data->reviewnotes[0]->note);
+    }
+
+    /**
+     * Deleting all data in a context deletes every review note row outright — unlike
+     * submittedby/reviewedby/unpublishedby, a note's whole substance is the reviewer's own
+     * authored text, so anonymising just the author FK would leave the text itself behind.
+     *
+     * @return void
+     */
+    public function test_delete_data_for_all_users_in_context_deletes_review_notes(): void {
+        global $DB;
+
+        $this->resetAfterTest();
+        $this->setAdminUser();
+
+        [, $syllabus] = $this->create_reviewed_plan();
+        $noteauthor = $this->getDataGenerator()->create_user();
+        $this->add_review_note($syllabus, $noteauthor);
+        $cm = get_coursemodule_from_instance('syllabus', $syllabus->id, 0, false, MUST_EXIST);
+        $context = context_module::instance($cm->id);
+
+        provider::delete_data_for_all_users_in_context($context);
+
+        $this->assertEquals(0, $DB->count_records('syllabus_review_notes', ['syllabusid' => $syllabus->id]));
+    }
+
+    /**
+     * Deleting a specific user's data only deletes that user's own review notes, keeping a
+     * different reviewer's note on the same plan intact.
+     *
+     * @return void
+     */
+    public function test_delete_data_for_users_deletes_only_that_users_review_notes(): void {
+        global $DB;
+
+        $this->resetAfterTest();
+        $this->setAdminUser();
+
+        [, $syllabus] = $this->create_reviewed_plan();
+        $noteauthor = $this->getDataGenerator()->create_user();
+        $otherauthor = $this->getDataGenerator()->create_user();
+        $this->add_review_note($syllabus, $noteauthor);
+        $this->add_review_note($syllabus, $otherauthor);
+        $cm = get_coursemodule_from_instance('syllabus', $syllabus->id, 0, false, MUST_EXIST);
+        $context = context_module::instance($cm->id);
+
+        $approved = new approved_userlist($context, 'mod_syllabus', [$noteauthor->id]);
+        provider::delete_data_for_users($approved);
+
+        $this->assertEquals(0, $DB->count_records('syllabus_review_notes', ['reviewerid' => $noteauthor->id]));
+        $this->assertEquals(1, $DB->count_records('syllabus_review_notes', ['reviewerid' => $otherauthor->id]));
+    }
+
+    /**
+     * Deleting data for a single user (delete_data_for_user) deletes their review notes too.
+     *
+     * @return void
+     */
+    public function test_delete_data_for_user_deletes_review_notes(): void {
+        global $DB;
+
+        $this->resetAfterTest();
+        $this->setAdminUser();
+
+        [, $syllabus] = $this->create_reviewed_plan();
+        $noteauthor = $this->getDataGenerator()->create_user();
+        $this->add_review_note($syllabus, $noteauthor);
+
+        $contextlist = provider::get_contexts_for_userid($noteauthor->id);
+        $approved = new approved_contextlist($noteauthor, 'mod_syllabus', $contextlist->get_contextids());
+        provider::delete_data_for_user($approved);
+
+        $this->assertEquals(0, $DB->count_records('syllabus_review_notes', ['reviewerid' => $noteauthor->id]));
+    }
+
+    /**
      * A user who submitted or reviewed a plan has a context; one who did neither does not.
      *
      * @return void

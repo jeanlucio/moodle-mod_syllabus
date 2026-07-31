@@ -120,6 +120,7 @@ final class tab_full_plan implements renderable, templatable {
         $reader = new plan_reader($this->syllabus);
         $narrative = $reader->plan_narrative();
         $weeks = $reader->weeks();
+        $reviewnotes = $reader->review_notes();
 
         // A brand-new plan (neither date ever set) is prefilled with today as a start and a
         // month later as an end, mirroring Moodle's own date_selector convention of defaulting
@@ -143,6 +144,7 @@ final class tab_full_plan implements renderable, templatable {
             'statuslabel'       => get_string(plan_state_manager::status_string_key($status), 'mod_syllabus'),
             'statusbadgeclass'  => plan_state_manager::status_badge_class($status),
             'caneditcontent'    => $caneditcontent,
+            'canreview'         => $canreview,
             'stagecount'        => $stagecount,
             'hasmultiplestages' => $stagecount > 1,
             'grademethodlabel'  => get_string('grademethod' . $this->syllabus->grademethod, 'mod_syllabus'),
@@ -189,21 +191,26 @@ final class tab_full_plan implements renderable, templatable {
                 : null,
         ];
 
-        if ($caneditcontent) {
-            $planfielddata = plan_handler::create()->get_instance_data($this->syllabus->id, true);
-            // The Final assessment's narrative field lives in the same 'plan' Custom Field
-            // area as the others, but is rendered in its own section below, not intermixed
-            // with Ementa/Objectives/etc. in the generic planfields loop.
-            $finalassessmentfielddata = [];
-            foreach ($planfielddata as $fieldid => $datacontroller) {
-                if ($datacontroller->get_field()->get('shortname') === 'finalassessmentinstructions') {
-                    $finalassessmentfielddata = [$fieldid => $datacontroller];
-                    unset($planfielddata[$fieldid]);
-                    break;
-                }
+        $planfielddata = plan_handler::create()->get_instance_data($this->syllabus->id, true);
+        // The Final assessment's narrative field lives in the same 'plan' Custom Field
+        // area as the others, but is rendered in its own section below, not intermixed
+        // with Ementa/Objectives/etc. in the generic planfields loop.
+        $finalassessmentfielddata = [];
+        foreach ($planfielddata as $fieldid => $datacontroller) {
+            if ($datacontroller->get_field()->get('shortname') === 'finalassessmentinstructions') {
+                $finalassessmentfielddata = [$fieldid => $datacontroller];
+                unset($planfielddata[$fieldid]);
+                break;
             }
-            $data->planfields = $reader->export_editable_fields($planfielddata, 'plan');
-            $exportedfinalassessmentfield = $reader->export_editable_fields($finalassessmentfielddata, 'plan');
+        }
+
+        if ($caneditcontent) {
+            $data->planfields = $reader->export_editable_fields($planfielddata, 'plan', $reviewnotes);
+            $exportedfinalassessmentfield = $reader->export_editable_fields(
+                $finalassessmentfielddata,
+                'plan',
+                $reviewnotes
+            );
             $data->finalassessmentfield = $exportedfinalassessmentfield[0] ?? null;
             $data->structuralhelp = (object) $reader->structural_help();
             $data->finalassessmenttitle = $this->syllabus->finalassessmenttitle;
@@ -236,7 +243,7 @@ final class tab_full_plan implements renderable, templatable {
             // with the full fieldset open, so an empty plan needs no client-built placeholder
             // row — the button itself is the only affordance required.
             $data->hasweeks = !empty($weeks);
-            $data->weeks = $this->export_editable_weeks($reader, $weeks, $stagecount);
+            $data->weeks = $this->export_editable_weeks($reader, $weeks, $stagecount, $reviewnotes);
             $data->tinyavailable = narrative_editor::is_tiny_available();
             if ($data->tinyavailable) {
                 $data->tinyconfig = json_encode(narrative_editor::base_config($context));
@@ -252,7 +259,51 @@ final class tab_full_plan implements renderable, templatable {
             $data->hasschedule = !empty($schedule);
         }
 
+        if ($canreview) {
+            $data->reviewnotesplanfields = $reader->export_editable_fields($planfielddata, 'plan', $reviewnotes);
+            $reviewnotesfinalassessmentfield = $reader->export_editable_fields(
+                $finalassessmentfielddata,
+                'plan',
+                $reviewnotes
+            );
+            $data->reviewnotesfinalassessmentfield = $reviewnotesfinalassessmentfield[0] ?? null;
+            $data->reviewnotesweeks = $this->export_review_note_weeks($reader, $weeks, $reviewnotes);
+            $data->hasreviewnotesweeks = !empty($data->reviewnotesweeks);
+        }
+
         return $data;
+    }
+
+    /**
+     * Reshapes plan_reader::weeks() into the minimal shape the coordinator's review-notes
+     * panel needs: just each week/activity's title plus its narrative fields (already carrying
+     * fieldid/instanceid/area/name/coordinatornote via export_editable_fields()) — none of the
+     * editable-form scaffolding (date pickers, type/category selects) export_editable_weeks()
+     * builds for the author's own edit view, which the panel has no use for.
+     *
+     * @param plan_reader $reader Used to build each field's exported representation.
+     * @param array $weeks Result of plan_reader::weeks().
+     * @param array $reviewnotes Result of plan_reader::review_notes().
+     * @return array
+     */
+    private function export_review_note_weeks(plan_reader $reader, array $weeks, array $reviewnotes): array {
+        $result = [];
+        foreach ($weeks as $week) {
+            $weekactivities = [];
+            foreach ($week->activities as $activity) {
+                $weekactivities[] = (object) [
+                    'title'  => $activity->title,
+                    'fields' => $reader->export_editable_fields($activity->fields, 'activity', $reviewnotes),
+                ];
+            }
+            $result[] = (object) [
+                'title'         => $week->title,
+                'fields'        => $reader->export_editable_fields($week->fields, 'week', $reviewnotes),
+                'activities'    => $weekactivities,
+                'hasactivities' => !empty($weekactivities),
+            ];
+        }
+        return $result;
     }
 
     /**
@@ -262,9 +313,15 @@ final class tab_full_plan implements renderable, templatable {
      * @param plan_reader $reader Used to build each field's editable-box representation.
      * @param array $weeks Result of plan_reader::weeks().
      * @param int $stagecount The plan's current number of grading stages.
+     * @param array $reviewnotes Result of plan_reader::review_notes().
      * @return array
      */
-    private function export_editable_weeks(plan_reader $reader, array $weeks, int $stagecount): array {
+    private function export_editable_weeks(
+        plan_reader $reader,
+        array $weeks,
+        int $stagecount,
+        array $reviewnotes
+    ): array {
         $result = [];
         foreach ($weeks as $week) {
             $weekactivities = [];
@@ -292,7 +349,7 @@ final class tab_full_plan implements renderable, templatable {
                     'points'            => $activity->points,
                     'typeoptions'       => $this->build_select_options(self::TYPE_OPTIONS, $activity->type),
                     'categoryoptions'   => $this->build_select_options(self::CATEGORY_OPTIONS, $activity->category),
-                    'fields'            => $reader->export_editable_fields($activity->fields, 'activity'),
+                    'fields'            => $reader->export_editable_fields($activity->fields, 'activity', $reviewnotes),
                 ];
             }
             $result[] = (object) [
@@ -318,7 +375,7 @@ final class tab_full_plan implements renderable, templatable {
                 'synctopic'     => $week->synctopic,
                 'stage'         => (int) $week->stage,
                 'stageoptions'  => $this->build_stage_options($stagecount, (int) $week->stage),
-                'fields'        => $reader->export_editable_fields($week->fields, 'week'),
+                'fields'        => $reader->export_editable_fields($week->fields, 'week', $reviewnotes),
                 'activities'    => $weekactivities,
                 'hasactivities' => !empty($weekactivities),
             ];

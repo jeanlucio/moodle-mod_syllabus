@@ -1,0 +1,43 @@
+{{!
+    This file is part of Moodle - https://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+}}
+{{!
+    @template mod_syllabus/review_note_row
+
+    One coordinator review-note row for a single narrative field. Shared partial reused for
+    plan-level, week-level and activity-level fields alike by review_notes_panel, so the note
+    markup/behaviour never drifts between the three.
+
+    Example context (json):
+    {
+        "fieldid": 5,
+        "instanceid": 10,
+        "area": "week",
+        "name": "Details",
+        "coordinatornote": "Please expand this section with more examples."
+    }
+}}
+<div class="syllabus-review-note-row mb-2" data-area="{{area}}" data-instanceid="{{instanceid}}" data-fieldid="{{fieldid}}">
+    <label class="form-label small mb-1" for="syllabus-review-note-{{area}}-{{instanceid}}-{{fieldid}}">
+        {{name}}
+    </label>
+    <textarea id="syllabus-review-note-{{area}}-{{instanceid}}-{{fieldid}}"
+        class="form-control form-control-sm syllabus-review-note-input" rows="2"
+        placeholder="{{#str}} reviewnoteplaceholder, mod_syllabus {{/str}}">{{coordinatornote}}</textarea>
+    <span class="syllabus-review-note-status d-none small text-muted"
+        data-saved="{{#str}} reviewnotesaved, mod_syllabus {{/str}}"
+        data-saving="{{#str}} saving, mod_syllabus {{/str}}"></span>
+</div>

@@ -48,6 +48,24 @@ class backup_syllabus_activity_structure_step extends backup_activity_structure_
     }
 
     /**
+     * SQL selecting a Custom Field area's open coordinator review notes for one owning
+     * instance. Sourced from syllabus_review_notes directly (not nested under the matching
+     * planfield/weekfield/activityfield row above) because a note can exist on a field that
+     * was never saved with content — no customfield_data row to nest under in that case.
+     * Backs up the field's shortname, not its raw fieldid: fieldids differ between the backup
+     * site and the restore site, exactly like customfield_source_sql() above.
+     *
+     * @param string $area One of 'plan', 'week', 'activity'.
+     * @return string
+     */
+    private function review_note_source_sql(string $area): string {
+        return "SELECT n.id, f.shortname, n.note, n.reviewerid, n.timecreated, n.timemodified
+                   FROM {syllabus_review_notes} n
+                   JOIN {customfield_field} f ON f.id = n.fieldid
+                  WHERE n.area = '{$area}' AND n.instanceid = ?";
+    }
+
+    /**
      * Define the structure for the syllabus activity.
      *
      * @return backup_nested_element
@@ -94,9 +112,27 @@ class backup_syllabus_activity_structure_step extends backup_activity_structure_
             'shortname', 'type', 'value', 'valueformat', 'valuetrust',
         ]);
 
+        $planreviewnotes = new backup_nested_element('planreviewnotes');
+        $planreviewnote = new backup_nested_element('planreviewnote', ['id'], [
+            'shortname', 'note', 'reviewerid', 'timecreated', 'timemodified',
+        ]);
+
+        $weekreviewnotes = new backup_nested_element('weekreviewnotes');
+        $weekreviewnote = new backup_nested_element('weekreviewnote', ['id'], [
+            'shortname', 'note', 'reviewerid', 'timecreated', 'timemodified',
+        ]);
+
+        $activityreviewnotes = new backup_nested_element('activityreviewnotes');
+        $activityreviewnote = new backup_nested_element('activityreviewnote', ['id'], [
+            'shortname', 'note', 'reviewerid', 'timecreated', 'timemodified',
+        ]);
+
         // Build the tree.
         $syllabus->add_child($planfields);
         $planfields->add_child($planfield);
+
+        $syllabus->add_child($planreviewnotes);
+        $planreviewnotes->add_child($planreviewnote);
 
         $syllabus->add_child($weeks);
         $weeks->add_child($week);
@@ -104,11 +140,17 @@ class backup_syllabus_activity_structure_step extends backup_activity_structure_
         $week->add_child($weekfields);
         $weekfields->add_child($weekfield);
 
+        $week->add_child($weekreviewnotes);
+        $weekreviewnotes->add_child($weekreviewnote);
+
         $week->add_child($activities);
         $activities->add_child($activity);
 
         $activity->add_child($activityfields);
         $activityfields->add_child($activityfield);
+
+        $activity->add_child($activityreviewnotes);
+        $activityreviewnotes->add_child($activityreviewnote);
 
         // Define sources.
         $syllabus->set_source_table('syllabus', ['id' => backup::VAR_ACTIVITYID]);
@@ -122,6 +164,12 @@ class backup_syllabus_activity_structure_step extends backup_activity_structure_
         $weekfield->set_source_sql($this->customfield_source_sql('week'), [backup::VAR_PARENTID]);
         $activityfield->set_source_sql($this->customfield_source_sql('activity'), [backup::VAR_PARENTID]);
 
+        // Coordinator review notes — reviewerid below is personal data, gated on userinfo the
+        // same way as the syllabus-level id annotations.
+        $planreviewnote->set_source_sql($this->review_note_source_sql('plan'), [backup::VAR_PARENTID]);
+        $weekreviewnote->set_source_sql($this->review_note_source_sql('week'), [backup::VAR_PARENTID]);
+        $activityreviewnote->set_source_sql($this->review_note_source_sql('activity'), [backup::VAR_PARENTID]);
+
         // All three areas only ever use customfield_textarea fields (see save_customfield_value)
         // — annotate the embedded file area directly rather than resolving a handler per row.
         $planfield->annotate_files('customfield_textarea', 'value', 'id');
@@ -133,6 +181,9 @@ class backup_syllabus_activity_structure_step extends backup_activity_structure_
             $syllabus->annotate_ids('user', 'submittedby');
             $syllabus->annotate_ids('user', 'reviewedby');
             $syllabus->annotate_ids('user', 'unpublishedby');
+            $planreviewnote->annotate_ids('user', 'reviewerid');
+            $weekreviewnote->annotate_ids('user', 'reviewerid');
+            $activityreviewnote->annotate_ids('user', 'reviewerid');
         }
 
         // File annotations for the standard mod_* intro editor.

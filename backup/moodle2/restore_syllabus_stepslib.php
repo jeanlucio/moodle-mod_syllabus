@@ -16,6 +16,7 @@
 
 use mod_syllabus\customfield\activity_handler;
 use mod_syllabus\customfield\plan_handler;
+use mod_syllabus\customfield\syllabus_handler_base;
 use mod_syllabus\customfield\week_handler;
 
 /**
@@ -40,10 +41,18 @@ class restore_syllabus_activity_structure_step extends restore_activity_structur
 
         $paths[] = new restore_path_element('syllabus', '/activity/syllabus');
         $paths[] = new restore_path_element('syllabus_planfield', '/activity/syllabus/planfields/planfield');
+        $paths[] = new restore_path_element(
+            'syllabus_planreviewnote',
+            '/activity/syllabus/planreviewnotes/planreviewnote'
+        );
         $paths[] = new restore_path_element('syllabus_week', '/activity/syllabus/weeks/week');
         $paths[] = new restore_path_element(
             'syllabus_weekfield',
             '/activity/syllabus/weeks/week/weekfields/weekfield'
+        );
+        $paths[] = new restore_path_element(
+            'syllabus_weekreviewnote',
+            '/activity/syllabus/weeks/week/weekreviewnotes/weekreviewnote'
         );
         $paths[] = new restore_path_element(
             'syllabus_activity',
@@ -52,6 +61,10 @@ class restore_syllabus_activity_structure_step extends restore_activity_structur
         $paths[] = new restore_path_element(
             'syllabus_activityfield',
             '/activity/syllabus/weeks/week/syllabusactivities/syllabusactivity/activityfields/activityfield'
+        );
+        $paths[] = new restore_path_element(
+            'syllabus_activityreviewnote',
+            '/activity/syllabus/weeks/week/syllabusactivities/syllabusactivity/activityreviewnotes/activityreviewnote'
         );
 
         return $this->prepare_activity_structure($paths);
@@ -107,6 +120,17 @@ class restore_syllabus_activity_structure_step extends restore_activity_structur
     }
 
     /**
+     * Process one plan-area coordinator review note.
+     *
+     * @param array $data
+     * @return void
+     */
+    protected function process_syllabus_planreviewnote($data) {
+        $instanceid = $this->get_new_parentid('syllabus');
+        $this->insert_review_note('plan', $instanceid, $data, plan_handler::create());
+    }
+
+    /**
      * Process the week element.
      *
      * @param array $data
@@ -144,6 +168,17 @@ class restore_syllabus_activity_structure_step extends restore_activity_structur
     }
 
     /**
+     * Process one week-area coordinator review note.
+     *
+     * @param array $data
+     * @return void
+     */
+    protected function process_syllabus_weekreviewnote($data) {
+        $instanceid = $this->get_new_parentid('syllabus_week');
+        $this->insert_review_note('week', $instanceid, $data, week_handler::create());
+    }
+
+    /**
      * Process the activity element.
      *
      * @param array $data
@@ -173,6 +208,50 @@ class restore_syllabus_activity_structure_step extends restore_activity_structur
         if ($newdataid) {
             $handler->restore_define_structure($this, $newdataid, $data['id']);
         }
+    }
+
+    /**
+     * Process one activity-area coordinator review note.
+     *
+     * @param array $data
+     * @return void
+     */
+    protected function process_syllabus_activityreviewnote($data) {
+        $instanceid = $this->get_new_parentid('syllabus_activity');
+        $this->insert_review_note('activity', $instanceid, $data, activity_handler::create());
+    }
+
+    /**
+     * Shared insert logic for the three review-note element processors above. The field is
+     * resolved locally by shortname (see resolve_fieldid_by_shortname()'s own docblock for
+     * why), and the note is silently dropped if no matching field exists here — the field was
+     * removed via managefields.php on this site since the backup was taken, so there is nothing
+     * sensible left to attach the note to.
+     *
+     * @param string $area One of 'plan', 'week', 'activity'.
+     * @param int $instanceid The already-remapped (new) instanceid this note is attached to.
+     * @param array $data Backed-up row: shortname, note, reviewerid, timecreated, timemodified.
+     * @param syllabus_handler_base $handler The area's own Custom Field handler.
+     * @return void
+     */
+    private function insert_review_note(string $area, int $instanceid, array $data, syllabus_handler_base $handler): void {
+        global $DB;
+
+        $fieldid = $handler->resolve_fieldid_by_shortname($instanceid, $data['shortname']);
+        if ($fieldid === null) {
+            return;
+        }
+
+        $DB->insert_record('syllabus_review_notes', (object) [
+            'syllabusid'   => $this->get_new_parentid('syllabus'),
+            'area'         => $area,
+            'instanceid'   => $instanceid,
+            'fieldid'      => $fieldid,
+            'note'         => $data['note'],
+            'reviewerid'   => $this->map_user($data['reviewerid'] ?? null),
+            'timecreated'  => $data['timecreated'],
+            'timemodified' => $data['timemodified'],
+        ]);
     }
 
     /**

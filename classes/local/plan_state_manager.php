@@ -75,6 +75,11 @@ final class plan_state_manager {
     /**
      * Approves a submitted plan, making the course module visible on first approval.
      *
+     * Also clears every per-field coordinator review note left on this plan (see
+     * save_review_note) — approval is the same "clean slate" moment that already nulls
+     * changesrequestedreason, and a note left on an approved plan would have no author-facing
+     * meaning left to convey.
+     *
      * @param int $syllabusid ID of the syllabus record.
      * @param int $reviewerid ID of the coordinator approving the plan.
      * @return void
@@ -93,6 +98,7 @@ final class plan_state_manager {
         $plan->changesrequestedreason = null;
         $plan->timemodified = $now;
         $DB->update_record('syllabus', $plan);
+        $DB->delete_records('syllabus_review_notes', ['syllabusid' => $syllabusid]);
 
         $cm = get_coursemodule_from_instance('syllabus', $syllabusid, $plan->course, false, IGNORE_MISSING);
         if ($cm) {

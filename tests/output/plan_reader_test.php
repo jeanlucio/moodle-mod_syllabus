@@ -156,6 +156,69 @@ final class plan_reader_test extends advanced_testcase {
     }
 
     /**
+     * review_notes() returns every open coordinator note on the plan, keyed by
+     * "area:instanceid:fieldid" — and export_editable_fields() surfaces the matching note
+     * (and hascoordinatornote flag) onto the field it belongs to, leaving every other field's
+     * note empty.
+     *
+     * @return void
+     */
+    public function test_review_notes_surface_onto_the_matching_field(): void {
+        global $DB;
+
+        $this->setAdminUser();
+        $course = $this->getDataGenerator()->create_course();
+        $syllabus = $this->getDataGenerator()->create_module('syllabus', ['course' => $course->id]);
+        $fieldid = $this->field_id(plan_handler::create(), 'coursedescription');
+        $DB->insert_record('syllabus_review_notes', [
+            'syllabusid'   => $syllabus->id,
+            'area'         => 'plan',
+            'instanceid'   => $syllabus->id,
+            'fieldid'      => $fieldid,
+            'note'         => 'Please expand this section.',
+            'reviewerid'   => null,
+            'timecreated'  => time(),
+            'timemodified' => time(),
+        ]);
+
+        $reader = new plan_reader($syllabus);
+        $reviewnotes = $reader->review_notes();
+        $this->assertSame(
+            'Please expand this section.',
+            $reviewnotes["plan:{$syllabus->id}:{$fieldid}"]
+        );
+
+        $datacontrollers = plan_handler::create()->get_instance_data($syllabus->id, true);
+        $fields = $reader->export_editable_fields($datacontrollers, 'plan', $reviewnotes);
+
+        foreach ($fields as $field) {
+            if ((int) $field->fieldid === $fieldid) {
+                $this->assertTrue($field->hascoordinatornote);
+                $this->assertSame('Please expand this section.', $field->coordinatornote);
+            } else {
+                $this->assertFalse($field->hascoordinatornote);
+                $this->assertSame('', $field->coordinatornote);
+            }
+        }
+    }
+
+    /**
+     * Finds a seeded field's id by its shortname within a handler.
+     *
+     * @param \core_customfield\handler $handler Handler to search.
+     * @param string $shortname Field shortname.
+     * @return int
+     */
+    private function field_id(\core_customfield\handler $handler, string $shortname): int {
+        foreach ($handler->get_fields() as $field) {
+            if ($field->get('shortname') === $shortname) {
+                return (int) $field->get('id');
+            }
+        }
+        $this->fail("Seeded field '{$shortname}' not found.");
+    }
+
+    /**
      * structural_help() returns the formatted description of every field in the 'help' area,
      * keyed by shortname — the guidance for structural fields (Characterisation, a week's
      * workload/period, Synchronous meeting, an activity's type/category, Final assessment)

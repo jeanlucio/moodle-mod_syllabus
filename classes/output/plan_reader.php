@@ -131,6 +131,31 @@ final class plan_reader {
     }
 
     /**
+     * Every open coordinator review note on this plan, keyed by "area:instanceid:fieldid" for
+     * O(1) lookup while exporting fields — one query regardless of how many weeks/activities/
+     * narrative fields the plan has. Pass the result into every export_editable_fields() call
+     * for this plan (plan-level, then once per week, then once per activity) rather than
+     * calling this again inside that loop.
+     *
+     * @return array<string, string> "area:instanceid:fieldid" => note text
+     */
+    public function review_notes(): array {
+        global $DB;
+
+        $notes = $DB->get_records(
+            'syllabus_review_notes',
+            ['syllabusid' => $this->syllabus->id],
+            '',
+            'id, area, instanceid, fieldid, note'
+        );
+        $result = [];
+        foreach ($notes as $note) {
+            $result[$note->area . ':' . $note->instanceid . ':' . $note->fieldid] = $note->note;
+        }
+        return $result;
+    }
+
+    /**
      * Prepares a fresh draft file area per textarea Custom Field so an edit-mode template can
      * render an editable box for it, pre-filled with the field's current value — the same
      * preparation an mform's editor element does internally
@@ -140,9 +165,10 @@ final class plan_reader {
      * @param \core_customfield\data_controller[] $datacontrollers Field id => data_controller.
      * @param string $area Which area these fields belong to (plan/week/activity) — carried
      *     through as data-area so the autosave WS knows which handler to save back through.
+     * @param array<string, string> $reviewnotes Result of review_notes(), for this same plan.
      * @return array
      */
-    public function export_editable_fields(array $datacontrollers, string $area): array {
+    public function export_editable_fields(array $datacontrollers, string $area, array $reviewnotes = []): array {
         $result = [];
         foreach ($datacontrollers as $fieldid => $datacontroller) {
             if ($datacontroller->get_field()->get('type') !== 'textarea') {
@@ -154,10 +180,12 @@ final class plan_reader {
             $editorvalue = $holder->{$datacontroller->get_form_element_name()};
             $field = $datacontroller->get_field();
             $description = (string) $field->get('description');
+            $instanceid = $datacontroller->get('instanceid');
+            $coordinatornote = $reviewnotes["{$area}:{$instanceid}:{$fieldid}"] ?? '';
             $result[] = (object) [
                 'fieldid'     => $fieldid,
-                'instanceid'  => $datacontroller->get('instanceid'),
-                'elementid'   => 'syllabus-field-' . $datacontroller->get('instanceid') . '-' . $fieldid,
+                'instanceid'  => $instanceid,
+                'elementid'   => 'syllabus-field-' . $instanceid . '-' . $fieldid,
                 'name'        => $field->get_formatted_name(),
                 'text'        => $editorvalue['text'],
                 'itemid'      => $editorvalue['itemid'],
@@ -173,6 +201,10 @@ final class plan_reader {
                 'description' => $description === '' ? '' : format_text($description, (int) $field->get('descriptionformat'), [
                     'context' => $field->get_handler()->get_configuration_context(),
                 ]),
+                // Coordinator's per-field observation (see save_review_note) — always visible
+                // when present, unlike description above, which sits behind a disclosure.
+                'hascoordinatornote' => $coordinatornote !== '',
+                'coordinatornote'    => $coordinatornote,
             ];
         }
         return $result;

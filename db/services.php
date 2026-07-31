@@ -113,4 +113,12 @@ $functions = [
         'ajax'         => true,
         'capabilities' => 'mod/syllabus:submit,mod/syllabus:review',
     ],
+    'mod_syllabus_save_review_note' => [
+        'classname'    => 'mod_syllabus\external\save_review_note',
+        'methodname'   => 'execute',
+        'description'  => 'Attach, update or clear a coordinator review note on one narrative field.',
+        'type'         => 'write',
+        'ajax'         => true,
+        'capabilities' => 'mod/syllabus:review',
+    ],
 ];

@@ -37,6 +37,11 @@ use stdClass;
  * means anonymising those references, never deleting the plan row itself — unlike a typical
  * per-user submission this plugin has no equivalent of.
  *
+ * Coordinator review notes (syllabus_review_notes) are a deliberate exception to that
+ * anonymise-only rule: a note's entire substance is the reviewer's own authored text, not an
+ * administrative timestamp/actor reference like the three columns above, so deleting a
+ * reviewer's data here deletes the note row outright rather than nulling a foreign key on it.
+ *
  * @package    mod_syllabus
  * @copyright  2026 Jean Lúcio
  * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
@@ -61,6 +66,12 @@ class provider implements
             'timeunpublished' => 'privacy:metadata:syllabus:timeunpublished',
         ], 'privacy:metadata:syllabus');
 
+        $collection->add_database_table('syllabus_review_notes', [
+            'reviewerid'  => 'privacy:metadata:syllabus_review_notes:reviewerid',
+            'note'        => 'privacy:metadata:syllabus_review_notes:note',
+            'timecreated' => 'privacy:metadata:syllabus_review_notes:timecreated',
+        ], 'privacy:metadata:syllabus_review_notes');
+
         return $collection;
     }
 
@@ -78,7 +89,11 @@ class provider implements
                   JOIN {course_modules} cm ON cm.id = c.instanceid AND c.contextlevel = :contextlevel
                   JOIN {modules} m ON m.id = cm.module AND m.name = :modname
                   JOIN {syllabus} s ON s.id = cm.instance
-                 WHERE s.submittedby = :userid1 OR s.reviewedby = :userid2 OR s.unpublishedby = :userid3";
+                 WHERE s.submittedby = :userid1 OR s.reviewedby = :userid2 OR s.unpublishedby = :userid3
+                    OR EXISTS (
+                        SELECT 1 FROM {syllabus_review_notes} n
+                         WHERE n.syllabusid = s.id AND n.reviewerid = :userid4
+                    )";
 
         $params = [
             'modname'      => 'syllabus',
@@ -86,6 +101,7 @@ class provider implements
             'userid1'      => $userid,
             'userid2'      => $userid,
             'userid3'      => $userid,
+            'userid4'      => $userid,
         ];
 
         $contextlist->add_from_sql($sql, $params);
@@ -116,6 +132,14 @@ class provider implements
         $userlist->add_from_sql('submittedby', $sql, $params);
         $userlist->add_from_sql('reviewedby', $sql, $params);
         $userlist->add_from_sql('unpublishedby', $sql, $params);
+
+        $notesql = "SELECT n.reviewerid
+                      FROM {syllabus_review_notes} n
+                      JOIN {syllabus} s ON s.id = n.syllabusid
+                      JOIN {course_modules} cm ON cm.instance = s.id
+                      JOIN {modules} m ON m.id = cm.module AND m.name = :modname
+                     WHERE cm.id = :cmid";
+        $userlist->add_from_sql('reviewerid', $notesql, $params);
     }
 
     /**
@@ -165,6 +189,23 @@ class provider implements
                 ];
             }
 
+            $notes = $DB->get_records_sql(
+                "SELECT n.id, n.area, n.note, n.timecreated, n.timemodified, f.name AS fieldname
+                   FROM {syllabus_review_notes} n
+                   JOIN {customfield_field} f ON f.id = n.fieldid
+                  WHERE n.syllabusid = :syllabusid AND n.reviewerid = :userid",
+                ['syllabusid' => $plan->id, 'userid' => $userid]
+            );
+            if ($notes) {
+                $roles['reviewnotes'] = array_values(array_map(fn ($note): stdClass => (object) [
+                    'area'     => $note->area,
+                    'field'    => $note->fieldname,
+                    'note'     => $note->note,
+                    'created'  => transform::datetime((int) $note->timecreated),
+                    'modified' => transform::datetime((int) $note->timemodified),
+                ], $notes));
+            }
+
             if (empty($roles)) {
                 continue;
             }
@@ -195,6 +236,7 @@ class provider implements
         }
 
         self::anonymise_plan($DB, $cm->instance);
+        $DB->delete_records('syllabus_review_notes', ['syllabusid' => $cm->instance]);
     }
 
     /**
@@ -222,6 +264,14 @@ class provider implements
         }
 
         self::anonymise_plan($DB, $cm->instance, $userids);
+
+        [$insql, $inparams] = $DB->get_in_or_equal($userids, SQL_PARAMS_NAMED);
+        $inparams['syllabusid'] = $cm->instance;
+        $DB->delete_records_select(
+            'syllabus_review_notes',
+            "syllabusid = :syllabusid AND reviewerid {$insql}",
+            $inparams
+        );
     }
 
     /**
@@ -250,6 +300,7 @@ class provider implements
             }
 
             self::anonymise_plan($DB, $cm->instance, [$userid]);
+            $DB->delete_records('syllabus_review_notes', ['syllabusid' => $cm->instance, 'reviewerid' => $userid]);
         }
     }
 

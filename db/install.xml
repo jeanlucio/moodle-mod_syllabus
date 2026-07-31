@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<XMLDB PATH="mod/syllabus/db" VERSION="20260726" COMMENT="XMLDB file for mod_syllabus"
+<XMLDB PATH="mod/syllabus/db" VERSION="20260731" COMMENT="XMLDB file for mod_syllabus"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:noNamespaceSchemaLocation="../../../lib/xmldb/xmldb.xsd"
 >
@@ -80,6 +80,24 @@
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
         <KEY NAME="fk_week" TYPE="foreign" FIELDS="weekid" REFTABLE="syllabus_weeks" REFFIELDS="id"/>
+      </KEYS>
+    </TABLE>
+    <TABLE NAME="syllabus_review_notes" COMMENT="Coordinator observations left on a specific narrative field, cleared on approval">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="syllabusid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="FK to syllabus instance"/>
+        <FIELD NAME="area" TYPE="char" LENGTH="20" NOTNULL="true" SEQUENCE="false" COMMENT="plan|week|activity - which Custom Field area the field belongs to"/>
+        <FIELD NAME="instanceid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="syllabus.id, syllabus_weeks.id or syllabus_activities.id depending on area"/>
+        <FIELD NAME="fieldid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="FK to customfield_field - the narrative field this note is about"/>
+        <FIELD NAME="note" TYPE="text" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="reviewerid" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="FK to user - coordinator who wrote this note; nullable like syllabus.reviewedby, e.g. after a userinfo-less restore"/>
+        <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+        <KEY NAME="fk_syllabus" TYPE="foreign" FIELDS="syllabusid" REFTABLE="syllabus" REFFIELDS="id"/>
+        <KEY NAME="fk_reviewer" TYPE="foreign" FIELDS="reviewerid" REFTABLE="user" REFFIELDS="id"/>
       </KEYS>
     </TABLE>
   </TABLES>

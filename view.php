@@ -114,6 +114,7 @@ if ($tab === 'full') {
         $PAGE->requires->js_call_amd('mod_syllabus/field_help_toggle', 'init');
     }
     $PAGE->requires->js_call_amd('mod_syllabus/review', 'init', [$cm->id]);
+    $PAGE->requires->js_call_amd('mod_syllabus/review_notes', 'init', [$cm->id]);
 } else if ($tab === 'tutor') {
     $page = new tab_tutor_plan($syllabus, $course);
     $html = $renderer->render_tab_tutor_plan($page->export_for_template($renderer));

@@ -44,11 +44,18 @@
         "area": "week",
         "isplanfield": false,
         "description": "<p>Describe what happens in this week's class.</p><div class=\"syllabus-field-help-full\"><span class=\"syllabus-help-toggle\">View model guidance</span><div class=\"syllabus-help-body\"><p>The source template asks for...</p></div></div>",
-        "tinyavailable": true
+        "tinyavailable": true,
+        "hascoordinatornote": true,
+        "coordinatornote": "Please expand this section with more examples."
     }
 }}
 <div class="syllabus-field mb-3" id="syllabus-section-field-{{fieldid}}" data-syllabus-section>
     <h3><label id="{{elementid}}-label" for="{{elementid}}">{{name}}</label></h3>
+    {{#hascoordinatornote}}
+    <div class="alert alert-warning syllabus-coordinator-note">
+        <strong>{{#str}} coordinatornotebadge, mod_syllabus {{/str}}:</strong> {{coordinatornote}}
+    </div>
+    {{/hascoordinatornote}}
     {{#description}}
     <div class="form-text text-muted syllabus-field-help">{{{description}}}</div>
     {{/description}}

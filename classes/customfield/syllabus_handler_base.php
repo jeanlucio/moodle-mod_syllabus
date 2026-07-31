@@ -139,6 +139,27 @@ abstract class syllabus_handler_base extends handler {
     }
 
     /**
+     * Resolves the local customfield_field id of this area matching the given shortname, for
+     * a specific (already-remapped) instance — used at restore time to translate a backed-up
+     * field shortname into the field id on THIS site, which may differ from the backup site's
+     * (see restore_customfield_value()'s own docblock for why fieldids cannot be trusted
+     * across sites).
+     *
+     * @param int $instanceid The already-remapped (new) instanceid to look fields up on.
+     * @param string $shortname The field's shortname.
+     * @return int|null The local customfield_field id, or null if no such field exists here.
+     */
+    public function resolve_fieldid_by_shortname(int $instanceid, string $shortname): ?int {
+        $records = $this->get_instance_data($instanceid, true);
+        foreach ($records as $fieldid => $record) {
+            if ($record->get_field()->get('shortname') === $shortname) {
+                return (int) $fieldid;
+            }
+        }
+        return null;
+    }
+
+    /**
      * Restores one backed-up Custom Field value onto the given (already-remapped) instanceid.
      *
      * The inherited handler::restore_instance_data_from_backup() assumes a single instanceid

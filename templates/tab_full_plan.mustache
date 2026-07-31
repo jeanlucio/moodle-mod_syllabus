@@ -102,7 +102,9 @@
             "itemid": 14,
             "area": "plan",
             "isplanfield": true,
-            "description": "<p>Explain to the student what the Final assessment consists of...</p>"
+            "description": "<p>Explain to the student what the Final assessment consists of...</p>",
+            "hascoordinatornote": false,
+            "coordinatornote": ""
         },
         "weeks": [],
         "hasweeks": false,
@@ -112,9 +114,13 @@
         "hasschedule": false,
         "schedule": [],
         "cansubmit": true,
+        "canreview": false,
         "canreviewnow": false,
         "canunpublish": false,
-        "changesrequestedreason": null
+        "changesrequestedreason": null,
+        "reviewnotesplanfields": [],
+        "reviewnotesfinalassessmentfield": null,
+        "reviewnotesweeks": []
     }
 }}
 <div class="path-mod-syllabus syllabus-tab-full" data-cmid="{{cmid}}">
@@ -382,6 +388,10 @@
     {{/changesrequestedreason}}
 
     <div class="syllabus-workflow-actions mt-4">
+        {{#canreview}}
+            {{> mod_syllabus/review_notes_panel }}
+        {{/canreview}}
+
         {{#cansubmit}}
         <button type="button" class="btn btn-primary syllabus-submit-plan">
             {{#str}} submitforreview, mod_syllabus {{/str}}

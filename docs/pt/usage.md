@@ -27,17 +27,31 @@
 ## Observações da coordenação por campo
 
 Além do texto único de justificativa usado ao solicitar ajustes, a coordenação pode deixar uma
-observação em qualquer campo narrativo específico (plano, aula ou atividade) por um painel
-dedicado na aba Plano completo:
+observação em qualquer campo narrativo específico (plano, aula ou atividade), logo abaixo do
+conteúdo daquele campo, na mesma visão de leitura já usada para revisar o plano:
 
-* Abra a linha de observação de um campo, digite um comentário, e ele salva automaticamente —
-  o professor vê um indicador visual direto naquele campo, ao lado do "Ver orientações do
-  modelo".
+* Digite um comentário na caixinha do campo, e ele salva automaticamente — o professor vê um
+  indicador visual direto naquele campo, ao lado do "Ver orientações do modelo".
 * As observações continuam visíveis durante um reenvio (`submitted` → `changes_requested` →
   `submitted` de novo), para que o professor consiga tratá-las sem perder o rastro do que foi
   sinalizado.
 * Aprovar o plano limpa todas as observações abertas — não sobra nada a tratar depois de
   aprovado.
+* A caixinha só aparece na visão de leitura da revisão — um usuário que também tenha a
+  capability de submissão (por exemplo, testando com a própria conta) nunca a vê duplicada na
+  sua própria visão de edição.
+
+## Observação para a coordenação no reenvio
+
+Ao reenviar após uma solicitação de ajustes, o professor recebe uma caixinha de texto opcional,
+logo acima do botão "Enviar para revisão", para explicar o que mudou:
+
+* Deixada em branco, o reenvio funciona exatamente como antes — a observação nunca é
+  obrigatória.
+* Preenchida, ela aparece na tela do plano para quem revisar em seguida, e entra na mensagem de
+  notificação da coordenação.
+* Ela some assim que o plano é aprovado, da mesma forma que o texto de justificativa da própria
+  coordenação.
 
 ## Quais edições reabrem a revisão, e quais nunca reabrem
 

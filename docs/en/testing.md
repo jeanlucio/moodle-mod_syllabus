@@ -46,10 +46,10 @@ approved, then verify what only a real, multi-user browser session can prove:
 
 | Test file | Cases |
 |-----------|------:|
-| `plan_state_manager_test.php` | 21 |
+| `plan_state_manager_test.php` | 23 |
 | `plan_completeness_checker_test.php` | 12 |
 | `structural_change_detector_test.php` | 4 |
-| **Subtotal** | **37** |
+| **Subtotal** | **39** |
 
 ### Web Services Tests (`tests/external/`)
 
@@ -64,26 +64,27 @@ approved, then verify what only a real, multi-user browser session can prove:
 | `unpublish_plan_test.php` | 4 |
 | `save_activity_test.php` | 3 |
 | `reset_field_description_test.php` | 3 |
+| `submit_plan_test.php` | 3 |
 | `delete_activity_test.php` | 2 |
 | `delete_week_test.php` | 2 |
-| `submit_plan_test.php` | 2 |
-| **Subtotal** | **53** |
+| **Subtotal** | **54** |
 
-### Output, Observer & Notification Tests (`tests/output/`, `tests/observer*.php`)
+### Output, Observer, Task & Notification Tests (`tests/output/`, `tests/task/`, `tests/observer*.php`)
 
 | Test file | Cases |
 |-----------|------:|
-| `output/tab_full_plan_test.php` | 8 |
+| `output/tab_full_plan_test.php` | 10 |
+| `task/send_workflow_notification_test.php` | 10 |
+| `observer_test.php` | 6 |
+| `output/plan_reader_test.php` | 6 |
 | `output/tab_visibility_test.php` | 5 |
-| `observer_notifications_test.php` | 5 |
-| `output/plan_reader_test.php` | 5 |
-| `observer_test.php` | 3 |
+| `output/plan_read_export_test.php` | 4 |
+| `observer_notifications_test.php` | 3 |
 | `output/narrative_editor_test.php` | 3 |
 | `output/plan_teacher_name_test.php` | 3 |
 | `output/renderer_test.php` | 3 |
 | `output/plan_programme_name_test.php` | 2 |
-| `output/plan_read_export_test.php` | 2 |
-| **Subtotal** | **39** |
+| **Subtotal** | **55** |
 
 ### Backup, Restore, Upgrade, Privacy & Security Tests
 
@@ -96,7 +97,7 @@ approved, then verify what only a real, multi-user browser session can prove:
 | `db_uninstall_test.php` | 1 |
 | **Subtotal** | **33** |
 
-| **Grand Total** | **183** |
+| **Grand Total** | **202** |
 
 ```bash
 vendor/bin/phpunit --bootstrap lib/phpunit/bootstrap.php mod/syllabus
@@ -125,6 +126,7 @@ vendor/bin/phpunit --bootstrap lib/phpunit/bootstrap.php mod/syllabus
 | `local\plan_completeness_checker` | 100% |
 | `local\plan_state_manager` | 100% |
 | `local\structural_change_detector` | 100% |
+| `observer` | 100% |
 | `output\narrative_editor` | 100% |
 | `output\plan_programme_name` | 100% |
 | `output\plan_read_export` | 100% |
@@ -133,10 +135,10 @@ vendor/bin/phpunit --bootstrap lib/phpunit/bootstrap.php mod/syllabus
 | `output\tab_full_plan` | 100% |
 | `output\tab_student_plan` | 100% |
 | `output\tab_tutor_plan` | 100% |
+| `task\send_workflow_notification` | 100% |
+| `external\save_customfield_value` | 98% |
 | `customfield\syllabus_handler_base` | 97% |
 | `output\plan_reader` | 97% |
-| `external\save_customfield_value` | 98% |
-| `observer` | 94% |
 | `privacy\provider` | 93% |
 | `customfield\activity_handler` | 88% |
 | `customfield\week_handler` | 80% |
@@ -147,7 +149,7 @@ vendor/bin/phpunit --bootstrap lib/phpunit/bootstrap.php mod/syllabus
 > The handful of classes still below 100% cover genuine, narrow gaps that were reviewed
 > individually and left untested as low-value, not overlooked — trivial `create()` wrappers
 > on the four Custom Field handlers, one branch of `save_customfield_value::execute()`, a
-> handful of early-return/`continue` guards in `observer`/`privacy\provider` for a malformed or
-> orphaned context, the zero-weeks branch of `plan_reader::weeks()`, the non-textarea skip in
+> handful of early-return/`continue` guards in `privacy\provider` for a malformed or orphaned
+> context, the zero-weeks branch of `plan_reader::weeks()`, the non-textarea skip in
 > `export_editable_fields()`, and `help_handler::resolve_syllabus_id()` (the `help` area has no
 > per-instance values, so that one-line method is never actually called).

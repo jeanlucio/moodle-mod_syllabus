@@ -26,14 +26,27 @@
 ## Coordinator review notes per field
 
 Beyond the single justification text used when requesting changes, coordination can leave a
-note on any specific narrative field (plan, week or activity) from a dedicated panel in the
-Full plan tab:
+note on any specific narrative field (plan, week or activity), right below that field's own
+content in the same read view already used to review the plan:
 
-* Open a field's note row, type a comment, and it autosaves — the teacher sees it as a visible
+* Type a comment in a field's note box and it autosaves — the teacher sees it as a visible
   indicator right on that field, next to its "View model guidance" toggle.
 * Notes stay visible through a resubmission (`submitted` → `changes_requested` → `submitted`
   again), so the teacher can address them without losing track of what was flagged.
 * Approving the plan clears every open note — there is nothing left to act on once approved.
+* The note box only appears in the read-only review view — a user who also holds the submit
+  capability (e.g. testing with one account) never sees it duplicated in their own edit view.
+
+## Resubmission note to coordination
+
+When resubmitting after changes were requested, the teacher gets an optional text box, right
+above the "Submit for review" button, to explain what changed:
+
+* Left blank, resubmitting works exactly as before — the note is never required.
+* Filled in, it is shown on the plan page to whoever reviews it next, and included in the
+  reviewer's notification message.
+* It disappears once the plan is approved, the same way the coordinator's own justification
+  text does.
 
 ## Which edits reopen review, and which never do
 

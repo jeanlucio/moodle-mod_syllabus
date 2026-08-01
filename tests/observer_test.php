@@ -104,6 +104,76 @@ final class observer_test extends advanced_testcase {
     }
 
     /**
+     * A syllabus row deleted before the event is handled (a race between the delete and the
+     * event dispatch) is a silent no-op, never a fatal error trying to read its status.
+     *
+     * @return void
+     */
+    public function test_is_a_noop_when_the_syllabus_row_no_longer_exists(): void {
+        global $DB;
+
+        $course = $this->getDataGenerator()->create_course();
+        $syllabus = $this->getDataGenerator()->create_module('syllabus', ['course' => $course->id]);
+        $cm = get_coursemodule_from_instance('syllabus', $syllabus->id, $course->id, false, MUST_EXIST);
+        $DB->delete_records('syllabus', ['id' => $syllabus->id]);
+
+        $modcontext = \context_module::instance($cm->id);
+        course_module_updated::create_from_cm($cm, $modcontext)->trigger();
+
+        $cmrow = $DB->get_record('course_modules', ['id' => $cm->id], '*', MUST_EXIST);
+        $this->assertEquals(0, $cmrow->visible, 'Visibility must be left untouched when the plan row is gone.');
+    }
+
+    /**
+     * A course_modules row deleted between the event firing and this handler running (e.g. the
+     * whole activity was removed) is also a silent no-op.
+     *
+     * @return void
+     */
+    public function test_is_a_noop_when_the_course_module_no_longer_exists(): void {
+        global $DB;
+
+        $course = $this->getDataGenerator()->create_course();
+        $syllabus = $this->getDataGenerator()->create_module('syllabus', ['course' => $course->id]);
+        $cm = get_coursemodule_from_instance('syllabus', $syllabus->id, $course->id, false, MUST_EXIST);
+        $modcontext = \context_module::instance($cm->id);
+        $event = course_module_updated::create_from_cm($cm, $modcontext);
+        $DB->delete_records('course_modules', ['id' => $cm->id]);
+
+        // Merely proving no exception is thrown is the point here — there is no course_modules
+        // row left to assert anything about.
+        $event->trigger();
+        $this->assertTrue(true);
+    }
+
+    /**
+     * The common case: visibility already matches what the plan's status mandates, so the
+     * observer has nothing to correct. A syllabus row is created with `visible = 0` but
+     * `visibleoncoursepage` defaults to 1 (mod lib.php never touches that second column), so a
+     * genuinely "already settled" state needs it forced to 0 explicitly first — otherwise the
+     * very first event on a fresh plan takes the *correction* branch instead of this one, since
+     * the two visibility columns start out mismatched with each other.
+     *
+     * @return void
+     */
+    public function test_is_a_noop_when_visibility_already_matches_the_status(): void {
+        global $DB;
+
+        $course = $this->getDataGenerator()->create_course();
+        $syllabus = $this->getDataGenerator()->create_module('syllabus', ['course' => $course->id]);
+        $cm = get_coursemodule_from_instance('syllabus', $syllabus->id, $course->id, false, MUST_EXIST);
+        $this->assertEquals(0, $cm->visible, 'Sanity check: a new draft plan must start hidden.');
+        $DB->set_field('course_modules', 'visibleoncoursepage', 0, ['id' => $cm->id]);
+
+        $modcontext = \context_module::instance($cm->id);
+        course_module_updated::create_from_cm($cm, $modcontext)->trigger();
+
+        $cmrow = $DB->get_record('course_modules', ['id' => $cm->id], '*', MUST_EXIST);
+        $this->assertEquals(0, $cmrow->visible);
+        $this->assertEquals(0, $cmrow->visibleoncoursepage);
+    }
+
+    /**
      * The observer ignores course modules belonging to other module types entirely.
      *
      * @return void

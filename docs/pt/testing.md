@@ -47,10 +47,10 @@ verificam o que só uma sessão de navegador real, com múltiplos usuários, con
 
 | Arquivo de teste | Casos |
 |-------------------|------:|
-| `plan_state_manager_test.php` | 21 |
+| `plan_state_manager_test.php` | 23 |
 | `plan_completeness_checker_test.php` | 12 |
 | `structural_change_detector_test.php` | 4 |
-| **Subtotal** | **37** |
+| **Subtotal** | **39** |
 
 ### Testes de Web Services (`tests/external/`)
 
@@ -65,26 +65,27 @@ verificam o que só uma sessão de navegador real, com múltiplos usuários, con
 | `unpublish_plan_test.php` | 4 |
 | `save_activity_test.php` | 3 |
 | `reset_field_description_test.php` | 3 |
+| `submit_plan_test.php` | 3 |
 | `delete_activity_test.php` | 2 |
 | `delete_week_test.php` | 2 |
-| `submit_plan_test.php` | 2 |
-| **Subtotal** | **53** |
+| **Subtotal** | **54** |
 
-### Testes de Output, Observer e Notificações (`tests/output/`, `tests/observer*.php`)
+### Testes de Output, Observer, Task e Notificações (`tests/output/`, `tests/task/`, `tests/observer*.php`)
 
 | Arquivo de teste | Casos |
 |-------------------|------:|
-| `output/tab_full_plan_test.php` | 8 |
+| `output/tab_full_plan_test.php` | 10 |
+| `task/send_workflow_notification_test.php` | 10 |
+| `observer_test.php` | 6 |
+| `output/plan_reader_test.php` | 6 |
 | `output/tab_visibility_test.php` | 5 |
-| `observer_notifications_test.php` | 5 |
-| `output/plan_reader_test.php` | 5 |
-| `observer_test.php` | 3 |
+| `output/plan_read_export_test.php` | 4 |
+| `observer_notifications_test.php` | 3 |
 | `output/narrative_editor_test.php` | 3 |
 | `output/plan_teacher_name_test.php` | 3 |
 | `output/renderer_test.php` | 3 |
 | `output/plan_programme_name_test.php` | 2 |
-| `output/plan_read_export_test.php` | 2 |
-| **Subtotal** | **39** |
+| **Subtotal** | **55** |
 
 ### Testes de Backup, Restore, Upgrade, Privacidade e Segurança
 
@@ -97,7 +98,7 @@ verificam o que só uma sessão de navegador real, com múltiplos usuários, con
 | `db_uninstall_test.php` | 1 |
 | **Subtotal** | **33** |
 
-| **Total geral** | **183** |
+| **Total geral** | **202** |
 
 ```bash
 vendor/bin/phpunit --bootstrap lib/phpunit/bootstrap.php mod/syllabus
@@ -134,10 +135,11 @@ vendor/bin/phpunit --bootstrap lib/phpunit/bootstrap.php mod/syllabus
 | `output\tab_full_plan` | 100% |
 | `output\tab_student_plan` | 100% |
 | `output\tab_tutor_plan` | 100% |
+| `observer` | 100% |
+| `task\send_workflow_notification` | 100% |
+| `external\save_customfield_value` | 98% |
 | `customfield\syllabus_handler_base` | 97% |
 | `output\plan_reader` | 97% |
-| `external\save_customfield_value` | 98% |
-| `observer` | 94% |
 | `privacy\provider` | 93% |
 | `customfield\activity_handler` | 88% |
 | `customfield\week_handler` | 80% |
@@ -149,7 +151,7 @@ vendor/bin/phpunit --bootstrap lib/phpunit/bootstrap.php mod/syllabus
 > individualmente e deixadas sem teste por serem de baixo valor, não por terem passado
 > despercebidas — wrappers triviais de `create()` nos quatro handlers de Custom Field, um ramo
 > de `save_customfield_value::execute()`, alguns guards de retorno antecipado/`continue` em
-> `observer`/`privacy\provider` para um contexto malformado ou órfão, o ramo de plano sem
-> nenhuma aula em `plan_reader::weeks()`, o skip de campo não-textarea em
-> `export_editable_fields()`, e `help_handler::resolve_syllabus_id()` (a área `help` não tem
-> valores por instância, então esse método de uma linha nunca é chamado de verdade).
+> `privacy\provider` para um contexto malformado ou órfão, o ramo de plano sem nenhuma aula em
+> `plan_reader::weeks()`, o skip de campo não-textarea em `export_editable_fields()`, e
+> `help_handler::resolve_syllabus_id()` (a área `help` não tem valores por instância, então
+> esse método de uma linha nunca é chamado de verdade).

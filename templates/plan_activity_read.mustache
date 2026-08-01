@@ -25,7 +25,8 @@
     The coordinator's review notes are rendered inline right below each narrative field, via
     the ...reviewnote objects — see plan_week_read.mustache for the full rationale (same
     context-stack-fallback pattern for canreview, same null/missing-by-default safety for the
-    student/tutor tabs).
+    student/tutor tabs). The same fallback carries the "changed since last review" indicators
+    (isnew/structurechanged/...changed) — see plan_snapshot.
 
     Example context (json):
     {
@@ -41,11 +42,22 @@
         "tutorguidance": "<p>Review posts and assign points using the rubric.</p>",
         "studentinstructionsreviewnote": null,
         "gradingcriteriareviewnote": null,
-        "tutorguidancereviewnote": null
+        "tutorguidancereviewnote": null,
+        "isnew": false,
+        "structurechanged": false,
+        "studentinstructionschanged": false,
+        "gradingcriteriachanged": false,
+        "tutorguidancechanged": false
     }
 }}
 <div class="syllabus-activity-read border rounded p-2 mb-2">
-    <h5 class="mb-1">{{title}}</h5>
+    <h5 class="mb-1">
+        {{title}}
+        {{#canreview}}
+            {{#isnew}}<span class="badge bg-primary syllabus-changed-badge">{{#str}} newsincereview, mod_syllabus {{/str}}</span>{{/isnew}}
+            {{^isnew}}{{#structurechanged}}<span class="badge bg-primary syllabus-changed-badge">{{#str}} changedsincereview, mod_syllabus {{/str}}</span>{{/structurechanged}}{{/isnew}}
+        {{/canreview}}
+    </h5>
     <p class="small text-muted mb-2">
         {{#type}}{{type}}{{/type}}{{#category}} · {{category}}{{/category}}
         {{#startdate}}
@@ -54,11 +66,13 @@
         {{/startdate}}
         {{#points}} · {{points}} {{#str}} activitypoints, mod_syllabus {{/str}}{{/points}}
     </p>
+    {{#canreview}}{{#studentinstructionschanged}}<span class="badge bg-primary syllabus-changed-badge">{{#str}} changedsincereview, mod_syllabus {{/str}}</span>{{/studentinstructionschanged}}{{/canreview}}
     {{#studentinstructions}}
     <div class="syllabus-studentinstructions">{{{studentinstructions}}}</div>
     {{/studentinstructions}}
     {{#canreview}}{{#studentinstructionsreviewnote}}{{> mod_syllabus/review_note_row }}{{/studentinstructionsreviewnote}}{{/canreview}}
     {{#showtutorfields}}
+        {{#canreview}}{{#gradingcriteriachanged}}<span class="badge bg-primary syllabus-changed-badge">{{#str}} changedsincereview, mod_syllabus {{/str}}</span>{{/gradingcriteriachanged}}{{/canreview}}
         {{#gradingcriteria}}
         <div class="alert alert-secondary mt-2 mb-0">
             <strong>{{#str}} gradingcriteria, mod_syllabus {{/str}}:</strong>
@@ -66,6 +80,7 @@
         </div>
         {{/gradingcriteria}}
         {{#canreview}}{{#gradingcriteriareviewnote}}{{> mod_syllabus/review_note_row }}{{/gradingcriteriareviewnote}}{{/canreview}}
+        {{#canreview}}{{#tutorguidancechanged}}<span class="badge bg-primary syllabus-changed-badge">{{#str}} changedsincereview, mod_syllabus {{/str}}</span>{{/tutorguidancechanged}}{{/canreview}}
         {{#tutorguidance}}
         <div class="alert alert-secondary mt-2 mb-0">
             <strong>{{#str}} tutorguidance, mod_syllabus {{/str}}:</strong>

@@ -16,6 +16,7 @@
 
 namespace mod_syllabus\local;
 
+use mod_syllabus\output\plan_reader;
 use moodle_exception;
 use stdClass;
 
@@ -83,7 +84,9 @@ final class plan_state_manager {
      * Also clears every per-field coordinator review note left on this plan (see
      * save_review_note) — approval is the same "clean slate" moment that already nulls
      * changesrequestedreason and resubmissionnote, and a note left on an approved plan would
-     * have no author-facing meaning left to convey.
+     * have no author-facing meaning left to convey. Also re-baselines reviewsnapshot (see
+     * plan_snapshot) to the plan's state as of this decision, so the next "what changed since
+     * the last review" diff starts counting from here, not from whatever was reviewed before.
      *
      * @param int $syllabusid ID of the syllabus record.
      * @param int $reviewerid ID of the coordinator approving the plan.
@@ -102,6 +105,7 @@ final class plan_state_manager {
         $plan->timereviewed = $now;
         $plan->changesrequestedreason = null;
         $plan->resubmissionnote = null;
+        $plan->reviewsnapshot = self::snapshot_json($plan);
         $plan->timemodified = $now;
         $DB->update_record('syllabus', $plan);
         $DB->delete_records('syllabus_review_notes', ['syllabusid' => $syllabusid]);
@@ -114,6 +118,10 @@ final class plan_state_manager {
 
     /**
      * Sends a submitted plan back to the author with a justification.
+     *
+     * Also re-baselines reviewsnapshot (see plan_snapshot) to the plan's state as of this
+     * decision — the resubmission that follows is diffed against exactly what the coordinator
+     * saw when they asked for changes, same rationale as approve()'s own re-baseline.
      *
      * @param int $syllabusid ID of the syllabus record.
      * @param int $reviewerid ID of the coordinator requesting changes.
@@ -132,6 +140,7 @@ final class plan_state_manager {
         $plan->reviewedby = $reviewerid;
         $plan->timereviewed = $now;
         $plan->changesrequestedreason = $reason;
+        $plan->reviewsnapshot = self::snapshot_json($plan);
         $plan->timemodified = $now;
         $DB->update_record('syllabus', $plan);
     }
@@ -264,5 +273,18 @@ final class plan_state_manager {
         if ((int) $plan->submittedby === $reviewerid) {
             throw new moodle_exception('cannotapproveown', 'mod_syllabus');
         }
+    }
+
+    /**
+     * Builds the plan's current field-value snapshot (see plan_snapshot), JSON-encoded ready
+     * for reviewsnapshot — the baseline the next "what changed since the last review" diff
+     * compares against.
+     *
+     * @param stdClass $plan Syllabus record being decided on.
+     * @return string
+     */
+    private static function snapshot_json(stdClass $plan): string {
+        $reader = new plan_reader($plan);
+        return json_encode(plan_snapshot::build($plan, $reader->plan_narrative(), $reader->weeks(), $reader));
     }
 }

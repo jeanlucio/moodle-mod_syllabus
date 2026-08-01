@@ -318,5 +318,17 @@ function xmldb_syllabus_upgrade(int $oldversion): bool {
         upgrade_mod_savepoint(true, 2026080100, 'syllabus');
     }
 
+    if ($oldversion < 2026080200) {
+        $dbman = $DB->get_manager();
+
+        $syllabustable = new xmldb_table('syllabus');
+        $reviewsnapshotfield = new xmldb_field('reviewsnapshot', XMLDB_TYPE_TEXT, null, null, null, null, null);
+        if (!$dbman->field_exists($syllabustable, $reviewsnapshotfield)) {
+            $dbman->add_field($syllabustable, $reviewsnapshotfield);
+        }
+
+        upgrade_mod_savepoint(true, 2026080200, 'syllabus');
+    }
+
     return true;
 }

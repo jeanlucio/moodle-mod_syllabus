@@ -227,4 +227,147 @@ final class plan_read_export_test extends advanced_testcase {
         $this->assertNotNull($withnotes[0]->activities[0]->studentinstructionsreviewnote);
         $this->assertSame('', $withnotes[0]->activities[0]->studentinstructionsreviewnote->coordinatornote);
     }
+
+    /**
+     * Seeds a course with a syllabus, one week and one activity — same fixture shape as
+     * test_weeks_review_note_only_attached_when_requested, reused by the change-indicator
+     * tests below.
+     *
+     * @return array{0: \stdClass, 1: int, 2: int} Syllabus, weekid, activityid.
+     */
+    private function seed_week_and_activity(): array {
+        global $DB;
+
+        $course = $this->getDataGenerator()->create_course();
+        $syllabus = $this->getDataGenerator()->create_module('syllabus', ['course' => $course->id]);
+        $now = time();
+        $weekid = (int) $DB->insert_record('syllabus_weeks', [
+            'syllabusid' => $syllabus->id, 'title' => 'Week 1', 'duration' => 8,
+            'startdate' => $now, 'enddate' => $now + WEEKSECS, 'sortorder' => 0,
+            'timecreated' => $now, 'timemodified' => $now,
+        ]);
+        $activityid = (int) $DB->insert_record('syllabus_activities', [
+            'weekid' => $weekid, 'title' => 'Kickoff forum', 'type' => 'forum', 'category' => 'synchronous',
+            'startdate' => $now, 'enddate' => $now + WEEKSECS, 'sortorder' => 0,
+            'timecreated' => $now, 'timemodified' => $now,
+        ]);
+
+        return [$syllabus, $weekid, $activityid];
+    }
+
+    /**
+     * weeks() only attaches isnew/...changed/structurechanged when $changediff is passed —
+     * same "not even a null property" absence tab_visibility_test.php's reviewnote sibling
+     * already established, so a template can never accidentally render a badge for a role
+     * that never gets this parameter at all (tutor/student).
+     *
+     * @return void
+     */
+    public function test_weeks_change_indicators_only_attached_when_requested(): void {
+        [$syllabus, ] = $this->seed_week_and_activity();
+        $reader = new plan_reader($syllabus);
+        $weeks = $reader->weeks();
+
+        $withoutdiff = plan_read_export::weeks($reader, $weeks, true);
+        $this->assertFalse(property_exists($withoutdiff[0], 'isnew'));
+        $this->assertFalse(property_exists($withoutdiff[0], 'detailschanged'));
+        $this->assertFalse(property_exists($withoutdiff[0]->activities[0], 'isnew'));
+
+        $emptydiff = ['planfields' => [], 'weeks' => [], 'activities' => [], 'newweekids' => [], 'newactivityids' => []];
+        $withdiff = plan_read_export::weeks($reader, $weeks, true, false, [], $emptydiff);
+        $this->assertFalse($withdiff[0]->isnew);
+        $this->assertFalse($withdiff[0]->detailschanged);
+    }
+
+    /**
+     * A week whose id is in newweekids exports isnew true; a week with changed keys reported
+     * against its own id exports the matching narrative ...changed flags, and structurechanged
+     * true only when at least one of those keys is a structural column, not a narrative
+     * shortname — 'duration' counts, 'details' alone does not.
+     *
+     * @return void
+     */
+    public function test_weeks_change_indicators_reflect_the_diff(): void {
+        [$syllabus, $weekid, ] = $this->seed_week_and_activity();
+        $reader = new plan_reader($syllabus);
+        $weeks = $reader->weeks();
+
+        $diff = [
+            'planfields' => [], 'activities' => [], 'newactivityids' => [],
+            'newweekids' => [], 'weeks' => [$weekid => ['details', 'duration']],
+        ];
+        $exported = plan_read_export::weeks($reader, $weeks, true, false, [], $diff);
+        $this->assertFalse($exported[0]->isnew);
+        $this->assertTrue($exported[0]->detailschanged);
+        $this->assertFalse($exported[0]->supportmaterialchanged);
+        $this->assertTrue($exported[0]->structurechanged);
+
+        $newweekdiff = [
+            'planfields' => [], 'activities' => [], 'newactivityids' => [],
+            'newweekids' => [$weekid], 'weeks' => [],
+        ];
+        $newexported = plan_read_export::weeks($reader, $weeks, true, false, [], $newweekdiff);
+        $this->assertTrue($newexported[0]->isnew);
+    }
+
+    /**
+     * Same rationale as test_weeks_change_indicators_reflect_the_diff, one level down: an
+     * activity's own id in newactivityids, changed narrative fields (including the
+     * showtutorfields-gated gradingcriteria/tutorguidance), and structurechanged from a
+     * structural-only key like 'points'.
+     *
+     * @return void
+     */
+    public function test_activities_change_indicators_reflect_the_diff(): void {
+        [$syllabus, $weekid, $activityid] = $this->seed_week_and_activity();
+        $reader = new plan_reader($syllabus);
+        $weeks = $reader->weeks();
+
+        $diff = [
+            'planfields' => [], 'newweekids' => [], 'weeks' => [],
+            'newactivityids' => [],
+            'activities' => [$activityid => ['gradingcriteria', 'points']],
+        ];
+        $exported = plan_read_export::weeks($reader, $weeks, true, false, [], $diff);
+        $activity = $exported[0]->activities[0];
+        $this->assertFalse($activity->isnew);
+        $this->assertTrue($activity->gradingcriteriachanged);
+        $this->assertFalse($activity->tutorguidancechanged);
+        $this->assertFalse($activity->studentinstructionschanged);
+        $this->assertTrue($activity->structurechanged);
+
+        $newactivitydiff = [
+            'planfields' => [], 'newweekids' => [], 'weeks' => [],
+            'newactivityids' => [$activityid], 'activities' => [],
+        ];
+        $withnew = plan_read_export::weeks($reader, $weeks, true, false, [], $newactivitydiff);
+        $this->assertTrue($withnew[0]->activities[0]->isnew);
+    }
+
+    /**
+     * final_assessment() splits the same flat 'planfields' list into instructionschanged (the
+     * block's own narrative field) versus structurechanged (any of its structural columns),
+     * only when $changediff is passed at all.
+     *
+     * @return void
+     */
+    public function test_final_assessment_change_indicators_reflect_the_diff(): void {
+        $course = $this->getDataGenerator()->create_course();
+        $syllabus = $this->getDataGenerator()->create_module('syllabus', ['course' => $course->id]);
+        $reader = new plan_reader($syllabus);
+        $narrative = $reader->plan_narrative();
+
+        $withoutdiff = plan_read_export::final_assessment($syllabus, $narrative);
+        $this->assertFalse(property_exists($withoutdiff, 'instructionschanged'));
+
+        $diff = ['planfields' => ['finalassessmentinstructions']];
+        $instructionschanged = plan_read_export::final_assessment($syllabus, $narrative, false, null, [], [], $diff);
+        $this->assertTrue($instructionschanged->instructionschanged);
+        $this->assertFalse($instructionschanged->structurechanged);
+
+        $structuraldiff = ['planfields' => ['finalassessmenttitle']];
+        $structurechanged = plan_read_export::final_assessment($syllabus, $narrative, false, null, [], [], $structuraldiff);
+        $this->assertFalse($structurechanged->instructionschanged);
+        $this->assertTrue($structurechanged->structurechanged);
+    }
 }

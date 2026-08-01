@@ -18,6 +18,7 @@ namespace mod_syllabus\output;
 
 use context_module;
 use mod_syllabus\customfield\plan_handler;
+use mod_syllabus\local\plan_snapshot;
 use mod_syllabus\local\plan_state_manager;
 use renderable;
 use renderer_base;
@@ -77,6 +78,18 @@ final class tab_full_plan implements renderable, templatable {
     private const GRADEMETHOD_OPTIONS = [
         'sum'     => 'grademethodsum',
         'average' => 'grademethodaverage',
+    ];
+
+    /**
+     * Characterisation columns actually rendered in the read-only grid — narrower than
+     * plan_snapshot's full plan-level structural set (which also tracks presentationvideourl/
+     * stagecount/grademethod) on purpose: a "Characterisation changed" badge would be
+     * misleading next to a grid that visibly shows none of those three changing.
+     *
+     * @var string[]
+     */
+    private const CHARACTERISATION_DISPLAYED_FIELDS = [
+        'academicperiod', 'coursestartdate', 'courseenddate', 'totalduration',
     ];
 
     /** @var stdClass The syllabus record. */
@@ -263,7 +276,18 @@ final class tab_full_plan implements renderable, templatable {
                 $data->tinyconfig = json_encode(narrative_editor::base_config($context));
             }
         } else {
-            $data->readweeks = plan_read_export::weeks($reader, $weeks, true, $canreview, $reviewnotes);
+            // Only meaningful while the plan is awaiting the coordinator's decision on THIS
+            // submission: gated on status, not merely on reviewsnapshot being non-empty, so a
+            // diff from a much earlier cycle never resurfaces once the plan has moved on — same
+            // defensive pattern as changesrequestedreason/resubmissionnote above.
+            $changediff = null;
+            if ($canreview && $status === plan_state_manager::STATUS_SUBMITTED && !empty($this->syllabus->reviewsnapshot)) {
+                $oldsnapshot = json_decode($this->syllabus->reviewsnapshot, true) ?: [];
+                $newsnapshot = plan_snapshot::build($this->syllabus, $narrative, $weeks, $reader);
+                $changediff = plan_snapshot::diff($oldsnapshot, $newsnapshot);
+            }
+
+            $data->readweeks = plan_read_export::weeks($reader, $weeks, true, $canreview, $reviewnotes, $changediff);
             $data->hasweeks = !empty($data->readweeks);
             $finalassessment = plan_read_export::final_assessment(
                 $this->syllabus,
@@ -271,7 +295,8 @@ final class tab_full_plan implements renderable, templatable {
                 $canreview,
                 $reader,
                 $finalassessmentfielddata,
-                $reviewnotes
+                $reviewnotes,
+                $changediff
             );
             $data->finalassessment = $finalassessment;
             $data->hasfinalassessment = trim((string) $finalassessment->title) !== '';
@@ -294,6 +319,22 @@ final class tab_full_plan implements renderable, templatable {
                 $data->methodologyreviewnote = $planreviewnotefields['methodology'] ?? null;
                 $data->presentationscriptreviewnote = $planreviewnotefields['presentationscript'] ?? null;
                 $data->generalreferencesreviewnote = $planreviewnotefields['generalreferences'] ?? null;
+            }
+
+            if ($changediff !== null) {
+                $planfields = $changediff['planfields'];
+                $data->coursedescriptionchanged = in_array('coursedescription', $planfields, true);
+                $data->objectiveschanged = in_array('objectives', $planfields, true);
+                $data->contentschanged = in_array('contents', $planfields, true);
+                $data->methodologychanged = in_array('methodology', $planfields, true);
+                $data->presentationscriptchanged = in_array('presentationscript', $planfields, true);
+                $data->generalreferenceschanged = in_array('generalreferences', $planfields, true);
+                $data->characterisationchanged =
+                    !empty(array_intersect($planfields, self::CHARACTERISATION_DISPLAYED_FIELDS));
+
+                $removed = array_merge($changediff['removedweektitles'], $changediff['removedactivitylabels']);
+                $data->hasremovedsincereview = !empty($removed);
+                $data->removedsincereviewlist = implode(', ', $removed);
             }
         }
 

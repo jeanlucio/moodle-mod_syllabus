@@ -131,7 +131,16 @@
         "contentsreviewnote": null,
         "methodologyreviewnote": null,
         "presentationscriptreviewnote": null,
-        "generalreferencesreviewnote": null
+        "generalreferencesreviewnote": null,
+        "coursedescriptionchanged": false,
+        "objectiveschanged": false,
+        "contentschanged": false,
+        "methodologychanged": false,
+        "presentationscriptchanged": false,
+        "generalreferenceschanged": false,
+        "characterisationchanged": false,
+        "hasremovedsincereview": false,
+        "removedsincereviewlist": ""
     }
 }}
 <div class="path-mod-syllabus syllabus-tab-full" data-cmid="{{cmid}}">
@@ -322,7 +331,10 @@
     {{/caneditcontent}}
 
     {{^caneditcontent}}
-        <h3>{{#str}} characterisation, mod_syllabus {{/str}}</h3>
+        <h3>
+            {{#str}} characterisation, mod_syllabus {{/str}}
+            {{#canreview}}{{#characterisationchanged}}<span class="badge bg-primary syllabus-changed-badge">{{#str}} changedsincereview, mod_syllabus {{/str}}</span>{{/characterisationchanged}}{{/canreview}}
+        </h3>
         <div class="syllabus-characterisation-grid mb-3">
             <div>
                 <span class="syllabus-grid-label">{{#str}} studyprogram, mod_syllabus {{/str}}</span>
@@ -356,18 +368,22 @@
         </div>
 
         <h3>{{#str}} coursedescription, mod_syllabus {{/str}}</h3>
+        {{#canreview}}{{#coursedescriptionchanged}}<span class="badge bg-primary syllabus-changed-badge">{{#str}} changedsincereview, mod_syllabus {{/str}}</span>{{/coursedescriptionchanged}}{{/canreview}}
         <div class="syllabus-coursedescription mb-2">{{{coursedescription}}}</div>
         {{#canreview}}{{#coursedescriptionreviewnote}}{{> mod_syllabus/review_note_row }}{{/coursedescriptionreviewnote}}{{/canreview}}
 
         <h3>{{#str}} objectives, mod_syllabus {{/str}}</h3>
+        {{#canreview}}{{#objectiveschanged}}<span class="badge bg-primary syllabus-changed-badge">{{#str}} changedsincereview, mod_syllabus {{/str}}</span>{{/objectiveschanged}}{{/canreview}}
         <div class="syllabus-objectives mb-2">{{{objectives}}}</div>
         {{#canreview}}{{#objectivesreviewnote}}{{> mod_syllabus/review_note_row }}{{/objectivesreviewnote}}{{/canreview}}
 
         <h3>{{#str}} contents, mod_syllabus {{/str}}</h3>
+        {{#canreview}}{{#contentschanged}}<span class="badge bg-primary syllabus-changed-badge">{{#str}} changedsincereview, mod_syllabus {{/str}}</span>{{/contentschanged}}{{/canreview}}
         <div class="syllabus-contents mb-2">{{{contents}}}</div>
         {{#canreview}}{{#contentsreviewnote}}{{> mod_syllabus/review_note_row }}{{/contentsreviewnote}}{{/canreview}}
 
         <h3>{{#str}} methodology, mod_syllabus {{/str}}</h3>
+        {{#canreview}}{{#methodologychanged}}<span class="badge bg-primary syllabus-changed-badge">{{#str}} changedsincereview, mod_syllabus {{/str}}</span>{{/methodologychanged}}{{/canreview}}
         <div class="syllabus-methodology mb-2">{{{methodology}}}</div>
         {{#canreview}}{{#methodologyreviewnote}}{{> mod_syllabus/review_note_row }}{{/methodologyreviewnote}}{{/canreview}}
 
@@ -375,6 +391,7 @@
         <h3>{{#str}} presentationscript, mod_syllabus {{/str}}</h3>
         <div class="syllabus-presentationscript mb-2">{{{presentationscript}}}</div>
         {{/presentationscript}}
+        {{#canreview}}{{#presentationscriptchanged}}<span class="badge bg-primary syllabus-changed-badge">{{#str}} changedsincereview, mod_syllabus {{/str}}</span>{{/presentationscriptchanged}}{{/canreview}}
         {{#canreview}}{{#presentationscriptreviewnote}}{{> mod_syllabus/review_note_row }}{{/presentationscriptreviewnote}}{{/canreview}}
 
         <h3>{{#str}} weeks, mod_syllabus {{/str}}</h3>
@@ -393,6 +410,7 @@
         <h3>{{#str}} generalreferences, mod_syllabus {{/str}}</h3>
         <div class="syllabus-generalreferences mb-2">{{{generalreferences}}}</div>
         {{/generalreferences}}
+        {{#canreview}}{{#generalreferenceschanged}}<span class="badge bg-primary syllabus-changed-badge">{{#str}} changedsincereview, mod_syllabus {{/str}}</span>{{/generalreferenceschanged}}{{/canreview}}
         {{#canreview}}{{#generalreferencesreviewnote}}{{> mod_syllabus/review_note_row }}{{/generalreferencesreviewnote}}{{/canreview}}
 
         {{> mod_syllabus/plan_schedule }}
@@ -409,6 +427,12 @@
         <strong>{{#str}} resubmissionnote, mod_syllabus {{/str}}:</strong> {{resubmissionnote}}
     </div>
     {{/resubmissionnote}}
+
+    {{#hasremovedsincereview}}
+    <div class="alert alert-secondary syllabus-removed-since-review">
+        <strong>{{#str}} removedsincereview, mod_syllabus {{/str}}:</strong> {{removedsincereviewlist}}
+    </div>
+    {{/hasremovedsincereview}}
 
     <div class="syllabus-workflow-actions mt-4">
         {{#cansubmit}}

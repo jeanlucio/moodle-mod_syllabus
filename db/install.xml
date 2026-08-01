@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<XMLDB PATH="mod/syllabus/db" VERSION="20260801" COMMENT="XMLDB file for mod_syllabus"
+<XMLDB PATH="mod/syllabus/db" VERSION="20260802" COMMENT="XMLDB file for mod_syllabus"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:noNamespaceSchemaLocation="../../../lib/xmldb/xmldb.xsd"
 >
@@ -18,6 +18,7 @@
         <FIELD NAME="timereviewed" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false"/>
         <FIELD NAME="changesrequestedreason" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="Coordinator justification when status is changes_requested"/>
         <FIELD NAME="resubmissionnote" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="Author's optional note to the coordinator when resubmitting after changes were requested"/>
+        <FIELD NAME="reviewsnapshot" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="JSON snapshot of the plan's fields as of the coordinator's last decision, for diffing against on the next review"/>
         <FIELD NAME="unpublishedby" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="FK to user - who last pulled an approved plan back to draft"/>
         <FIELD NAME="timeunpublished" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false"/>
         <FIELD NAME="academicperiod" TYPE="char" LENGTH="20" NOTNULL="false" SEQUENCE="false" COMMENT="Characterisation: academic year/term, e.g. 2026.1"/>

@@ -28,7 +28,9 @@
     read branch, canreview true) — resolved through Mustache's normal context-stack fallback
     to the top-level canreview flag, same pattern as structuralhelp in week_row.mustache.
     Absent (null/missing) for the student/tutor tabs, so nothing renders there regardless of
-    the viewer's own capabilities.
+    the viewer's own capabilities. The same context-stack fallback carries the "changed since
+    last review" indicators (isnew/structurechanged/...changed) — see plan_snapshot for how
+    they are computed, only ever populated alongside the review notes.
 
     Example context (json):
     {
@@ -53,7 +55,14 @@
         "supportmaterialreviewnote": null,
         "supplementarymaterialreviewnote": null,
         "interactiontoolsreviewnote": null,
-        "notesreviewnote": null
+        "notesreviewnote": null,
+        "isnew": false,
+        "structurechanged": false,
+        "detailschanged": false,
+        "supportmaterialchanged": false,
+        "supplementarymaterialchanged": false,
+        "interactiontoolschanged": false,
+        "noteschanged": false
     }
 }}
 <div class="syllabus-week-read border rounded p-3 mb-3">
@@ -66,8 +75,13 @@
         </small>
         {{/startdate}}
         {{#duration}}<small class="text-muted"> · {{duration}} {{#str}} weekduration, mod_syllabus {{/str}}</small>{{/duration}}
+        {{#canreview}}
+            {{#isnew}}<span class="badge bg-primary syllabus-changed-badge">{{#str}} newsincereview, mod_syllabus {{/str}}</span>{{/isnew}}
+            {{^isnew}}{{#structurechanged}}<span class="badge bg-primary syllabus-changed-badge">{{#str}} changedsincereview, mod_syllabus {{/str}}</span>{{/structurechanged}}{{/isnew}}
+        {{/canreview}}
     </h4>
 
+    {{#canreview}}{{#detailschanged}}<span class="badge bg-primary syllabus-changed-badge">{{#str}} changedsincereview, mod_syllabus {{/str}}</span>{{/detailschanged}}{{/canreview}}
     {{#details}}<div class="syllabus-details mb-2">{{{details}}}</div>{{/details}}
     {{#canreview}}{{#detailsreviewnote}}{{> mod_syllabus/review_note_row }}{{/detailsreviewnote}}{{/canreview}}
 
@@ -80,6 +94,7 @@
     </div>
     {{/hassync}}
 
+    {{#canreview}}{{#supportmaterialchanged}}<span class="badge bg-primary syllabus-changed-badge">{{#str}} changedsincereview, mod_syllabus {{/str}}</span>{{/supportmaterialchanged}}{{/canreview}}
     {{#supportmaterial}}
     <div class="syllabus-supportmaterial mb-2">
         <strong>{{#str}} supportmaterial, mod_syllabus {{/str}}:</strong>
@@ -87,6 +102,7 @@
     </div>
     {{/supportmaterial}}
     {{#canreview}}{{#supportmaterialreviewnote}}{{> mod_syllabus/review_note_row }}{{/supportmaterialreviewnote}}{{/canreview}}
+    {{#canreview}}{{#supplementarymaterialchanged}}<span class="badge bg-primary syllabus-changed-badge">{{#str}} changedsincereview, mod_syllabus {{/str}}</span>{{/supplementarymaterialchanged}}{{/canreview}}
     {{#supplementarymaterial}}
     <div class="syllabus-supplementarymaterial mb-2">
         <strong>{{#str}} supplementarymaterial, mod_syllabus {{/str}}:</strong>
@@ -96,6 +112,7 @@
     {{#canreview}}{{#supplementarymaterialreviewnote}}{{> mod_syllabus/review_note_row }}{{/supplementarymaterialreviewnote}}{{/canreview}}
 
     {{#showtutorfields}}
+        {{#canreview}}{{#interactiontoolschanged}}<span class="badge bg-primary syllabus-changed-badge">{{#str}} changedsincereview, mod_syllabus {{/str}}</span>{{/interactiontoolschanged}}{{/canreview}}
         {{#interactiontools}}
         <div class="alert alert-secondary">
             <strong>{{#str}} interactiontools, mod_syllabus {{/str}}:</strong>
@@ -103,6 +120,7 @@
         </div>
         {{/interactiontools}}
         {{#canreview}}{{#interactiontoolsreviewnote}}{{> mod_syllabus/review_note_row }}{{/interactiontoolsreviewnote}}{{/canreview}}
+        {{#canreview}}{{#noteschanged}}<span class="badge bg-primary syllabus-changed-badge">{{#str}} changedsincereview, mod_syllabus {{/str}}</span>{{/noteschanged}}{{/canreview}}
         {{#notes}}
         <div class="alert alert-secondary">
             <strong>{{#str}} notes, mod_syllabus {{/str}}:</strong>

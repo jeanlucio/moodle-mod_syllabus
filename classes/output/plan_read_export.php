@@ -35,6 +35,36 @@ use stdClass;
  */
 final class plan_read_export {
     /**
+     * Week-level narrative Custom Field shortnames — used to tell a structural change (any
+     * other changed key reported by plan_snapshot::diff() for a week) apart from a narrative
+     * content change.
+     *
+     * @var string[]
+     */
+    private const WEEK_NARRATIVE_SHORTNAMES = [
+        'details', 'supportmaterial', 'supplementarymaterial', 'interactiontools', 'notes',
+    ];
+
+    /**
+     * Activity-level narrative Custom Field shortnames — same rationale as
+     * WEEK_NARRATIVE_SHORTNAMES, one level down.
+     *
+     * @var string[]
+     */
+    private const ACTIVITY_NARRATIVE_SHORTNAMES = ['studentinstructions', 'gradingcriteria', 'tutorguidance'];
+
+    /**
+     * Plan-level Final assessment structural columns — used to tell a structural change apart
+     * from the block's own narrative instructions field changing.
+     *
+     * @var string[]
+     */
+    private const FINAL_ASSESSMENT_STRUCTURAL_FIELDS = [
+        'finalassessmenttitle', 'finalassessmenttype', 'finalassessmentstartdate',
+        'finalassessmentenddate', 'finalassessmentpoints',
+    ];
+
+    /**
      * Exports a read-only view of every week returned by plan_reader::weeks().
      *
      * @param plan_reader $reader Used to flatten each week's/activity's raw Custom Field data.
@@ -45,6 +75,9 @@ final class plan_read_export {
      *     rendering right under it — only the coordinator's own read of Tab 1 sets this,
      *     never the tutor/student tabs.
      * @param array $reviewnotes Result of plan_reader::review_notes(), for this same plan.
+     * @param array|null $changediff Result of plan_snapshot::diff(), for attaching
+     *     "changed"/"new" indicators next to each field/week — only the coordinator's own read
+     *     of Tab 1 sets this, and only while the plan is awaiting review (see tab_full_plan.php).
      * @return stdClass[]
      */
     public static function weeks(
@@ -52,7 +85,8 @@ final class plan_read_export {
         array $weeks,
         bool $showtutorfields,
         bool $includereviewnotes = false,
-        array $reviewnotes = []
+        array $reviewnotes = [],
+        ?array $changediff = null
     ): array {
         $result = [];
         foreach ($weeks as $week) {
@@ -76,7 +110,8 @@ final class plan_read_export {
                     $week->activities,
                     $showtutorfields,
                     $includereviewnotes,
-                    $reviewnotes
+                    $reviewnotes,
+                    $changediff
                 ),
                 'hasactivities'         => !empty($week->activities),
             ];
@@ -93,6 +128,21 @@ final class plan_read_export {
                     $data['interactiontoolsreviewnote'] = $notefields['interactiontools'] ?? null;
                     $data['notesreviewnote'] = $notefields['notes'] ?? null;
                 }
+            }
+            if ($changediff !== null) {
+                // Cast to int: $DB->get_records() returns numeric columns as strings on some
+                // DB drivers (confirmed on pgsql), which would silently fail this strict
+                // comparison against plan_snapshot::diff()'s int ids otherwise.
+                $data['isnew'] = in_array((int) $week->id, $changediff['newweekids'] ?? [], true);
+                $weekchanges = $changediff['weeks'][$week->id] ?? [];
+                $data['detailschanged'] = in_array('details', $weekchanges, true);
+                $data['supportmaterialchanged'] = in_array('supportmaterial', $weekchanges, true);
+                $data['supplementarymaterialchanged'] = in_array('supplementarymaterial', $weekchanges, true);
+                if ($showtutorfields) {
+                    $data['interactiontoolschanged'] = in_array('interactiontools', $weekchanges, true);
+                    $data['noteschanged'] = in_array('notes', $weekchanges, true);
+                }
+                $data['structurechanged'] = !empty(array_diff($weekchanges, self::WEEK_NARRATIVE_SHORTNAMES));
             }
             $result[] = (object) $data;
         }
@@ -112,6 +162,8 @@ final class plan_read_export {
      * @param array $finalassessmentfielddata Field id => data_controller for the
      *     finalassessmentinstructions field, required when $includereviewnotes is true.
      * @param array $reviewnotes Result of plan_reader::review_notes(), for this same plan.
+     * @param array|null $changediff Result of plan_snapshot::diff() — see weeks() for the full
+     *     rationale.
      * @return stdClass
      */
     public static function final_assessment(
@@ -120,7 +172,8 @@ final class plan_read_export {
         bool $includereviewnotes = false,
         ?plan_reader $reader = null,
         array $finalassessmentfielddata = [],
-        array $reviewnotes = []
+        array $reviewnotes = [],
+        ?array $changediff = null
     ): stdClass {
         $data = [
             'title'        => $syllabus->finalassessmenttitle,
@@ -134,6 +187,11 @@ final class plan_read_export {
             $notefields = $reader->review_note_fields($finalassessmentfielddata, 'plan', $reviewnotes);
             $data['instructionsreviewnote'] = $notefields['finalassessmentinstructions'] ?? null;
         }
+        if ($changediff !== null) {
+            $planfields = $changediff['planfields'] ?? [];
+            $data['instructionschanged'] = in_array('finalassessmentinstructions', $planfields, true);
+            $data['structurechanged'] = !empty(array_intersect($planfields, self::FINAL_ASSESSMENT_STRUCTURAL_FIELDS));
+        }
         return (object) $data;
     }
 
@@ -146,6 +204,8 @@ final class plan_read_export {
      * @param bool $includereviewnotes Whether to attach a coordinator review-note object next
      *     to each narrative field — see weeks() for the full rationale.
      * @param array $reviewnotes Result of plan_reader::review_notes(), for this same plan.
+     * @param array|null $changediff Result of plan_snapshot::diff() — see weeks() for the full
+     *     rationale.
      * @return stdClass[]
      */
     private static function activities(
@@ -153,7 +213,8 @@ final class plan_read_export {
         array $activities,
         bool $showtutorfields,
         bool $includereviewnotes,
-        array $reviewnotes
+        array $reviewnotes,
+        ?array $changediff = null
     ): array {
         $result = [];
         foreach ($activities as $activity) {
@@ -180,6 +241,17 @@ final class plan_read_export {
                     $data['gradingcriteriareviewnote'] = $notefields['gradingcriteria'] ?? null;
                     $data['tutorguidancereviewnote'] = $notefields['tutorguidance'] ?? null;
                 }
+            }
+            if ($changediff !== null) {
+                // Cast to int: see the equivalent cast in weeks() for why it matters here too.
+                $data['isnew'] = in_array((int) $activity->id, $changediff['newactivityids'] ?? [], true);
+                $activitychanges = $changediff['activities'][$activity->id] ?? [];
+                $data['studentinstructionschanged'] = in_array('studentinstructions', $activitychanges, true);
+                if ($showtutorfields) {
+                    $data['gradingcriteriachanged'] = in_array('gradingcriteria', $activitychanges, true);
+                    $data['tutorguidancechanged'] = in_array('tutorguidance', $activitychanges, true);
+                }
+                $data['structurechanged'] = !empty(array_diff($activitychanges, self::ACTIVITY_NARRATIVE_SHORTNAMES));
             }
             $result[] = (object) $data;
         }

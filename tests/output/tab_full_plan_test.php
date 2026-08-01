@@ -27,6 +27,7 @@
 namespace mod_syllabus\output;
 
 use advanced_testcase;
+use mod_syllabus\customfield\plan_handler;
 use mod_syllabus\local\plan_state_manager;
 
 /**
@@ -84,6 +85,34 @@ final class tab_full_plan_test extends advanced_testcase {
         $cm = get_coursemodule_from_instance('syllabus', $syllabus->id, $course->id, false, MUST_EXIST);
 
         return [$syllabus, $cm, $course, $teacher];
+    }
+
+    /**
+     * Sets a Custom Field value directly, mirroring save_customfield_value::execute() — same
+     * helper already used by plan_reader_test.php/plan_snapshot_test.php.
+     *
+     * @param int $instanceid
+     * @param string $shortname
+     * @param string $value
+     * @return void
+     */
+    private function set_plan_customfield_value(int $instanceid, string $shortname, string $value): void {
+        $handler = plan_handler::create();
+        foreach ($handler->get_instance_data($instanceid, true) as $datacontroller) {
+            if ($datacontroller->get_field()->get('shortname') !== $shortname) {
+                continue;
+            }
+            if (!$datacontroller->get('id')) {
+                $datacontroller->set('contextid', $handler->get_instance_context($instanceid)->id);
+            }
+            $fakeform = new \stdClass();
+            $fakeform->{$datacontroller->get_form_element_name()} = [
+                'text' => $value, 'format' => FORMAT_HTML, 'itemid' => 0,
+            ];
+            $datacontroller->instance_form_save($fakeform);
+            return;
+        }
+        $this->fail("Seeded field '{$shortname}' not found.");
     }
 
     /**
@@ -325,6 +354,80 @@ final class tab_full_plan_test extends advanced_testcase {
         $syllabus = $this->refresh($syllabus);
         $page = new tab_full_plan($syllabus, $cm, $course);
         $this->assertNull($page->export_for_template($GLOBALS['PAGE']->get_renderer('mod_syllabus'))->resubmissionnote);
+    }
+
+    /**
+     * The reviewer's read branch attaches "changed since last review" indicators once a
+     * baseline exists (request_changes() took one) and the plan was resubmitted with real
+     * changes: an edited narrative field, an untouched narrative field, a brand-new week, and
+     * the pre-existing week/activity left exactly as they were. Never exposed to the author's
+     * own edit view, even though the same account also holds the review capability here.
+     *
+     * @return void
+     */
+    public function test_reviewer_read_branch_shows_changed_since_review_indicators(): void {
+        global $DB;
+
+        [$syllabus, $cm, $course, $teacher] = $this->seed_editable_plan();
+        $reviewer = $this->getDataGenerator()->create_user();
+        $this->getDataGenerator()->enrol_user($reviewer->id, $course->id, 'manager');
+
+        plan_state_manager::submit($syllabus->id, (int) $teacher->id);
+        plan_state_manager::request_changes($syllabus->id, (int) $reviewer->id, 'Please adjust the ementa.');
+
+        $this->set_plan_customfield_value($syllabus->id, 'coursedescription', 'Updated ementa text.');
+        $now = time();
+        $DB->insert_record('syllabus_weeks', [
+            'syllabusid' => $syllabus->id, 'title' => 'Week 2 — New', 'duration' => 4,
+            'startdate' => $now, 'enddate' => $now + WEEKSECS, 'sortorder' => 1,
+            'timecreated' => $now, 'timemodified' => $now,
+        ]);
+        plan_state_manager::submit($syllabus->id, (int) $teacher->id);
+        $syllabus = $this->refresh($syllabus);
+
+        $this->setUser($reviewer);
+        $page = new tab_full_plan($syllabus, $cm, $course);
+        $data = $page->export_for_template($GLOBALS['PAGE']->get_renderer('mod_syllabus'));
+
+        $this->assertTrue($data->coursedescriptionchanged);
+        $this->assertFalse($data->objectiveschanged);
+
+        $weekbytitle = [];
+        foreach ($data->readweeks as $week) {
+            $weekbytitle[$week->title] = $week;
+        }
+        $this->assertTrue($weekbytitle['Week 2 — New']->isnew);
+        $this->assertFalse($weekbytitle['Week 1']->isnew);
+        $this->assertFalse($weekbytitle['Week 1']->structurechanged);
+        $this->assertFalse($weekbytitle['Week 1']->detailschanged);
+
+        // The author's own edit view (caneditcontent) never exposes these, even though the
+        // same account also holds mod/syllabus:review here.
+        $this->setUser($teacher);
+        $authordata = $page->export_for_template($GLOBALS['PAGE']->get_renderer('mod_syllabus'));
+        $this->assertFalse(property_exists($authordata, 'coursedescriptionchanged'));
+    }
+
+    /**
+     * A plan that has never been through a coordinator decision has no reviewsnapshot to diff
+     * against — the reviewer's read branch simply carries no indicators at all, rather than
+     * erroring or reporting everything as "changed".
+     *
+     * @return void
+     */
+    public function test_reviewer_read_branch_has_no_indicators_before_first_review(): void {
+        [$syllabus, $cm, $course, $teacher] = $this->seed_editable_plan();
+        $reviewer = $this->getDataGenerator()->create_user();
+        $this->getDataGenerator()->enrol_user($reviewer->id, $course->id, 'manager');
+        plan_state_manager::submit($syllabus->id, (int) $teacher->id);
+        $syllabus = $this->refresh($syllabus);
+
+        $this->setUser($reviewer);
+        $page = new tab_full_plan($syllabus, $cm, $course);
+        $data = $page->export_for_template($GLOBALS['PAGE']->get_renderer('mod_syllabus'));
+
+        $this->assertFalse(property_exists($data, 'coursedescriptionchanged'));
+        $this->assertFalse(property_exists($data->readweeks[0], 'isnew'));
     }
 
     /**

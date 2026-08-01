@@ -220,6 +220,49 @@ final class plan_state_manager_test extends advanced_testcase {
     }
 
     /**
+     * Approving a plan re-baselines reviewsnapshot to the plan's current state — the JSON
+     * decodes to the same nested shape plan_snapshot::build() produces, keyed by 'plan', with
+     * the structural column value it was just approved with.
+     *
+     * @return void
+     */
+    public function test_approve_persists_a_reviewsnapshot(): void {
+        global $DB;
+
+        $author = $this->getDataGenerator()->create_user();
+        $reviewer = $this->getDataGenerator()->create_user();
+        $syllabusid = $this->create_plan(plan_state_manager::STATUS_SUBMITTED, (int) $author->id);
+
+        plan_state_manager::approve($syllabusid, (int) $reviewer->id);
+
+        $plan = $DB->get_record('syllabus', ['id' => $syllabusid], '*', MUST_EXIST);
+        $this->assertNotEmpty($plan->reviewsnapshot);
+        $snapshot = json_decode($plan->reviewsnapshot, true);
+        $this->assertSame('2026.1', $snapshot['plan']['academicperiod']);
+    }
+
+    /**
+     * Requesting changes also re-baselines reviewsnapshot — the resubmission that follows is
+     * diffed against exactly what the coordinator saw when asking for changes.
+     *
+     * @return void
+     */
+    public function test_request_changes_persists_a_reviewsnapshot(): void {
+        global $DB;
+
+        $author = $this->getDataGenerator()->create_user();
+        $reviewer = $this->getDataGenerator()->create_user();
+        $syllabusid = $this->create_plan(plan_state_manager::STATUS_SUBMITTED, (int) $author->id);
+
+        plan_state_manager::request_changes($syllabusid, (int) $reviewer->id, 'Fix it.');
+
+        $plan = $DB->get_record('syllabus', ['id' => $syllabusid], '*', MUST_EXIST);
+        $this->assertNotEmpty($plan->reviewsnapshot);
+        $snapshot = json_decode($plan->reviewsnapshot, true);
+        $this->assertSame('2026.1', $snapshot['plan']['academicperiod']);
+    }
+
+    /**
      * Approving a plan makes its course module visible — the "automatic publication"
      * the whole workflow exists for. Needs a real course module (unlike the other tests
      * here, which only touch the bare syllabus row), so it uses the module generator

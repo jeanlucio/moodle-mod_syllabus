@@ -46,10 +46,11 @@ approved, then verify what only a real, multi-user browser session can prove:
 
 | Test file | Cases |
 |-----------|------:|
-| `plan_state_manager_test.php` | 23 |
+| `plan_state_manager_test.php` | 25 |
 | `plan_completeness_checker_test.php` | 12 |
+| `plan_snapshot_test.php` | 7 |
 | `structural_change_detector_test.php` | 4 |
-| **Subtotal** | **39** |
+| **Subtotal** | **48** |
 
 ### Web Services Tests (`tests/external/`)
 
@@ -73,18 +74,18 @@ approved, then verify what only a real, multi-user browser session can prove:
 
 | Test file | Cases |
 |-----------|------:|
-| `output/tab_full_plan_test.php` | 10 |
+| `output/tab_full_plan_test.php` | 12 |
 | `task/send_workflow_notification_test.php` | 10 |
+| `output/plan_read_export_test.php` | 8 |
 | `observer_test.php` | 6 |
 | `output/plan_reader_test.php` | 6 |
 | `output/tab_visibility_test.php` | 5 |
-| `output/plan_read_export_test.php` | 4 |
 | `observer_notifications_test.php` | 3 |
 | `output/narrative_editor_test.php` | 3 |
 | `output/plan_teacher_name_test.php` | 3 |
 | `output/renderer_test.php` | 3 |
 | `output/plan_programme_name_test.php` | 2 |
-| **Subtotal** | **55** |
+| **Subtotal** | **61** |
 
 ### Backup, Restore, Upgrade, Privacy & Security Tests
 
@@ -97,7 +98,7 @@ approved, then verify what only a real, multi-user browser session can prove:
 | `db_uninstall_test.php` | 1 |
 | **Subtotal** | **33** |
 
-| **Grand Total** | **202** |
+| **Grand Total** | **217** |
 
 ```bash
 vendor/bin/phpunit --bootstrap lib/phpunit/bootstrap.php mod/syllabus
@@ -124,6 +125,7 @@ vendor/bin/phpunit --bootstrap lib/phpunit/bootstrap.php mod/syllabus
 | `local\customfield_seeder` | 100% |
 | `local\help_text_builder` | 100% |
 | `local\plan_completeness_checker` | 100% |
+| `local\plan_snapshot` | 100% |
 | `local\plan_state_manager` | 100% |
 | `local\structural_change_detector` | 100% |
 | `observer` | 100% |

@@ -53,6 +53,26 @@ logo acima do botão "Enviar para revisão", para explicar o que mudou:
 * Ela some assim que o plano é aprovado, da mesma forma que o texto de justificativa da própria
   coordenação.
 
+## Indicadores de campos alterados desde a última revisão
+
+Um retrato dos campos do plano — colunas estruturais e conteúdo narrativo dos Custom Fields —
+é tirado automaticamente toda vez que a coordenação aprova ou solicita ajustes. Na próxima vez
+que a coordenação abrir o plano com uma decisão pendente, o que mudou desde esse retrato
+aparece sinalizado exatamente onde aconteceu:
+
+* Cada campo narrativo que mudou ganha um selo "Alterado desde a última revisão", logo acima
+  do seu conteúdo — o mesmo lugar onde já fica a caixinha de observação daquele campo.
+* Uma aula ou atividade com um detalhe estrutural alterado (datas, carga horária, tipo,
+  pontuação, ...) ganha o mesmo selo ao lado do título; uma que ainda não existia antes ganha
+  o selo "Nova desde a última revisão" no lugar.
+* Uma aula ou atividade que existia na última revisão mas foi apagada não tem mais onde
+  colocar um selo, então aparece listada pelo nome, num resumo perto do topo da página.
+* Nada é sinalizado na primeira revisão de um plano (ainda não existe um retrato anterior pra
+  comparar), e os indicadores somem assim que a coordenação decide de novo — cada decisão
+  redefine o que "desde a última revisão" significa.
+* Só a coordenação vê esses indicadores — nunca a visão de edição do professor, mesmo numa
+  conta que também tenha a capability de submissão.
+
 ## Quais edições reabrem a revisão, e quais nunca reabrem
 
 Depois que um plano foi aprovado ao menos uma vez, editá-lo se comporta de forma diferente

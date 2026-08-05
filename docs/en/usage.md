@@ -48,6 +48,26 @@ above the "Submit for review" button, to explain what changed:
 * It disappears once the plan is approved, the same way the coordinator's own justification
   text does.
 
+## Changed-since-review indicators
+
+A snapshot of the plan's fields — structural columns and narrative Custom Field content alike
+— is taken automatically every time coordination approves or requests changes. The next time
+coordination opens the plan while a decision is pending, whatever changed since that snapshot
+is flagged right where it happened:
+
+* Each narrative field that changed gets a "Changed since last review" badge, right above its
+  content — same place the field's own review-note box lives.
+* A week or activity with a changed structural detail (dates, duration, type, points, …) gets
+  the same badge next to its title; one that did not exist yet gets a "New since last review"
+  badge instead.
+* A week or activity that existed at the last review but was since deleted has nothing left to
+  badge, so it is listed by name instead, in a summary near the top of the page.
+* Nothing is flagged on a plan's very first review (there is no prior snapshot yet to compare
+  against), and the indicators disappear once coordination decides again — each decision
+  re-baselines what "since last review" means.
+* Only coordination sees these — never the teacher's own edit view, even for an account that
+  also holds the submit capability.
+
 ## Which edits reopen review, and which never do
 
 Once a plan has been approved at least once, editing it behaves differently depending on what

@@ -8,7 +8,7 @@ lang: pt
 ![License](https://img.shields.io/badge/License-GPLv3-blue?style=flat)
 ![Status](https://img.shields.io/badge/Status-Alpha-red?style=flat)
 [![Latest Release](https://img.shields.io/github/v/release/jeanlucio/moodle-mod_syllabus?style=flat)](https://github.com/jeanlucio/moodle-mod_syllabus/releases)
-[![Author](https://img.shields.io/badge/by-Jean_Lucio-6f42c1?style=flat)](https://marketplace.moodle.com/user/984)
+[![Author](https://img.shields.io/badge/by-Jean_Lucio-6f42c1?style=flat)](https://github.com/jeanlucio/)
 
 [![Moodle Plugin CI](https://github.com/jeanlucio/moodle-mod_syllabus/actions/workflows/ci.yml/badge.svg)](https://github.com/jeanlucio/moodle-mod_syllabus/actions/workflows/ci.yml)
 [![Last Commit](https://img.shields.io/github/last-commit/jeanlucio/moodle-mod_syllabus?style=flat)](https://github.com/jeanlucio/moodle-mod_syllabus/commits)
@@ -19,9 +19,7 @@ estruturado, com autosave por campo, submete para aprovação da coordenação e
 — a mesma instância passa a renderizar automaticamente três visões por papel: coordenação/
 professor, tutor (com critérios de avaliação e gabarito), e estudante (sem eles).
 
-Use a barra lateral para pular direto a qualquer seção desta página.
-
-Código-fonte: [github.com/jeanlucio/moodle-mod_syllabus](https://github.com/jeanlucio/moodle-mod_syllabus)
+<p class="page-hint">👈 Use a barra lateral para pular direto a qualquer seção desta página.</p>
 
 ---
 

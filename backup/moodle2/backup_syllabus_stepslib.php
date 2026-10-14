@@ -76,7 +76,7 @@ class backup_syllabus_activity_structure_step extends backup_activity_structure_
         $syllabus = new backup_nested_element('syllabus', ['id'], [
             'name', 'intro', 'introformat', 'status', 'submittedby', 'timesubmitted',
             'reviewedby', 'timereviewed', 'changesrequestedreason', 'unpublishedby',
-            'timeunpublished', 'academicperiod', 'coursestartdate', 'courseenddate',
+            'timeunpublished', 'resubmissionnote', 'reviewsnapshot', 'academicperiod', 'coursestartdate', 'courseenddate',
             'totalduration', 'presentationvideourl', 'stagecount', 'grademethod',
             'finalassessmenttitle', 'finalassessmenttype', 'finalassessmentstartdate',
             'finalassessmentenddate', 'finalassessmentpoints', 'timecreated', 'timemodified',

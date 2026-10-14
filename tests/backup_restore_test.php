@@ -495,6 +495,39 @@ final class backup_restore_test extends \advanced_testcase {
     }
 
     /**
+     * The author's resubmission note and the snapshot the next review diffs against survive a full
+     * course backup/restore, together with the rest of the review workflow state. Neither column was
+     * in the backup, so a restored plan kept its "changes requested" status but lost both.
+     *
+     * @covers \backup_syllabus_activity_structure_step
+     * @return void
+     */
+    public function test_full_course_backup_restore_preserves_the_resubmission_note_and_snapshot(): void {
+        global $DB;
+
+        $this->setAdminUser();
+        $course = $this->getDataGenerator()->create_course();
+        $author = $this->getDataGenerator()->create_user();
+        $reviewer = $this->getDataGenerator()->create_user();
+        $this->getDataGenerator()->enrol_user($author->id, $course->id, 'editingteacher');
+        $this->getDataGenerator()->enrol_user($reviewer->id, $course->id, 'manager');
+
+        [$syllabus] = $this->seed_plan($course->id);
+        $manager = \mod_syllabus\local\plan_state_manager::class;
+        $manager::submit($syllabus->id, (int) $author->id);
+        $manager::request_changes($syllabus->id, (int) $reviewer->id, 'Add a rubric');
+        $manager::submit($syllabus->id, (int) $author->id, 'Rubric added to week 2');
+        $original = $DB->get_record('syllabus', ['id' => $syllabus->id], '*', MUST_EXIST);
+        $this->assertNotEmpty($original->reviewsnapshot);
+
+        $newcourse = $this->backup_and_restore_into_new_course($course);
+
+        $restored = $DB->get_record('syllabus', ['course' => $newcourse->id], '*', MUST_EXIST);
+        $this->assertSame('Rubric added to week 2', $restored->resubmissionnote);
+        $this->assertSame($original->reviewsnapshot, $restored->reviewsnapshot);
+    }
+
+    /**
      * A full course backup/restore preserves review notes on all three field levels, still
      * attached to the exact field they were left on, and remaps reviewerid to the restored
      * copy of the same user — mirroring test_full_course_backup_restore_remaps_workflow_users

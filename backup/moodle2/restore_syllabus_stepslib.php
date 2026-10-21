@@ -242,7 +242,7 @@ class restore_syllabus_activity_structure_step extends restore_activity_structur
             return;
         }
 
-        $DB->insert_record('syllabus_review_notes', (object) [
+        $newitemid = $DB->insert_record('syllabus_review_notes', (object) [
             'syllabusid'   => $this->get_new_parentid('syllabus'),
             'area'         => $area,
             'instanceid'   => $instanceid,
@@ -252,6 +252,8 @@ class restore_syllabus_activity_structure_step extends restore_activity_structur
             'timecreated'  => $data['timecreated'],
             'timemodified' => $data['timemodified'],
         ]);
+        // Registered so the activity task can decode the links in the note.
+        $this->set_mapping('syllabus_review_note', (int) $data['id'], $newitemid);
     }
 
     /**

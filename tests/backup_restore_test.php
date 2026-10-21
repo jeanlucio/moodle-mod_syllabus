@@ -594,4 +594,47 @@ final class backup_restore_test extends \advanced_testcase {
         $newreviewer = $DB->get_record('user', ['id' => $planrecord->reviewerid], '*', MUST_EXIST);
         $this->assertSame($reviewer->username, $newreviewer->username);
     }
+
+    /**
+     * The links inside the coordinator's reason, the author's resubmission note and a review note survive a
+     * full course restore: the backup encodes every link in the text columns it writes, and only the
+     * activity's intro was decoded back.
+     *
+     * @covers \restore_syllabus_activity_task
+     * @return void
+     */
+    public function test_full_course_backup_restore_decodes_links_in_the_workflow_notes(): void {
+        global $CFG, $DB;
+
+        $this->setAdminUser();
+        $course = $this->getDataGenerator()->create_course();
+        [$syllabus] = $this->seed_plan($course->id);
+        $reviewer = $this->getDataGenerator()->create_user();
+        $this->getDataGenerator()->enrol_user($reviewer->id, $course->id, 'manager');
+        $link = $CFG->wwwroot . '/course/view.php?id=' . $course->id;
+        $DB->set_field('syllabus', 'changesrequestedreason', 'Follow ' . $link, ['id' => $syllabus->id]);
+        $DB->set_field('syllabus', 'resubmissionnote', 'Done, see ' . $link, ['id' => $syllabus->id]);
+        $this->add_review_note(
+            $syllabus->id,
+            'plan',
+            $syllabus->id,
+            plan_handler::create(),
+            'coursedescription',
+            'Check ' . $link,
+            (int) $reviewer->id
+        );
+
+        $newcourse = $this->backup_and_restore_into_new_course($course);
+
+        $newlink = $CFG->wwwroot . '/course/view.php?id=' . $newcourse->id;
+        $restored = $DB->get_record('syllabus', ['course' => $newcourse->id], '*', MUST_EXIST);
+        $note = $DB->get_record('syllabus_review_notes', ['syllabusid' => $restored->id], '*', MUST_EXIST);
+        $this->assertStringContainsString($newlink, $restored->changesrequestedreason);
+        $this->assertStringContainsString($newlink, $restored->resubmissionnote);
+        $this->assertStringContainsString($newlink, $note->note);
+        $this->assertStringNotContainsString(
+            '$@',
+            $restored->changesrequestedreason . $restored->resubmissionnote . $note->note
+        );
+    }
 }

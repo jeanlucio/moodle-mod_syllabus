@@ -70,7 +70,14 @@ class restore_syllabus_activity_task extends restore_activity_task {
     public static function define_decode_contents() {
         $contents = [];
 
-        $contents[] = new restore_decode_content('syllabus', ['intro'], 'syllabus');
+        // The backup transformer encodes the links inside every text column it writes, so the notes
+        // the coordinator and the author read have to be decoded back too.
+        $contents[] = new restore_decode_content(
+            'syllabus',
+            ['intro', 'changesrequestedreason', 'resubmissionnote'],
+            'syllabus'
+        );
+        $contents[] = new restore_decode_content('syllabus_review_notes', ['note'], 'syllabus_review_note');
 
         return $contents;
     }

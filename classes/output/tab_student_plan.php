@@ -76,7 +76,7 @@ final class tab_student_plan implements renderable, templatable {
             'hasmultiplestages' => $stagecount > 1,
             'grademethodlabel' => get_string('grademethod' . $this->syllabus->grademethod, 'mod_syllabus'),
             'coursename'       => plan_programme_name::resolve((int) $this->course->category),
-            'disciplinename'   => format_string($this->course->fullname),
+            'disciplinename'   => \mod_syllabus\local\text::plain($this->course->fullname),
             'teachername'      => plan_teacher_name::resolve($this->syllabus),
             'academicperiod'   => $this->syllabus->academicperiod,
             'coursestartdate'  => $this->syllabus->coursestartdate,

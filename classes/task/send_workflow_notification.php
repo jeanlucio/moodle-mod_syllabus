@@ -20,6 +20,7 @@ use context_module;
 use core\message\message;
 use core\task\adhoc_task;
 use core_user;
+use mod_syllabus\local\text;
 use moodle_url;
 use stdClass;
 
@@ -71,7 +72,7 @@ final class send_workflow_notification extends adhoc_task {
         }
 
         $context = context_module::instance($cm->id);
-        $subject = get_string('messagesubjectsubmitted', 'mod_syllabus', format_string($plan->name));
+        $subject = get_string('messagesubjectsubmitted', 'mod_syllabus', text::plain($plan->name));
         $body = $this->build_submitted_body($plan, $cm);
 
         foreach (get_users_by_capability($context, 'mod/syllabus:review') as $recipient) {
@@ -100,8 +101,8 @@ final class send_workflow_notification extends adhoc_task {
             $cm,
             $author,
             'plan_approved',
-            get_string('messagesubjectapproved', 'mod_syllabus', format_string($plan->name)),
-            get_string('messagebodyapproved', 'mod_syllabus', format_string($plan->name))
+            get_string('messagesubjectapproved', 'mod_syllabus', text::plain($plan->name)),
+            get_string('messagebodyapproved', 'mod_syllabus', text::plain($plan->name))
         );
     }
 
@@ -119,13 +120,13 @@ final class send_workflow_notification extends adhoc_task {
             return;
         }
 
-        $a = (object) ['name' => format_string($plan->name), 'reason' => $reason];
+        $a = (object) ['name' => text::plain($plan->name), 'reason' => $reason];
         $this->send_message(
             $plan,
             $cm,
             $author,
             'plan_changes_requested',
-            get_string('messagesubjectchangesrequested', 'mod_syllabus', format_string($plan->name)),
+            get_string('messagesubjectchangesrequested', 'mod_syllabus', text::plain($plan->name)),
             get_string('messagebodychangesrequested', 'mod_syllabus', $a)
         );
     }
@@ -165,7 +166,7 @@ final class send_workflow_notification extends adhoc_task {
 
         $lines = [
             get_string('messagebodysubmitted', 'mod_syllabus', (object) [
-                'planname' => format_string($plan->name),
+                'planname' => text::plain($plan->name),
                 'coursename' => $course ? format_string($course->fullname) : '',
             ]),
             '',
@@ -234,7 +235,7 @@ final class send_workflow_notification extends adhoc_task {
         $message->smallmessage = $subject;
         $message->notification = 1;
         $message->contexturl = new moodle_url('/mod/syllabus/view.php', ['id' => $cm->id]);
-        $message->contexturlname = format_string($plan->name);
+        $message->contexturlname = text::plain($plan->name);
         message_send($message);
     }
 }

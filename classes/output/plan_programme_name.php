@@ -35,7 +35,7 @@ namespace mod_syllabus\output;
  */
 final class plan_programme_name {
     /**
-     * Resolves the display name of a course category, or an empty string if it no longer exists.
+     * Resolves the display name of a course category as plain text, or an empty string if it no longer exists.
      *
      * @param int $categoryid The course's category id.
      * @return string
@@ -44,6 +44,6 @@ final class plan_programme_name {
         global $DB;
 
         $name = $DB->get_field('course_categories', 'name', ['id' => $categoryid]);
-        return $name !== false ? format_string($name) : '';
+        return $name !== false ? \mod_syllabus\local\text::plain($name) : '';
     }
 }

@@ -23,7 +23,6 @@
  */
 
 defined('MOODLE_INTERNAL') || die();
-// phpcs:disable moodle.Files.LineLength
 
 $string['academicperiod'] = 'Ano/semestre';
 $string['actionnotallowed'] = 'Ação não permitida';
